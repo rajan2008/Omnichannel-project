@@ -20,33 +20,94 @@ const sendOtpEmail = async (email, otp) => {
   });
 };
 
-// Step 1: Register — save user (unverified), send OTP
-export const registerUser = async (req, res) => {
+// Seed first admin — only works if NO admin exists
+export const seedAdmin = async (req, res) => {
   try {
-    const { name, email, password, phone, role } = req.body;
+    const adminExists = await User.findOne({ role: "admin", isVerified: true });
+    if (adminExists) return res.status(403).json({ message: "Admin already exists" });
+
+    const { name, email, password, phone } = req.body;
+    const otp = generateOtp();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
 
     const existing = await User.findOne({ email });
-    if (existing && existing.isVerified) {
-      return res.status(400).json({ message: "Email already registered" });
+    if (existing) {
+      existing.name = name; 
+      if (password) existing.password = password;
+      existing.role = "admin"; existing.otp = otp; existing.otpExpire = otpExpire;
+      if (phone) existing.phone = phone;
+      await existing.save();
+    } else {
+      await User.create({ name, email, password, phone, role: "admin", otp, otpExpire });
     }
+
+    await sendOtpEmail(email, otp);
+    res.status(200).json({ message: "Admin OTP sent. Verify to activate admin account." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Step 1: Register — public, role always cashier
+export const registerUser = async (req, res) => {
+  try {
+    const { name, email, password, phone } = req.body;
+
+    const existing = await User.findOne({ email });
+    if (existing && existing.isVerified)
+      return res.status(400).json({ message: "Email already registered" });
 
     const otp = generateOtp();
     const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
 
     if (existing) {
       existing.name = name;
-      existing.password = password;
+      if (password) existing.password = password;
+      existing.role = "cashier"; // force cashier always
       existing.otp = otp;
       existing.otpExpire = otpExpire;
       if (phone) existing.phone = phone;
-      if (role) existing.role = role;
+      await existing.save();
+    } else {
+      await User.create({ name, email, password, phone, role: "cashier", otp, otpExpire });
+    }
+
+    await sendOtpEmail(email, otp);
+    res.status(200).json({ message: "OTP sent to email. Please verify to complete registration." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Admin creates manager/admin/cashier — OTP goes to that user's email
+export const createUserByAdmin = async (req, res) => {
+  try {
+    const { name, email, password, phone, role } = req.body;
+
+    if (!["admin", "manager", "cashier"].includes(role))
+      return res.status(400).json({ message: "Invalid role" });
+
+    const existing = await User.findOne({ email });
+    if (existing && existing.isVerified)
+      return res.status(400).json({ message: "Email already registered" });
+
+    const otp = generateOtp();
+    const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
+
+    if (existing) {
+      existing.name = name;
+      if (password) existing.password = password;
+      existing.role = role;
+      existing.otp = otp;
+      existing.otpExpire = otpExpire;
+      if (phone) existing.phone = phone;
       await existing.save();
     } else {
       await User.create({ name, email, password, phone, role, otp, otpExpire });
     }
 
     await sendOtpEmail(email, otp);
-    res.status(200).json({ message: "OTP sent to email. Please verify to complete registration." });
+    res.status(200).json({ message: `${role} account created. OTP sent to ${email}` });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

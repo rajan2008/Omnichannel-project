@@ -1,19 +1,22 @@
-import express from "express";
 import dotenv from "dotenv";
-import authRoutes from "./src/routes/authRoutes.js";
-import connect from "./src/config/connectdb.js";
 dotenv.config();
-const app = express();
 
+import express from "express";
+import cors from "cors";
+import connect from "./src/config/connectdb.js";
+import authRoutes from "./src/routes/authRoutes.js";
+import inventoryRoutes from "./src/routes/inventoryRoutes.js";
+import orderRoutes from "./src/routes/orderRoutes.js";
+
+const app = express();
+app.use(cors());
 app.use(express.json());
 
-
 app.use("/api/auth", authRoutes);
+app.use("/api/inventory", inventoryRoutes);
+app.use("/api/orders", orderRoutes);
 
-//Dummy
-app.get("/api", (req, res) => {
-  res.send("API is running");
-});
+app.get("/api", (req, res) => res.send("API is running"));
 
 const startServr = async () => {
   try {
@@ -25,6 +28,6 @@ const startServr = async () => {
     console.log("Server failed to start");
     process.exit(1);
   }
-}
+};
 
-startServr()
+startServr();
