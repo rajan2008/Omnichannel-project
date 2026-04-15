@@ -17,44 +17,58 @@ const Signup = () => {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-center mb-6">Signup</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-green-400 via-blue-500 to-purple-600">
+      
+      <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/30">
+        
+        <h2 className="text-3xl font-bold text-center text-white mb-6">
+          Create Account 🚀
+        </h2>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="text"
-          name="name"
-          placeholder="Enter Name"
-          value={data.name}
-          onChange={handleChange}
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-        />
+        <form onSubmit={handleSubmit} className="space-y-5">
+          
+          <input
+            type="text"
+            name="name"
+            placeholder="Enter Name"
+            value={data.name}
+            onChange={handleChange}
+            className="w-full p-3 rounded-lg bg-white/30 text-white placeholder-white outline-none focus:ring-2 focus:ring-pink-300"
+          />
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Enter Email"
-          value={data.email}
-          onChange={handleChange}
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-        />
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter Email"
+            value={data.email}
+            onChange={handleChange}
+            className="w-full p-3 rounded-lg bg-white/30 text-white placeholder-white outline-none focus:ring-2 focus:ring-pink-300"
+          />
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Enter Password"
-          value={data.password}
-          onChange={handleChange}
-          className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-green-400"
-        />
+          <input
+            type="password"
+            name="password"
+            placeholder="Enter Password"
+            value={data.password}
+            onChange={handleChange}
+            className="w-full p-3 rounded-lg bg-white/30 text-white placeholder-white outline-none focus:ring-2 focus:ring-pink-300"
+          />
 
-        <button
-          type="submit"
-          className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600"
-        >
-          Signup
-        </button>
-      </form>
+          <button
+            type="submit"
+            className="w-full py-3 rounded-lg font-semibold bg-pink-400 text-white hover:bg-pink-300 transition duration-300 shadow-md"
+          >
+            Signup
+          </button>
+        </form>
+
+        <p className="text-center text-white mt-4 text-sm">
+          Already have an account?{" "}
+          <span className="underline cursor-pointer hover:text-yellow-300">
+            Login
+          </span>
+        </p>
+      </div>
     </div>
   );
 };
