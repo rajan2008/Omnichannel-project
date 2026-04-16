@@ -79,6 +79,66 @@ export const registerUser = async (req, res) => {
   }
 };
 
+//Login API
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined");
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    if (!user.isVerified) {
+      return res.status(403).json({ message: "Please verify your account first" });
+    }
+
+    if (!user.isActive) {
+      return res.status(403).json({ message: "Account is deactivated" });
+    }
+
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
+    user.lastLogin = new Date();
+    await user.save();
+
+    const token = jwt.sign(
+      {
+        id: user._id,
+        role: user.role,
+        email: user.email
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        isActive: user.isActive,
+      },
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // Admin creates manager/admin/cashier — OTP goes to that user's email
 export const createUserByAdmin = async (req, res) => {
   try {
@@ -140,30 +200,4 @@ export const verifyOtp = async (req, res) => {
   }
 };
 
-// Step 3: Login User — check credentials and return JWT token
-export const loginUser = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid email or password" });
-
-    if (!user.isVerified) return res.status(403).json({ message: "Please verify your account using OTP first" });
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid email or password" });
-
-    // JWT generate
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
-
-    // Token send
-    res.status(200).json({
-      message: "Login successful",
-      token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
+// Removed duplicate loginUser logic
