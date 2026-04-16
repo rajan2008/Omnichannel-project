@@ -83,23 +83,40 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ message: "Invalid email or password" });
+
+    if (!process.env.JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined");
     }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid credentials" });
+    }
+
     if (!user.isVerified) {
       return res.status(403).json({ message: "Please verify your account first" });
     }
+
     if (!user.isActive) {
       return res.status(403).json({ message: "Account is deactivated" });
     }
+
     const isMatch = await user.comparePassword(password);
+
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid email or password" });
+      return res.status(400).json({ message: "Invalid credentials" });
     }
 
+    user.lastLogin = new Date();
+    await user.save();
+
     const token = jwt.sign(
-      { id: user._id, role: user.role },
+      {
+        id: user._id,
+        role: user.role,
+        email: user.email
+      },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
@@ -112,6 +129,8 @@ export const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone,
+        isActive: user.isActive,
       },
     });
 

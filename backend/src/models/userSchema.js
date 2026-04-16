@@ -24,13 +24,17 @@ const userSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+const SALT_ROUNDS = parseInt(process.env.SALT_ROUNDS) || 10;
+
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-  this.password = await bcrypt.hash(this.password, 10);
+
+  this.password = await bcrypt.hash(this.password, SALT_ROUNDS);
 });
 
 userSchema.methods.comparePassword = async function (enteredPassword) {
-  return bcrypt.compare(enteredPassword, this.password);
-};
+  if (!this.password) return false;
+  return await bcrypt.compare(enteredPassword, this.password);
+}
 
 export default mongoose.model("User", userSchema);
