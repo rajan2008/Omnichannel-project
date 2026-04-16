@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Postman</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; background: #f4f4f5; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { margin-top: 0; font-size: 24px; color: #ff6c37; }
+        .row { display: flex; gap: 10px; margin-bottom: 15px; }
+        select, input, textarea, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        select { font-weight: bold; }
+        input[type="text"] { flex-grow: 1; }
+        textarea { width: 100%; height: 150px; font-family: monospace; resize: vertical; box-sizing: border-box; margin-bottom: 15px;}
+        button { background: #ff6c37; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        button:hover { background: #e05b2c; }
+        .response-area { margin-top: 20px; }
+        .response-box { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; word-break: break-all; min-height: 100px; }
+        .status { font-weight: bold; margin-bottom: 5px; }
+        label { font-weight: bold; font-size: 14px; display: block; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Mini Postman (API Tester)</h1>
+    
+    <label>Endpoint URL</label>
+    <div class="row">
+        <select id="method">
+            <option value="GET">GET</option>
+            <option selected value="POST">POST</option>
+            <option value="PUT">PUT</option>
+            <option value="DELETE">DELETE</option>
+        </select>
+        <input type="text" id="url" value="http://localhost:5000/api/auth/seed-admin" placeholder="http://localhost:5000/api/...">
+        <button onclick="sendRequest()">Send Request</button>
+    </div>
+
+    <label>Authorization Header (Bearer Token) - Leave blank if not needed</label>
+    <input type="text" id="token" style="width: 100%; box-sizing: border-box; margin-bottom: 15px;" placeholder="Bearer eyJhbGciOiJIUzI1NiIs...">
+
+    <label>JSON Body</label>
+    <textarea id="body">{
+  "name": "Super Admin",
+  "email": "admin@example.com",
+  "password": "password123",
+  "phone": "9876543210"
+}</textarea>
+
+    <div class="response-area">
+        <label>Response</label>
+        <div class="status" id="status">Status: Waiting...</div>
+        <div class="response-box" id="response">Response will appear here.</div>
+    </div>
+</div>
+
+<script>
+    async function sendRequest() {
+        const method = document.getElementById('method').value;
+        const url = document.getElementById('url').value;
+        const bodyContent = document.getElementById('body').value;
+        const token = document.getElementById('token').value;
+        const statusEl = document.getElementById('status');
+        const responseEl = document.getElementById('response');
+
+        statusEl.innerText = "Status: Sending...";
+        statusEl.style.color = "#ff6c37";
+        responseEl.innerText = "Loading...";
+
+        const headers = { 'Content-Type': 'application/json' };
+        if (token.trim() !== '') {
+            headers['Authorization'] = token.trim().startsWith('Bearer ') ? token : `Bearer ${token.trim()}`;
+        }
+
+        const options = {
+            method: method,
+            headers: headers
+        };
+
+        if (method !== 'GET' && method !== 'HEAD' && bodyContent.trim() !== '') {
+            try {
+                // Ensure it's valid JSON
+                JSON.parse(bodyContent);
+                options.body = bodyContent;
+            } catch (e) {
+                statusEl.innerText = "Status: Invalid JSON Body!";
+                statusEl.style.color = "red";
+                responseEl.innerText = e.message;
+                return;
+            }
+        }
+
+        try {
+            const start = Date.now();
+            const res = await fetch(url, options);
+            const time = Date.now() - start;
+            
+            statusEl.innerText = `Status: ${res.status} ${res.statusText} (${time}ms)`;
+            statusEl.style.color = res.ok ? "green" : "red";
+
+            let data;
+            try {
+                data = await res.json();
+                responseEl.innerText = JSON.stringify(data, null, 2);
+            } catch (e) {
+                const text = await res.text();
+                responseEl.innerText = text;
+            }
+        } catch (error) {
+            statusEl.innerText = "Status: Network Error / CORS / Connection Refused";
+            statusEl.style.color = "red";
+            responseEl.innerText = "Could not reach the server. Make sure your local server is running (npm run dev) on the correct port and CORS is enabled.\n\n" + error.message;
+        }
+    }
+</script>
+
+</body>
+</html>
