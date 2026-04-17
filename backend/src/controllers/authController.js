@@ -144,12 +144,15 @@ export const createUserByAdmin = async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
 
-    if (!["admin", "manager", "cashier"].includes(role))
+    if (!["admin", "manager", "cashier"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
+    }
 
     const existing = await User.findOne({ email });
-    if (existing && existing.isVerified)
+
+    if (existing && existing.isVerified) {
       return res.status(400).json({ message: "Email already registered" });
+    }
 
     const otp = generateOtp();
     const otpExpire = new Date(Date.now() + 10 * 60 * 1000);
@@ -161,13 +164,26 @@ export const createUserByAdmin = async (req, res) => {
       existing.otp = otp;
       existing.otpExpire = otpExpire;
       if (phone) existing.phone = phone;
+
       await existing.save();
     } else {
-      await User.create({ name, email, password, phone, role, otp, otpExpire });
+      await User.create({
+        name,
+        email,
+        password,
+        phone,
+        role,
+        otp,
+        otpExpire,
+      });
     }
 
     await sendOtpEmail(email, otp);
-    res.status(200).json({ message: `${role} account created. OTP sent to ${email}` });
+
+    res.status(200).json({
+      message: `${role} account created. OTP sent to ${email}`,
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -200,4 +216,16 @@ export const verifyOtp = async (req, res) => {
   }
 };
 
-// Removed duplicate loginUser logic
+// Get logged in user profile (Protected Route for Rajan's work)
+
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password -otp -otpExpire");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
