@@ -1,0 +1,74 @@
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import api from "../api/axios";
+
+export default function Register() {
+  const navigate = useNavigate();
+  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    try {
+      await api.post("/auth/register", form);
+      navigate("/verify-otp", { state: { email: form.email } });
+    } catch (err) {
+      setError(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+      <div className="w-full max-w-md bg-gray-900 rounded-2xl p-8 shadow-xl">
+        <h1 className="text-2xl font-bold text-white mb-1">Create Account</h1>
+        <p className="text-gray-400 text-sm mb-6">Register to access Infotact POS</p>
+
+        {error && <p className="bg-red-500/10 text-red-400 text-sm px-4 py-2 rounded-lg mb-4">{error}</p>}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-gray-400 text-sm mb-1 block">Full Name</label>
+            <input name="name" value={form.name} onChange={handleChange} required
+              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Rajan Prajapati" />
+          </div>
+          <div>
+            <label className="text-gray-400 text-sm mb-1 block">Email</label>
+            <input name="email" type="email" value={form.email} onChange={handleChange} required
+              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="you@gmail.com" />
+          </div>
+          <div>
+            <label className="text-gray-400 text-sm mb-1 block">Password</label>
+            <input name="password" type="password" value={form.password} onChange={handleChange} required minLength={8}
+              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Min 8 characters" />
+          </div>
+          <div>
+            <label className="text-gray-400 text-sm mb-1 block">Phone (optional)</label>
+            <input name="phone" value={form.phone} onChange={handleChange}
+              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="+91 9876543210" />
+          </div>
+
+          <button type="submit" disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50">
+            {loading ? "Sending OTP..." : "Register & Send OTP"}
+          </button>
+        </form>
+
+        <p className="text-gray-500 text-sm text-center mt-6">
+          Already have an account?{" "}
+          <Link to="/login" className="text-blue-400 hover:underline">Login</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
