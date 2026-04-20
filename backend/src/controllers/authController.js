@@ -2,7 +2,20 @@ import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer";
 import User from "../models/userSchema.js";
 
+const generateToken = (user) => {
+  return jwt.sign(
+    {
+      id: user._id,
+      role: user.role,
+      email: user.email,
+    },
+    process.env.JWT_SECRET,
+    { expiresIn: "7d" }
+  );
+};
+
 const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString();
+
 
 const sendOtpEmail = async (email, otp) => {
   const transporter = nodemailer.createTransport({
@@ -111,15 +124,7 @@ export const loginUser = async (req, res) => {
     user.lastLogin = new Date();
     await user.save();
 
-    const token = jwt.sign(
-      {
-        id: user._id,
-        role: user.role,
-        email: user.email
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const token = generateToken(user);
 
     res.status(200).json({
       message: "Login successful",
@@ -188,7 +193,7 @@ export const verifyOtp = async (req, res) => {
     user.otpExpire = undefined;
     await user.save();
 
-    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: "7d" });
+    const token = generateToken(user);
 
     res.status(200).json({
       message: "Registration successful",
