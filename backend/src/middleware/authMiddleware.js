@@ -41,10 +41,22 @@ export const protect = async (req, res, next) => {
   }
 };
 
-export const allowRoles = (...roles) => (req, res, next) => {
-  if (!roles.includes(req.user.role)) {
-    return res.status(403).json({ message: `Role (${req.user.role}) is not allowed to access this resource` });
-  }
-  next();
+export const allowRoles = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    if (!roles.includes(req.user.role)) {
+      return res.status(403).json({
+        message: `Access denied. Required roles: ${roles.join(", ")}`
+      });
+    }
+
+    next();
+  };
 };
 
+export const isAdmin = allowRoles("admin");
+export const isManager = allowRoles("admin", "manager");
+export const isCashier = allowRoles("admin", "manager", "cashier");

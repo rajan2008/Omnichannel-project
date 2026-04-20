@@ -1,64 +1,92 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import api from "../api/axios";
+import IMAGE from '../assets/image.jpg';
 
-export default function Login() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+const colors = {
+  primary: "#060606",
+  background: "#E0E0E0",
+  disabled: "#D9D9D9",
+};
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      const { data } = await api.post("/auth/login", form);
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      navigate("/dashboard");
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const Login = () => {
   return (
-    <div className="max-h-screen bg-gray-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-gray-900 rounded-2xl p-8 shadow-xl">
-        <h1 className="text-2xl font-bold text-white mb-1">Welcome Back</h1>
-        <p className="text-gray-400 text-sm mb-6">Login to your Infotact account</p>
+    <div className="w-full h-screen flex">
+      
+      {/* LEFT SIDE */}
+      <div className="relative w-1/2 h-full">
+        <img
+          src={IMAGE}
+          alt="login visual"
+          className="w-full h-full object-cover"
+        />
 
-        {error && <p className="bg-red-500/10 text-red-400 text-sm px-4 py-2 rounded-lg mb-4">{error}</p>}
+        <div className="absolute top-[20%] left-[10%] text-white">
+          <h1 className="text-4xl font-bold my-4">
+            Turn Ideas into Reality
+          </h1>
+          <p className="text-xl">
+            Start for free and get attractive offers from the community
+          </p>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-gray-400 text-sm mb-1 block">Email</label>
-            <input name="email" type="email" value={form.email} onChange={handleChange} required
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="you@gmail.com" />
+      {/* RIGHT SIDE */}
+      <div className="w-1/2 h-full bg-[#f5f5f5] flex flex-col justify-between p-20">
+        
+        <h1 className="text-xl font-semibold text-[#060606]">
+          Interactive Brand
+        </h1>
+
+        <div className="w-full flex flex-col">
+          
+          <div className="mb-6">
+            <h3 className="text-3xl font-semibold mb-2">Login</h3>
+            <p className="text-base">
+              Welcome Back! Please enter your details.
+            </p>
           </div>
-          <div>
-            <label className="text-gray-400 text-sm mb-1 block">Password</label>
-            <input name="password" type="password" value={form.password} onChange={handleChange} required
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="••••••••" />
+
+          <div className="w-full flex flex-col">
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
           </div>
 
-          <button type="submit" disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50">
-            {loading ? "Logging in..." : "Login"}
+          {/* Checkbox + Forgot */}
+          <div className="w-full flex items-center justify-between mt-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" />
+              Remember me
+            </label>
+
+            <p className="text-sm cursor-pointer text-blue-500">
+              Forgot Password?
+            </p>
+          </div>
+
+          {/* Button */}
+          <button className="w-full bg-black text-white py-3 mt-6 rounded-md hover:bg-gray-800 transition">
+            Login
           </button>
-        </form>
 
-        <p className="text-gray-500 text-sm text-center mt-6">
-          Don't have an account?{" "}
-          <Link to="/register" className="text-blue-400 hover:underline">Register</Link>
+        </div>
+
+        <p className="text-sm text-center">
+          Don’t have an account?{" "}
+          <span className="text-blue-500 cursor-pointer">
+            Sign up
+          </span>
         </p>
+
       </div>
     </div>
   );
-}
+};
+
+export default Login;

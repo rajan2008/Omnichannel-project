@@ -1,74 +1,100 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import api from "../api/axios";
+import IMAGE from '../assets/image.jpg';
 
-export default function Register() {
-  const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", email: "", password: "", phone: "" });
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+const colors = {
+  primary: "#060606",
+  background: "#E0E0E0",
+  disabled: "#D9D9D9",
+};
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await api.post("/auth/register", form);
-      navigate("/verify-otp", { state: { email: form.email } });
-    } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+const Register = () => {
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-gray-900 rounded-2xl p-8 shadow-xl">
-        <h1 className="text-2xl font-bold text-white mb-1">Create Account</h1>
-        <p className="text-gray-400 text-sm mb-6">Register to access Infotact POS</p>
+    <div className="w-full h-screen flex">
+      
+      {/* LEFT SIDE */}
+      <div className="relative w-1/2 h-full">
+        <img
+          src={IMAGE}
+          alt="register visual"
+          className="w-full h-full object-cover"
+        />
 
-        {error && <p className="bg-red-500/10 text-red-400 text-sm px-4 py-2 rounded-lg mb-4">{error}</p>}
+        <div className="absolute top-[20%] left-[10%] text-white">
+          <h1 className="text-4xl font-bold my-4">
+            Join the Community
+          </h1>
+          <p className="text-xl">
+            Create your account and start your journey today
+          </p>
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-gray-400 text-sm mb-1 block">Full Name</label>
-            <input name="name" value={form.name} onChange={handleChange} required
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Rajan Prajapati" />
-          </div>
-          <div>
-            <label className="text-gray-400 text-sm mb-1 block">Email</label>
-            <input name="email" type="email" value={form.email} onChange={handleChange} required
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="you@gmail.com" />
-          </div>
-          <div>
-            <label className="text-gray-400 text-sm mb-1 block">Password</label>
-            <input name="password" type="password" value={form.password} onChange={handleChange} required minLength={8}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Min 8 characters" />
-          </div>
-          <div>
-            <label className="text-gray-400 text-sm mb-1 block">Phone (optional)</label>
-            <input name="phone" value={form.phone} onChange={handleChange}
-              className="w-full bg-gray-800 text-white rounded-lg px-4 py-2.5 outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="+91 9876543210" />
+      {/* RIGHT SIDE */}
+      <div className="w-1/2 h-full bg-[#f5f5f5] flex flex-col justify-between p-20">
+        
+        <h1 className="text-xl font-semibold text-[#060606]">
+          Interactive Brand
+        </h1>
+
+        <div className="w-full flex flex-col">
+          
+          <div className="mb-6">
+            <h3 className="text-3xl font-semibold mb-2">Register</h3>
+            <p className="text-base">
+              Please fill in the details to create an account.
+            </p>
           </div>
 
-          <button type="submit" disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg transition disabled:opacity-50">
-            {loading ? "Sending OTP..." : "Register & Send OTP"}
+          <div className="w-full flex flex-col">
+            <input
+              type="text"
+              placeholder="Full Name"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
+
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
+
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
+
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
+          </div>
+
+          {/* Terms */}
+          <div className="w-full flex items-center mt-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" />
+              I agree to the Terms & Conditions
+            </label>
+          </div>
+
+          {/* Button */}
+          <button className="w-full bg-black text-white py-3 mt-6 rounded-md hover:bg-gray-800 transition">
+            Register
           </button>
-        </form>
 
-        <p className="text-gray-500 text-sm text-center mt-6">
+        </div>
+
+        <p className="text-sm text-center">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-400 hover:underline">Login</Link>
+          <span className="text-blue-500 cursor-pointer">
+            Login
+          </span>
         </p>
+
       </div>
     </div>
   );
-}
+};
+
+export default Register;
