@@ -1,63 +1,89 @@
-import React, { useState } from "react";
+import IMAGE from '../../assets/image.jpg';
+
+const colors = {
+  primary: "#060606",
+  background: "#E0E0E0",
+  disabled: "#D9D9D9",
+};
 
 const Login = () => {
-  const [data, setData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const handleChange = (e) => {
-    setData({ ...data, [e.target.name]: e.target.value });
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login Data:", data);
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-red-500">
+    <div className="w-full h-screen flex">
       
-      <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/30">
+      {/* LEFT SIDE */}
+      <div className="relative w-1/2 h-full">
+        <img
+          src={IMAGE}
+          alt="login visual"
+          className="w-full h-full object-cover"
+        />
+
+        <div className="absolute top-[20%] left-[10%] text-white">
+          <h1 className="text-4xl font-bold my-4">
+            Turn Ideas into Reality
+          </h1>
+          <p className="text-xl">
+            Start for free and get attractive offers from the community
+          </p>
+        </div>
+      </div>
+
+      {/* RIGHT SIDE */}
+      <div className="w-1/2 h-full bg-[#f5f5f5] flex flex-col justify-between p-20">
         
-        <h2 className="text-3xl font-bold text-center text-white mb-6">
-          Welcome Back 👋
-        </h2>
+        <h1 className="text-xl font-semibold text-[#060606]">
+          Interactive Brand
+        </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <div className="w-full flex flex-col">
           
-          <input
-            type="email"
-            name="email"
-            placeholder="Enter Email"
-            value={data.email}
-            onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-white/30 text-white placeholder-white outline-none focus:ring-2 focus:ring-yellow-300"
-          />
+          <div className="mb-6">
+            <h3 className="text-3xl font-semibold mb-2">Login</h3>
+            <p className="text-base">
+              Welcome Back! Please enter your details.
+            </p>
+          </div>
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Enter Password"
-            value={data.password}
-            onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-white/30 text-white placeholder-white outline-none focus:ring-2 focus:ring-yellow-300"
-          />
+          <div className="w-full flex flex-col">
+            <input
+              type="email"
+              placeholder="Email"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
 
-          <button
-            type="submit"
-            className="w-full py-3 rounded-lg font-semibold bg-yellow-400 text-black hover:bg-yellow-300 transition duration-300 shadow-md"
-          >
+            <input
+              type="password"
+              placeholder="Password"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
+          </div>
+
+          {/* Checkbox + Forgot */}
+          <div className="w-full flex items-center justify-between mt-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" />
+              Remember me
+            </label>
+
+            <p className="text-sm cursor-pointer text-blue-500">
+              Forgot Password?
+            </p>
+          </div>
+
+          {/* Button */}
+          <button className="w-full bg-black text-white py-3 mt-6 rounded-md hover:bg-gray-800 transition">
             Login
           </button>
-        </form>
 
-        <p className="text-center text-white mt-4 text-sm">
-          Don't have an account?{" "}
-          <span className="underline cursor-pointer hover:text-yellow-300">
-            Sign Up
+        </div>
+
+        <p className="text-sm text-center">
+          Don’t have an account?{" "}
+          <span className="text-blue-500 cursor-pointer">
+            Sign up
           </span>
         </p>
+
       </div>
     </div>
   );

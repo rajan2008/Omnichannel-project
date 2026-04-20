@@ -1,4 +1,4 @@
-import IMAGE from '../assets/image.jpg';
+import IMAGE from '../../assets/image.jpg';
 
 const colors = {
   primary: "#060606",
@@ -6,7 +6,7 @@ const colors = {
   disabled: "#D9D9D9",
 };
 
-const Login = () => {
+const Register = () => {
   return (
     <div className="w-full h-screen flex">
       
@@ -14,16 +14,16 @@ const Login = () => {
       <div className="relative w-1/2 h-full">
         <img
           src={IMAGE}
-          alt="login visual"
+          alt="register visual"
           className="w-full h-full object-cover"
         />
 
         <div className="absolute top-[20%] left-[10%] text-white">
           <h1 className="text-4xl font-bold my-4">
-            Turn Ideas into Reality
+            Join the Community
           </h1>
           <p className="text-xl">
-            Start for free and get attractive offers from the community
+            Create your account and start your journey today
           </p>
         </div>
       </div>
@@ -38,13 +38,19 @@ const Login = () => {
         <div className="w-full flex flex-col">
           
           <div className="mb-6">
-            <h3 className="text-3xl font-semibold mb-2">Login</h3>
+            <h3 className="text-3xl font-semibold mb-2">Register</h3>
             <p className="text-base">
-              Welcome Back! Please enter your details.
+              Please fill in the details to create an account.
             </p>
           </div>
 
           <div className="w-full flex flex-col">
+            <input
+              type="text"
+              placeholder="Full Name"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
+
             <input
               type="email"
               placeholder="Email"
@@ -56,31 +62,33 @@ const Login = () => {
               placeholder="Password"
               className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
             />
+
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+            />
           </div>
 
-          {/* Checkbox + Forgot */}
-          <div className="w-full flex items-center justify-between mt-4">
+          {/* Terms */}
+          <div className="w-full flex items-center mt-4">
             <label className="flex items-center gap-2 text-sm">
               <input type="checkbox" />
-              Remember me
+              I agree to the Terms & Conditions
             </label>
-
-            <p className="text-sm cursor-pointer text-blue-500">
-              Forgot Password?
-            </p>
           </div>
 
           {/* Button */}
           <button className="w-full bg-black text-white py-3 mt-6 rounded-md hover:bg-gray-800 transition">
-            Login
+            Register
           </button>
 
         </div>
 
         <p className="text-sm text-center">
-          Don’t have an account?{" "}
+          Already have an account?{" "}
           <span className="text-blue-500 cursor-pointer">
-            Sign up
+            Login
           </span>
         </p>
 
@@ -89,4 +97,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;
