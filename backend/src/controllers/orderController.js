@@ -54,27 +54,4 @@ export const getOrders = async (req, res) => {
   }
 };
 
-// GET /api/orders/stats  (admin/manager)
-export const getStats = async (req, res) => {
-  try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
 
-    const [todaySales, totalSales, lowStock] = await Promise.all([
-      Order.aggregate([
-        { $match: { createdAt: { $gte: today } } },
-        { $group: { _id: null, revenue: { $sum: "$total" }, count: { $sum: 1 } } },
-      ]),
-      Order.aggregate([{ $group: { _id: null, revenue: { $sum: "$total" }, count: { $sum: 1 } } }]),
-      Product.countDocuments({ isActive: true, $expr: { $lte: ["$stock", "$lowStockThreshold"] } }),
-    ]);
-
-    res.status(200).json({
-      today: todaySales[0] || { revenue: 0, count: 0 },
-      total: totalSales[0] || { revenue: 0, count: 0 },
-      lowStockCount: lowStock,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
