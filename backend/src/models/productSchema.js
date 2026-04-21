@@ -57,6 +57,12 @@ const productSchema = new mongoose.Schema(
       type: String, 
       default: "pcs" 
     },
+    stock: {
+      type: Number,
+      required: [true, "Product stock is required"],
+      default: 0,
+      min: 0
+    },
     images: [{ 
       type: String 
     }],
