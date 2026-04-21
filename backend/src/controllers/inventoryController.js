@@ -53,18 +53,7 @@ export const deleteProduct = async (req, res) => {
   }
 };
 
-// Low Stock Alert
-export const getLowStock = async (req, res) => {
-  try {
-    const products = await Product.find({
-      isActive: true,
-      $expr: { $lte: ["$stock", "$lowStockThreshold"] },
-    });
-    res.status(200).json({ count: products.length, products });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+
 
 // Atomic Stock Reduce on Order (called from POS)
 export const reduceStock = async (req, res) => {
