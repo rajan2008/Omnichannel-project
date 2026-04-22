@@ -1,0 +1,196 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "Omnichannel API - Order & Stock Tests",
+  "dateExported": "2026-04-21T00:00:00.000Z",
+  "version": "1.1",
+  "folders": [],
+  "requests": [
+    {
+      "name": "1. Create Order - Successful",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/orders/checkout",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{token}}"
+      },
+      "body": {
+        "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"REPLACE_WITH_PRODUCT_ID\",\n      \"quantity\": 2\n    }\n  ],\n  \"paymentMethod\": \"cash\",\n  \"tax\": 5,\n  \"channel\": \"pos\"\n}",
+        "type": "json"
+      },
+      "tests": [
+        "const respData = pm.response.json();",
+        "pm.test('Status 201 - Order Created', () => {",
+        "  pm.expect(pm.response.code).to.equal(201);",
+        "});",
+        "pm.test('Has order ID', () => {",
+        "  pm.expect(respData.order._id).to.exist;",
+        "});",
+        "pm.test('Order status is completed', () => {",
+        "  pm.expect(respData.order.orderStatus).to.equal('completed');",
+        "});"
+      ],
+      "notes": "Creates a new order and reduces stock automatically. Verify product stock decreased."
+    },
+    {
+      "name": "2. Create Order - Insufficient Stock",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/orders/checkout",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{token}}"
+      },
+      "body": {
+        "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"REPLACE_WITH_PRODUCT_ID\",\n      \"quantity\": 9999\n    }\n  ],\n  \"paymentMethod\": \"card\"\n}",
+        "type": "json"
+      },
+      "tests": [
+        "pm.test('Status 400 - Insufficient Stock', () => {",
+        "  pm.expect(pm.response.code).to.equal(400);",
+        "});",
+        "const respData = pm.response.json();",
+        "pm.test('Error message contains stock info', () => {",
+        "  pm.expect(respData.message).to.include('Insufficient stock');",
+        "});"
+      ],
+      "notes": "Should fail and NOT reduce stock. Original stock should remain unchanged."
+    },
+    {
+      "name": "3. Create Order - Missing Payment Method",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/orders/checkout",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{token}}"
+      },
+      "body": {
+        "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"REPLACE_WITH_PRODUCT_ID\",\n      \"quantity\": 1\n    }\n  ]\n}",
+        "type": "json"
+      },
+      "tests": [
+        "pm.test('Status 400 - Missing Payment Method', () => {",
+        "  pm.expect(pm.response.code).to.equal(400);",
+        "});"
+      ],
+      "notes": "Missing required paymentMethod field"
+    },
+    {
+      "name": "4. Create Order - Invalid Quantity",
+      "method": "POST",
+      "url": "{{baseUrl}}/api/orders/checkout",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{token}}"
+      },
+      "body": {
+        "raw": "{\n  \"items\": [\n    {\n      \"productId\": \"REPLACE_WITH_PRODUCT_ID\",\n      \"quantity\": -5\n    }\n  ],\n  \"paymentMethod\": \"cash\"\n}",
+        "type": "json"
+      },
+      "tests": [
+        "pm.test('Status 400 - Invalid Quantity', () => {",
+        "  pm.expect(pm.response.code).to.equal(400);",
+        "});"
+      ],
+      "notes": "Quantity must be greater than 0"
+    },
+    {
+      "name": "5. Get All Orders",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/orders",
+      "headers": {
+        "Authorization": "Bearer {{token}}"
+      },
+      "tests": [
+        "pm.test('Status 200', () => {",
+        "  pm.expect(pm.response.code).to.equal(200);",
+        "});",
+        "const respData = pm.response.json();",
+        "pm.test('Response is array', () => {",
+        "  pm.expect(Array.isArray(respData)).to.be.true;",
+        "});"
+      ],
+      "notes": "List all orders (filtered by cashier if user is cashier role)"
+    },
+    {
+      "name": "6. Get Orders - Filter by Status",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/orders?status=completed",
+      "headers": {
+        "Authorization": "Bearer {{token}}"
+      },
+      "tests": [
+        "pm.test('Status 200', () => {",
+        "  pm.expect(pm.response.code).to.equal(200);",
+        "});",
+        "const respData = pm.response.json();",
+        "pm.test('All orders have completed status', () => {",
+        "  respData.forEach(order => {",
+        "    pm.expect(order.orderStatus).to.equal('completed');",
+        "  });",
+        "});"
+      ],
+      "notes": "Filter orders by status. Try: completed, cancelled, pending"
+    },
+    {
+      "name": "7. Get Order Stats (Low Stock)",
+      "method": "GET",
+      "url": "{{baseUrl}}/api/orders/stats",
+      "headers": {
+        "Authorization": "Bearer {{token}}"
+      },
+      "tests": [
+        "pm.test('Status 200', () => {",
+        "  pm.expect(pm.response.code).to.equal(200);",
+        "});",
+        "const respData = pm.response.json();",
+        "pm.test('Has today stats', () => {",
+        "  pm.expect(respData.today).to.have.all.keys('revenue', 'count');",
+        "});",
+        "pm.test('Has total stats', () => {",
+        "  pm.expect(respData.total).to.have.all.keys('revenue', 'count');",
+        "});",
+        "pm.test('Has lowStockCount', () => {",
+        "  pm.expect(typeof respData.lowStockCount).to.equal('number');",
+        "});"
+      ],
+      "notes": "Shows sales and low stock count. Requires admin or manager role."
+    },
+    {
+      "name": "8. Cancel Order - Restore Stock",
+      "method": "PATCH",
+      "url": "{{baseUrl}}/api/orders/REPLACE_WITH_ORDER_ID/cancel",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{token}}"
+      },
+      "tests": [
+        "pm.test('Status 200 - Order Cancelled', () => {",
+        "  pm.expect(pm.response.code).to.equal(200);",
+        "});",
+        "const respData = pm.response.json();",
+        "pm.test('Order status is cancelled', () => {",
+        "  pm.expect(respData.order.orderStatus).to.equal('cancelled');",
+        "});"
+      ],
+      "notes": "Cancels order and RESTORES all product stock. Verify stock increased."
+    },
+    {
+      "name": "9. Cancel Order - Already Cancelled",
+      "method": "PATCH",
+      "url": "{{baseUrl}}/api/orders/REPLACE_WITH_CANCELLED_ORDER_ID/cancel",
+      "headers": {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer {{token}}"
+      },
+      "tests": [
+        "pm.test('Status 400 - Already Cancelled', () => {",
+        "  pm.expect(pm.response.code).to.equal(400);",
+        "});",
+        "const respData = pm.response.json();",
+        "pm.test('Error message about already cancelled', () => {",
+        "  pm.expect(respData.message).to.include('already cancelled');",
+        "});"
+      ],
+      "notes": "Should fail - can't cancel an already cancelled order"
+    }
+  ]
+}
