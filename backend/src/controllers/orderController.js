@@ -74,10 +74,30 @@ export const checkout = async (req, res) => {
 // GET /api/orders
 export const getOrders = async (req, res) => {
   try {
+    const { page = 1, limit = 10 } = req.query;
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
     const filter = {};
     if (req.user.role === "cashier") filter.cashier = req.user.id;
-    const orders = await Order.find(filter).populate("cashier", "name email").sort({ createdAt: -1 }).limit(100);
-    res.status(200).json(orders);
+    
+    const orders = await Order.find(filter)
+      .populate("cashier", "name email")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNumber);
+
+    const totalOrders = await Order.countDocuments(filter);
+    const totalPages = Math.ceil(totalOrders / limitNumber);
+
+    res.status(200).json({
+      orders,
+      page: pageNumber,
+      totalPages,
+      totalOrders,
+      count: orders.length
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

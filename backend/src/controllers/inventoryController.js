@@ -17,11 +17,15 @@ export const addProduct = async (req, res) => {
 // Get Products with Search and Pagination
 export const getProducts = async (req, res) => {
   try {
-    const { search, cursor, limit = 20 } = req.query;
+    const { search, page = 1, limit = 10 } = req.query;
     
-    // Only use cache for direct catalog requests (no search, no cursor)
-    const cacheKey = "product_catalog";
-    if (!search && !cursor) {
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Only use cache for direct catalog requests
+    const cacheKey = `product_catalog_page_${pageNumber}_limit_${limitNumber}`;
+    if (!search) {
       const cachedData = await redis.get(cacheKey);
       if (cachedData) {
         return res.status(200).json(JSON.parse(cachedData));
@@ -35,24 +39,25 @@ export const getProducts = async (req, res) => {
       query.$text = { $search: search };
     }
 
-    // 2. Cursor-based pagination logic (using _id)
-    if (cursor) {
-      query._id = { $gt: cursor }; 
-    }
-
+    // 2. Pagination logic
     const products = await Product.find(query)
-      .sort({ _id: 1 }) 
-      .limit(parseInt(limit));
+      .sort({ createdAt: -1 }) 
+      .skip(skip)
+      .limit(limitNumber);
 
-    const nextCursor = products.length > 0 ? products[products.length - 1]._id : null;
+    const totalProducts = await Product.countDocuments(query);
+    const totalPages = Math.ceil(totalProducts / limitNumber);
+
     const responseData = { 
       products, 
-      nextCursor, 
+      page: pageNumber,
+      totalPages,
+      totalProducts,
       count: products.length 
     };
 
     // Cache the standard catalog for 1 hour
-    if (!search && !cursor) {
+    if (!search) {
       await redis.set(cacheKey, JSON.stringify(responseData), "EX", 3600);
     }
 
