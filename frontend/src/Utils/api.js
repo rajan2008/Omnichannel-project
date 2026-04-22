@@ -8,3 +8,27 @@ export const loginUser = async (data) => {
     throw error.response?.data?.message || "Login failed";
   }
 };
+
+
+export const registerUser = async (data) => {
+  try {
+    const res = await api.post("/auth/register", data);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Register failed";
+  }
+};
+
+export const getProducts = async (search = "", cursor = "") => {
+  try {
+    let url = `/inventory?limit=10`;
+
+    if (search) url += `&search=${search}`;
+    if (cursor) url += `&cursor=${cursor}`;
+
+    const res = await api.get(url);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch products";
+  }
+};

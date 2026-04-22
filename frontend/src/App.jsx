@@ -1,12 +1,20 @@
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import Dashboard from "./pages/Dashboard";
+import Search from "./Components/search";
+
 function App() {
   return (
-    <div className="flex h-screen items-center justify-center bg-gray-900 text-white font-sans text-center px-4">
-      <div>
-        <h1 className="text-4xl font-bold mb-4">Frontend Repository Ready</h1>
-        <p className="text-gray-400">Waiting for the frontend team to integrate the UI components.</p>
-        <p className="text-blue-400 mt-4 font-mono text-sm">Backend is fully live on 127.0.0.1:5000</p>
-      </div>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/search" element={<Search />} />
+        <Route path="/" element={<Navigate to="/login" />} />
+      </Routes>
+    </Router>
   );
 }
 
