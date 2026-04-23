@@ -24,4 +24,9 @@ const productSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Indexing strategies for high-frequency search queries
+productSchema.index({ name: "text", category: "text" });
+productSchema.index({ sku: 1 });
+productSchema.index({ store: 1, isActive: 1 });
+
 export default mongoose.model("Product", productSchema);
