@@ -1,22 +1,14 @@
 import mongoose from "mongoose";
 import Order from "../models/orderSchema.js";
 import Product from "../models/productSchema.js";
-<<<<<<< HEAD
 import InventoryLedger from "../models/inventoryLedgerSchema.js";
 import { clearProductCache } from "./inventoryController.js";
-=======
-import InventoryLedger from "../models/ledgerSchema.js";
->>>>>>> a53fbb84067364ab16d6e57b5d10a9fee8564646
 
 // POST /api/orders/checkout
 export const checkout = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> a53fbb84067364ab16d6e57b5d10a9fee8564646
   try {
     const { items, paymentMethod, tax = 0, channel = "pos" } = req.body;
     if (!items?.length) throw new Error("items array is required");
@@ -34,11 +26,7 @@ export const checkout = async (req, res) => {
       if (!product.isActive) throw new Error(`Product inactive: ${product.name}`);
       if (product.stock < item.quantity) throw new Error(`Insufficient stock: ${product.name}`);
 
-<<<<<<< HEAD
       const previousStock = product.stock;
-=======
-      // Update stock
->>>>>>> a53fbb84067364ab16d6e57b5d10a9fee8564646
       product.stock -= item.quantity;
       await product.save({ session });
 
@@ -67,7 +55,6 @@ export const checkout = async (req, res) => {
     }
 
     const total = subtotal + tax;
-<<<<<<< HEAD
     const [order] = await Order.create(
       [{ _id: orderId, cashier: req.user.id, items: orderItems, subtotal, tax, total, paymentMethod, channel }],
       { session }
@@ -77,40 +64,14 @@ export const checkout = async (req, res) => {
     await InventoryLedger.insertMany(ledgerEntries, { session });
 
     await session.commitTransaction();
+    
+    // Clear cache after successful transaction
     for (const item of items) {
       await clearProductCache(item.productId);
     }
-    res.status(201).json({ message: "Order placed", order });
+    
+    res.status(201).json({ message: "Order placed successfully", order });
   } catch (error) {
-=======
-
-    // Create order within session
-    const [order] = await Order.create(
-      [{ cashier: req.user.id, items: orderItems, subtotal, tax, total, paymentMethod, channel }],
-      { session }
-    );
-
-    // Create Ledger entries for each item sold
-    const ledgerEntries = orderItems.map(item => ({
-      product: item.product,
-      changeAmount: -item.quantity,
-      type: "sale",
-      previousStock: 0, 
-      newStock: 0,
-      cashier: req.user.id,
-      order: order._id,
-      notes: `Sold via Order ${order._id}`
-    }));
-
-    await InventoryLedger.insertMany(ledgerEntries, { session });
-
-    // Commit changes to DB
-    await session.commitTransaction();
-    res.status(201).json({ message: "Order and Ledger updated successfully", order });
-
-  } catch (error) {
-    // Undo all changes if anything fails
->>>>>>> a53fbb84067364ab16d6e57b5d10a9fee8564646
     await session.abortTransaction();
     res.status(400).json({ message: error.message });
   } finally {

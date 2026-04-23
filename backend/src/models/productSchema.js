@@ -96,19 +96,14 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-<<<<<<< HEAD
-// Indexing strategies for high-frequency search queries
-productSchema.index({ name: "text", category: "text" });
-productSchema.index({ sku: 1 });
-productSchema.index({ store: 1, isActive: 1 });
-=======
 // Virtual field for profit calculation
 productSchema.virtual("profit").get(function () {
   return this.basePrice - this.costPrice;
 });
 
-// Full-text search index
-productSchema.index({ name: 'text', description: 'text' });
->>>>>>> a53fbb84067364ab16d6e57b5d10a9fee8564646
+// Indexing strategies for high-frequency search queries
+productSchema.index({ name: "text", category: "text", description: "text" });
+productSchema.index({ sku: 1 });
+productSchema.index({ store: 1, isActive: 1 });
 
 export default mongoose.model("Product", productSchema);

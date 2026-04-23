@@ -21,12 +21,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.1",
     "mongoose": "^9.4.1",
-    "nodemailer": "^8.0.5",
-<<<<<<< HEAD
-    "redis": "^4.6.13"
-=======
-    "redis-server": "^1.2.2"
->>>>>>> a53fbb84067364ab16d6e57b5d10a9fee8564646
+    "nodemailer": "^8.0.5"
   },
   "devDependencies": {
     "jest": "^29.7.0",
