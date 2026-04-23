@@ -1,65 +1,112 @@
-import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { loginUser } from "../../Utils/api";
+import { useState } from "react";
+import login from "../../assets/login.jpg";
 
 const Login = () => {
-  const [data, setData] = useState({
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const handleChange = (e) => {
-    setData({ ...data, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login Data:", data);
+  const handleLogin = async () => {
+    try {
+      const res = await loginUser(formData);
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
+      navigate("/dashboard");
+    } catch (err) {
+      alert(err);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-red-500">
+<div className="w-full min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-300 px-4">
+  
+  {/* MAIN GLASS BOX */}
+  <div className="w-full max-w-5xl flex flex-col md:flex-row rounded-2xl overflow-hidden backdrop-blur-md bg-white/30 border border-white/40 shadow-xl">
+    
+    {/* IMAGE SECTION (hidden on mobile) */}
+    <div className="hidden md:block md:w-1/2 h-auto">
+      <img
+        src={login}
+        alt="login visual"
+        className="w-full h-full object-cover"
+      />
+    </div>
+
+    {/* FORM SECTION */}
+    <div className="w-full md:w-1/2 p-6 md:p-10 flex flex-col justify-center">
       
-      <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/30">
-        
-        <h2 className="text-3xl font-bold text-center text-white mb-6">
-          Welcome Back 👋
-        </h2>
+      <h1 className="text-xl font-semibold text-black mb-4">
+        LEDGR
+        <p className="text-sm text-gray-700">
+          Retail Operating System
+        </p>
+      </h1>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
-          <input
-            type="email"
-            name="email"
-            placeholder="Enter Email"
-            value={data.email}
-            onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-white/30 text-white placeholder-white outline-none focus:ring-2 focus:ring-yellow-300"
-          />
-
-          <input
-            type="password"
-            name="password"
-            placeholder="Enter Password"
-            value={data.password}
-            onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-white/30 text-white placeholder-white outline-none focus:ring-2 focus:ring-yellow-300"
-          />
-
-          <button
-            type="submit"
-            className="w-full py-3 rounded-lg font-semibold bg-yellow-400 text-black hover:bg-yellow-300 transition duration-300 shadow-md"
-          >
-            Login
-          </button>
-        </form>
-
-        <p className="text-center text-white mt-4 text-sm">
-          Don't have an account?{" "}
-          <span className="underline cursor-pointer hover:text-yellow-300">
-            Sign Up
-          </span>
+      <div className="mb-6">
+        <h3 className="text-2xl font-semibold mb-2">Login</h3>
+        <p className="text-sm text-gray-700">
+          Welcome Back! Please enter your details.
         </p>
       </div>
+
+      <div className="flex flex-col">
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
+          onChange={handleChange}
+          className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+        />
+
+        <input
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={formData.password}
+          onChange={handleChange}
+          className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none"
+        />
+      </div>
+
+      <div className="flex items-center justify-between mt-4 text-sm">
+        <label className="flex items-center gap-2">
+          <input type="checkbox" />
+          Remember me
+        </label>
+
+        <p className="cursor-pointer text-blue-500">
+          Forgot Password?
+        </p>
+      </div>
+
+      <button
+        onClick={handleLogin}
+        className="w-full bg-black text-white py-3 mt-6 rounded-md hover:bg-gray-800 transition"
+      >
+        Login
+      </button>
+
+      <p className="text-sm text-center mt-6">
+        Don’t have an account?{" "}
+        <span className="text-blue-500 cursor-pointer">
+          Sign up
+        </span>
+      </p>
     </div>
+  </div>
+</div>
   );
 };
 

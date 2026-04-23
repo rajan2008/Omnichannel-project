@@ -1,13 +1,21 @@
 version: '3.8'
 
 services:
+<<<<<<< HEAD
   mongodb:
     image: mongo:latest
     container_name: pos_mongodb
+=======
+  # MongoDB Service
+  mongodb:
+    image: mongo:latest
+    container_name: infotact_mongodb
+>>>>>>> a53fbb84067364ab16d6e57b5d10a9fee8564646
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+<<<<<<< HEAD
     command: ["--replSet", "rs0", "--bind_ip_all"]
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
@@ -38,3 +46,24 @@ services:
 volumes:
   mongodb_data:
   redis_data:
+=======
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    networks:
+      - infotact_network
+
+  # Redis Service
+  redis:
+    image: redis:latest
+    container_name: infotact_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - infotact_network
+
+networks:
+  infotact_network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+>>>>>>> a53fbb84067364ab16d6e57b5d10a9fee8564646
