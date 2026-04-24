@@ -3,6 +3,7 @@ import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Dashboard from "./pages/Dashboard";
 import Search from "./Components/search";
+import ProductList from "./Components/ProductList";
 
 function App() {
   return (
@@ -13,6 +14,8 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/search" element={<Search />} />
         <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/productlist" element={<ProductList />} />
+
       </Routes>
   );
 }
