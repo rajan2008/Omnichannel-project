@@ -1,12 +1,15 @@
-import {Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import Dashboard from "./pages/Dashboard";
 import Search from "./Components/search";
 import ProductList from "./Components/ProductList";
+import { Toaster } from "react-hot-toast"; // ✅ correct
 
 function App() {
   return (
+    <>
+      <Toaster/>
 
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -15,8 +18,8 @@ function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/" element={<Navigate to="/login" />} />
         <Route path="/productlist" element={<ProductList />} />
-
       </Routes>
+    </>
   );
 }
 

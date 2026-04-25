@@ -3,7 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 import register from "../../assets/register.png";
 import { registerUser } from "../../Utils/api";
-
+import { Infinity } from "lucide-react";
+import toast from "react-hot-toast";
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
@@ -18,8 +19,6 @@ const Register = () => {
     role: "cashier",
   });
 
-  const inputStyle =
-    "w-full text-black py-2 bg-transparent border-b border-black outline-none text-sm sm:text-base";
 
   const handleChange = (e) => {
     setFormData({
@@ -64,9 +63,7 @@ const Register = () => {
       setLoading(true);
 
       const res = await registerUser(formData);
-
-      console.log(res);
-      alert("User Registered Successfully");
+      toast.success(res.message)
 
       setFormData({
         name: "",
@@ -85,6 +82,9 @@ const Register = () => {
       setLoading(false);
     }
   };
+    const inputStyle =
+    "w-full text-black sm:py-2 py-1 bg-transparent border-b border-black outline-none text-sm sm:text-base";
+
   return (
     <div className="relative md:h-dvh min-h-dvh flex items-center justify-center px-3 sm:px-4 py-3 sm:py-6 bg-gray-50 overflow-hidden box-border">
       <div className="relative z-10 w-full max-w-6xl flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl bg-white">
@@ -92,15 +92,7 @@ const Register = () => {
         <div className="w-full md:w-1/2 p-5 sm:p-6 md:p-10 flex flex-col justify-center">
           <p className="text-center text-sm sm:text-base">WELCOME TO</p>
           <div className="flex justify-center items-center mb-2 flex-wrap">
-            <svg
-              fill="#000000"
-              width="70px"
-              height="70px"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M20.288 9.463a4.856 4.856 0 0 0-4.336-2.3 4.586 4.586 0 0 0-3.343 1.767c.071.116.148.226.212.347l.879 1.652.134-.254a2.71 2.71 0 0 1 2.206-1.519 2.845 2.845 0 1 1 0 5.686 2.708 2.708 0 0 1-2.205-1.518L13.131 12l-1.193-2.26a4.709 4.709 0 0 0-3.89-2.581 4.845 4.845 0 1 0 0 9.682 4.586 4.586 0 0 0 3.343-1.767c-.071-.116-.148-.226-.212-.347l-.879-1.656-.134.254a2.71 2.71 0 0 1-2.206 1.519 2.855 2.855 0 0 1-2.559-1.369 2.825 2.825 0 0 1 0-2.946 2.862 2.862 0 0 1 2.442-1.374h.121a2.708 2.708 0 0 1 2.205 1.518l.7 1.327 1.193 2.26a4.709 4.709 0 0 0 3.89 2.581h.209a4.846 4.846 0 0 0 4.127-7.378z" />
-            </svg>
+            <Infinity size={55} color="black" />
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-widest ml-2">
               INFINITY
             </h1>
@@ -224,8 +216,8 @@ const Register = () => {
             <button
               type="submit"
               disabled={loading}
-              className={`w-full h-12 rounded-md flex items-center justify-center gap-2 
-              ${loading ? "bg-gray-700" : "bg-black hover:bg-gray-800 text-white"}`}
+              className={`w-full h-8 mt-2 sm:h-12 rounded-md flex items-center justify-center gap-2 transition 
+  ${loading ? "bg-gray-700 text-white cursor-not-allowed" : "bg-black hover:bg-gray-800 text-white"}`}
             >
               {loading && (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -245,32 +237,30 @@ const Register = () => {
 
         {/* RIGHT IMAGE */}
         <div className="hidden md:block md:w-1/2 relative">
-                  <img
-                    src={register}
-                    alt="login visual"
-                    className="w-full h-full object-cover"
-                  />
-        
-                  <div className="absolute inset-0 bg-[rgba(0,0,0,0.5)]"></div>
-        
-                  <div className="absolute inset-0 flex items-center justify-center px-4">
-                    <div className="text-white text-center">
-                      <div className="flex justify-center items-center mb-1 flex-wrap">
-                        <svg fill="#fff" width="60px" height="60px" viewBox="0 0 24 24">
-                          <path d="M20.288 9.463..." />
-                        </svg>
-                        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">
-                          INFINITY
-                        </h1>
-                      </div>
-        
-                      <p className="text-xs sm:text-sm leading-relaxed p-2 sm:p-4 text-gray-200">
-                        A modern Point of Sale (POS) system is the backbone of efficient
-                        retail operations...
-                      </p>
-                    </div>
-                  </div>
-                </div>
+          <img
+            src={register}
+            alt="login visual"
+            className="w-full h-full object-cover"
+          />
+
+          <div className="absolute inset-0 bg-[rgba(0,0,0,0.5)]"></div>
+
+          <div className="absolute inset-0 flex items-center justify-center px-4">
+            <div className="text-white text-center">
+              <div className="flex justify-center items-center mb-1 flex-wrap">
+                <Infinity size={55} color="white" />
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">
+                  INFINITY
+                </h1>
+              </div>
+
+              <p className="text-xs sm:text-sm leading-relaxed p-2 sm:p-4 text-gray-200">
+                A modern Point of Sale (POS) system is the backbone of efficient
+                retail operations...
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

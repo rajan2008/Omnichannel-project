@@ -57,7 +57,7 @@ export const loginUser = async (req, res) => {
     const isMatch = await user.comparePassword(password);
 
     if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
     user.lastLogin = new Date();

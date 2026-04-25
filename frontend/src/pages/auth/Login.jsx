@@ -3,7 +3,8 @@ import { loginUser } from "../../Utils/api";
 import { useState } from "react";
 import login from "../../assets/login.jpg";
 import { Eye, EyeOff } from "lucide-react";
-
+import toast from "react-hot-toast";
+import { Infinity } from "lucide-react";
 const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -49,15 +50,20 @@ const Login = () => {
       setError("");
 
       const res = await loginUser(formData);
+      console.log(res);
 
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
-
+      toast.success(res.message);
       setTimeout(() => {
         navigate("/search");
       }, 1000);
     } catch (err) {
-      setError("Invalid email or password");
+      
+      const message = err || "Login failed";
+
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -86,9 +92,7 @@ const Login = () => {
           <div className="absolute inset-0 flex items-center justify-center px-4">
             <div className="text-white text-center">
               <div className="flex justify-center items-center mb-1 flex-wrap">
-                <svg fill="#fff" width="60px" height="60px" viewBox="0 0 24 24">
-                  <path d="M20.288 9.463..." />
-                </svg>
+                <Infinity size={55} color="white" />
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">
                   INFINITY
                 </h1>
@@ -107,15 +111,7 @@ const Login = () => {
           <p className="text-center text-sm sm:text-base">WELCOME TO</p>
 
           <div className="flex justify-center items-center mb-2 flex-wrap">
-            <svg
-              fill="#000000"
-              width="70px"
-              height="70px"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path d="M20.288 9.463a4.856 4.856 0 0 0-4.336-2.3 4.586 4.586 0 0 0-3.343 1.767c.071.116.148.226.212.347l.879 1.652.134-.254a2.71 2.71 0 0 1 2.206-1.519 2.845 2.845 0 1 1 0 5.686 2.708 2.708 0 0 1-2.205-1.518L13.131 12l-1.193-2.26a4.709 4.709 0 0 0-3.89-2.581 4.845 4.845 0 1 0 0 9.682 4.586 4.586 0 0 0 3.343-1.767c-.071-.116-.148-.226-.212-.347l-.879-1.656-.134.254a2.71 2.71 0 0 1-2.206 1.519 2.855 2.855 0 0 1-2.559-1.369 2.825 2.825 0 0 1 0-2.946 2.862 2.862 0 0 1 2.442-1.374h.121a2.708 2.708 0 0 1 2.205 1.518l.7 1.327 1.193 2.26a4.709 4.709 0 0 0 3.89 2.581h.209a4.846 4.846 0 0 0 4.127-7.378z" />
-            </svg>
+            <Infinity size={55} color="black" />
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-widest ml-2">
               INFINITY
             </h1>
@@ -127,46 +123,71 @@ const Login = () => {
           </div>
 
           {/* INPUTS */}
-          <div className="flex flex-col">
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none text-sm sm:text-base"
-            />
-
-            <p
-              className={`text-xs ${errors.email ? "text-red-500" : "invisible"}`}
-            >
-              {errors.email || "placeholder"}
-            </p>
-
-            <div className="relative">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
+          >
+            <div className="flex flex-col">
               <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="Password"
-                value={formData.password}
+                type="email"
+                name="email"
+                autoComplete="email"
+                placeholder="Email"
+                value={formData.email}
                 onChange={handleChange}
-                className="w-full text-black py-2 my-1 bg-transparent border-b border-black outline-none pr-10 text-sm sm:text-base"
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none text-sm sm:text-base"
               />
 
-              <span
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-2.5 sm:top-3 cursor-pointer text-gray-600"
+              <p
+                className={`text-xs ${errors.email ? "text-red-500" : "invisible"}`}
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </span>
-            </div>
+                {errors.email || "placeholder"}
+              </p>
 
-            <p
-              className={`text-xs ${errors.password ? "text-red-500" : "invisible"}`}
-            >
-              {errors.password || "placeholder"}
-            </p>
-          </div>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full text-black py-2 my-1 bg-transparent border-b border-black outline-none pr-10 text-sm sm:text-base"
+                />
+
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-2.5 sm:top-3 cursor-pointer text-gray-600"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </span>
+              </div>
+
+              <p
+                className={`text-xs ${errors.password ? "text-red-500" : "invisible"}`}
+              >
+                {errors.password || "placeholder"}
+              </p>
+            </div>
+             <button
+            onClick={handleLogin}
+            disabled={loading}
+            className="w-full h-12 cursor-pointer bg-black text-white mt-6 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2 text-sm sm:text-base"
+          >
+            {loading && (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            )}
+            {loading ? "Logging in..." : "Login"}
+          </button>
+                    <p
+            className={`text-sm mt-2 text-center ${error ? "text-red-500" : "invisible"}`}
+          >
+            {error || "placeholder"}
+          </p>
+
+          </form>
 
           {/* OPTIONS */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 text-xs sm:text-sm gap-2">
@@ -180,23 +201,8 @@ const Login = () => {
             </p>
           </div>
 
-          {/* BUTTON */}
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full h-12 bg-black text-white mt-6 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2 text-sm sm:text-base"
-          >
-            {loading && (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            )}
-            {loading ? "Logging in..." : "Login"}
-          </button>
+         
 
-          <p
-            className={`text-sm mt-2 text-center ${error ? "text-red-500" : "invisible"}`}
-          >
-            {error || "placeholder"}
-          </p>
 
           <p className="text-xs sm:text-sm text-center text-gray-600 mt-4">
             Don’t have an account?{" "}
