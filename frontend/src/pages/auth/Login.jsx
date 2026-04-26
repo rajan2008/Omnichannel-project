@@ -56,7 +56,7 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(res.user));
       toast.success(res.message);
       setTimeout(() => {
-        navigate("/search");
+        navigate("/dashboard");
       }, 1000);
     } catch (err) {
       
@@ -196,7 +196,10 @@ const Login = () => {
               Remember me
             </label>
 
-            <p className="cursor-pointer text-gray-500 text-right">
+            <p 
+              onClick={() => navigate("/forgot-password")}
+              className="cursor-pointer text-gray-500 text-right hover:text-black transition-colors"
+            >
               Forgot Password?
             </p>
           </div>

@@ -32,3 +32,21 @@ export const getProducts = async (search = "", cursor = "") => {
     throw error.response?.data?.message || "Failed to fetch products";
   }
 };
+
+export const forgotPassword = async (data) => {
+  try {
+    const res = await api.post("/auth/forgot-password", data);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to send reset email";
+  }
+};
+
+export const resetPassword = async (token, data) => {
+  try {
+    const res = await api.put(`/auth/reset-password/${token}`, data);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to reset password";
+  }
+};
