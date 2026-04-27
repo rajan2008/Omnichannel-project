@@ -32,7 +32,7 @@ export const addProduct = async (req, res) => {
 // Get Products with Search and Pagination
 export const getProducts = async (req, res) => {
   try {
-    const { search, page = 1, limit = 10 } = req.query;
+    const { search, page = 1, limit = 20 } = req.query;
 
     const pageNumber = parseInt(page);
     const limitNumber = parseInt(limit);
@@ -41,16 +41,16 @@ export const getProducts = async (req, res) => {
     const query = { isActive: true };
 
     if (search) {
-      query.name = { $regex: search, $options: "i" }; 
+      query.name = { $regex: search, $options: "i" };
     }
+
+    const cacheKey = `products:${search || ""}:${pageNumber}:${limitNumber}`;
 
     let cachedProducts = null;
 
     if (isRedisConnected) {
       try {
-        cachedProducts = await redisClient.get(
-          `products:${search}:${page}:${limit}`,
-        );
+        cachedProducts = await redisClient.get(cacheKey);
       } catch (err) {
         console.log("Redis GET failed:", err.message);
       }
@@ -73,14 +73,8 @@ export const getProducts = async (req, res) => {
       totalPages: Math.ceil(total / limitNumber),
       total,
     };
-
     if (isRedisConnected) {
-      await redisClient.set(
-        `products:${search || ""}:${pageNumber}:${limitNumber}`,
-        JSON.stringify(response),
-        "EX",
-        600,
-      );
+      await redisClient.set(cacheKey, JSON.stringify(response), "EX", 600);
     }
 
     res.status(200).json(response);

@@ -19,12 +19,11 @@ export const registerUser = async (data) => {
   }
 };
 
-export const getProducts = async (search = "", cursor = "") => {
+export const getProducts = async (search = "", page = 1) => {
   try {
-    let url = `/inventory?limit=10`;
+    let url = `/inventory?page=${page}&limit=20`; 
 
     if (search) url += `&search=${search}`;
-    if (cursor) url += `&cursor=${cursor}`;
 
     const res = await api.get(url);
     return res.data;
