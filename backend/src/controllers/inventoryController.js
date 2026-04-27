@@ -1,7 +1,7 @@
+import redisClient, { isRedisConnected } from "../config/redis.js";
 import mongoose from "mongoose";
 import Product from "../models/productSchema.js";
 import InventoryLedger from "../models/inventoryLedgerSchema.js";
-import redisClient from "../config/redis.js";
 
 // Helper for cache invalidation
 export const clearProductCache = async (productId = null) => {
@@ -33,38 +33,59 @@ export const addProduct = async (req, res) => {
 export const getProducts = async (req, res) => {
   try {
     const { search, page = 1, limit = 10 } = req.query;
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
     const skip = (pageNumber - 1) * limitNumber;
 
-    const cacheKey = `products:all:${search || ""}:${pageNumber}:${limitNumber}`;
-    const cachedProducts = await redisClient.get(cacheKey);
+    const query = { isActive: true };
+
+    if (search) {
+      query.name = { $regex: search, $options: "i" }; 
+    }
+
+    let cachedProducts = null;
+
+    if (isRedisConnected) {
+      try {
+        cachedProducts = await redisClient.get(
+          `products:${search}:${page}:${limit}`,
+        );
+      } catch (err) {
+        console.log("Redis GET failed:", err.message);
+      }
+    }
+
     if (cachedProducts) {
       return res.status(200).json(JSON.parse(cachedProducts));
     }
 
-    const query = { isActive: true };
-    if (search) {
-      query.$text = { $search: search };
-    }
-
     const products = await Product.find(query)
-      .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limitNumber);
+      .limit(limitNumber)
+      .sort({ createdAt: -1 });
 
-    const totalProducts = await Product.countDocuments(query);
-    const responseData = {
+    const total = await Product.countDocuments(query);
+
+    const response = {
       products,
       page: pageNumber,
-      totalPages: Math.ceil(totalProducts / limitNumber),
-      totalProducts,
-      count: products.length
+      totalPages: Math.ceil(total / limitNumber),
+      total,
     };
-      
-    await redisClient.set(cacheKey, JSON.stringify(responseData), { EX: 600 });
-    res.status(200).json(responseData);
+
+    if (isRedisConnected) {
+      await redisClient.set(
+        `products:${search || ""}:${pageNumber}:${limitNumber}`,
+        JSON.stringify(response),
+        "EX",
+        600,
+      );
+    }
+
+    res.status(200).json(response);
   } catch (error) {
+    console.error("ERROR :", error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -81,7 +102,7 @@ export const getProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    await redisClient.set(cacheKey, JSON.stringify(product), { EX: 3600 });
+    await redisClient.set(cacheKey, JSON.stringify(responseData), "EX", 600);
     res.status(200).json(product);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -91,9 +112,11 @@ export const getProduct = async (req, res) => {
 // Update Product
 export const updateProduct = async (req, res) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
     if (!product) return res.status(404).json({ message: "Product not found" });
-    
+
     await clearProductCache(req.params.id);
     res.status(200).json({ message: "Product updated", product });
   } catch (error) {
@@ -126,8 +149,9 @@ export const reduceStock = async (req, res) => {
     for (const item of items) {
       const product = await Product.findById(item.productId).session(session);
       if (!product) throw new Error(`Product not found: ${item.productId}`);
-      if (product.stock < item.quantity) throw new Error(`Insufficient stock for: ${product.name}`);
-      
+      if (product.stock < item.quantity)
+        throw new Error(`Insufficient stock for: ${product.name}`);
+
       const previousStock = product.stock;
       product.stock -= item.quantity;
       await product.save({ session });

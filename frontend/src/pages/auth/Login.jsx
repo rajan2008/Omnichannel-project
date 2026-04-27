@@ -56,7 +56,7 @@ const Login = () => {
       localStorage.setItem("user", JSON.stringify(res.user));
       toast.success(res.message);
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/search");
       }, 1000);
     } catch (err) {
       

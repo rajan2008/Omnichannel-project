@@ -103,7 +103,6 @@ productSchema.virtual("profit").get(function () {
 
 // Indexing strategies for high-frequency search queries
 productSchema.index({ name: "text", category: "text", description: "text" });
-productSchema.index({ sku: 1 });
 productSchema.index({ store: 1, isActive: 1 });
 
 export default mongoose.model("Product", productSchema);

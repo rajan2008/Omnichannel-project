@@ -5,7 +5,7 @@ const redis = new Redis(process.env.REDIS_URL || "redis://127.0.0.1:6379", {
   retryStrategy: () => null, // retry completely stop
 });
 
-let isRedisConnected = false;
+export let isRedisConnected = false;
 
 redis.on("connect", () => {
   isRedisConnected = true;
@@ -14,7 +14,7 @@ redis.on("connect", () => {
 
 redis.on("error", (err) => {
   if (!isRedisConnected) {
-    console.log("Redis not running, skipping... ❌");
+    console.log("Redis not running, skipping...");
   } else {
     console.error("Redis error:", err.message);
   }
