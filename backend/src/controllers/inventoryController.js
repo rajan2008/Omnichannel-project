@@ -7,7 +7,7 @@ import sendEmail from "../utils/sendEmail.js";
 import { logActivity } from "../utils/activityLogger.js";
 
 // Cache Helper
-const clearProductCache = async (id = null) => {
+export const clearProductCache = async (id = null) => {
   if (id) await redisClient.del(`product:${id}`);
   await redisClient.del("products_all");
 };
