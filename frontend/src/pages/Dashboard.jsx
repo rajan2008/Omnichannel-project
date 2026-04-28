@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axios.js";
+import api from "../api/axiosInstance.js";
 
 const colors = {
   primary: "#060606",

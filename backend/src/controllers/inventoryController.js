@@ -15,12 +15,31 @@ export const clearProductCache = async (id = null) => {
 export const getProducts = async (req, res) => {
   try {
     const { page = 1, limit = 50, search = "" } = req.query;
-    const query = search ? { $text: { $search: search }, isActive: true } : { isActive: true };
+
+   const query = search
+  ? {
+      isActive: true,
+      $or: [
+        { name: { $regex: search, $options: "i" } },
+        { category: { $regex: search, $options: "i" } },
+        { sku: { $regex: search, $options: "i" } },
+      ],
+    }
+  : { isActive: true };
+
     const products = await Product.find(query)
       .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .populate("store", "name location");
-    res.status(200).json({ count: products.length, products });
+      .skip((page - 1) * limit);
+
+    const total = await Product.countDocuments(query);
+
+    res.status(200).json({
+      products,
+      total,
+      currentPage: Number(page),
+      totalPages: Math.ceil(total / limit),
+    });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

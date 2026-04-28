@@ -1,12 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../../Utils/api";
+import { loginUser } from "../../api/authApi.js";
 import { useState } from "react";
 import login from "../../assets/login.jpg";
+import { useDispatch } from "react-redux";
 import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { Infinity } from "lucide-react";
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [errors, setErrors] = useState({});
@@ -54,6 +56,7 @@ const Login = () => {
 
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
+      dispatch(setUser(res.user));
       toast.success(res.message);
       setTimeout(() => {
         navigate("/search");

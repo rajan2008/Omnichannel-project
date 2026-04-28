@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { forgotPassword } from "../../Utils/api";
+import { forgotPassword } from "../../api/authApi.js";
 import { useState } from "react";
 import login from "../../assets/login.jpg";
 import toast from "react-hot-toast";
