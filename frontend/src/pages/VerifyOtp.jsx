@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from "../api/axios";
+import api from "../api/axiosInstance.js";
 
 export default function VerifyOtp() {
   const navigate = useNavigate();

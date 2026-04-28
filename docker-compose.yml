@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  # MongoDB Service with Replica Set (Required for Transactions)
+  mongodb:
+    image: mongo:latest
+    container_name: pos_mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    restart: always
+
+  # Helper service to initiate the MongoDB Replica Set
+  mongodb-setup:
+    image: mongo:latest
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    command: >
+      mongosh --host mongodb:27017 --eval 
+      'rs.initiate({_id: "rs0", members: [{_id: 0, host: "mongodb:27017"}]})'
+    restart: "no"
+
+  # Redis Service for Caching
+  redis:
+    image: redis:latest
+    container_name: pos_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+volumes:
+  mongodb_data:
+  redis_data:

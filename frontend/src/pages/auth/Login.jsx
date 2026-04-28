@@ -1,63 +1,222 @@
-import React, { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
+import { loginUser } from "../../Utils/api";
+import { useState } from "react";
+import login from "../../assets/login.jpg";
+import { Eye, EyeOff } from "lucide-react";
+import toast from "react-hot-toast";
+import { Infinity } from "lucide-react";
 const Login = () => {
-  const [data, setData] = useState({
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
   const handleChange = (e) => {
-    setData({ ...data, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+
+    setErrors({
+      ...errors,
+      [e.target.name]: "",
+    });
+  };
+  const validate = () => {
+    let newErrors = {};
+
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Login Data:", data);
-  };
+  const handleLogin = async () => {
+    if (!validate()) return;
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-purple-500 via-pink-500 to-red-500">
+    try {
+      setLoading(true);
+      setError("");
+
+      const res = await loginUser(formData);
+      console.log(res);
+
+      localStorage.setItem("token", res.token);
+      localStorage.setItem("user", JSON.stringify(res.user));
+      toast.success(res.message);
+      setTimeout(() => {
+        navigate("/search");
+      }, 1000);
+    } catch (err) {
       
-      <div className="bg-white/20 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/30">
-        
-        <h2 className="text-3xl font-bold text-center text-white mb-6">
-          Welcome Back 👋
-        </h2>
+      const message = err || "Login failed";
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          
-          <input
-            type="email"
-            name="email"
-            placeholder="Enter Email"
-            value={data.email}
-            onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-white/30 text-white placeholder-white outline-none focus:ring-2 focus:ring-yellow-300"
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <div className="relative w-full h-screen flex py-6 sm:py-8 md:py-4 items-center  justify-center px-3 sm:px-4 md:px-6  overflow-hidden">
+      {/* BACKGROUND BLOBS */}
+      <div className="absolute w-64 h-64 sm:w-80 sm:h-80 bg-gray-400 rounded-full -top-20 -left-20 blur-2xl opacity-40"></div>
+
+      <div className="absolute w-80 h-80 sm:w-125 sm:h-125 bg-gray-400 rounded-full -bottom-32 -right-32 blur-2xl opacity-40"></div>
+
+      <div className="absolute w-56 h-56 sm:w-72 sm:h-72 bg-gray-300 rounded-full top-[40%] left-[60%] blur-2xl opacity-25"></div>
+
+      {/* MAIN CONTAINER */}
+      <div className="relative z-10 w-full max-w-5xl flex flex-col md:flex-row rounded-2xl overflow-hidden backdrop-blur-md bg-white/30 shadow-xl">
+        {/* IMAGE SECTION */}
+        <div className="hidden md:block md:w-1/2 relative">
+          <img
+            src={login}
+            alt="login visual"
+            className="w-full h-full object-cover"
           />
 
-          <input
-            type="password"
-            name="password"
-            placeholder="Enter Password"
-            value={data.password}
-            onChange={handleChange}
-            className="w-full p-3 rounded-lg bg-white/30 text-white placeholder-white outline-none focus:ring-2 focus:ring-yellow-300"
-          />
+          <div className="absolute inset-0 bg-[rgba(0,0,0,0.5)]"></div>
 
-          <button
-            type="submit"
-            className="w-full py-3 rounded-lg font-semibold bg-yellow-400 text-black hover:bg-yellow-300 transition duration-300 shadow-md"
+          <div className="absolute inset-0 flex items-center justify-center px-4">
+            <div className="text-white text-center">
+              <div className="flex justify-center items-center mb-1 flex-wrap">
+                <Infinity size={55} color="white" />
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">
+                  INFINITY
+                </h1>
+              </div>
+
+              <p className="text-xs sm:text-sm leading-relaxed p-2 sm:p-4 text-gray-200">
+                A modern Point of Sale (POS) system is the backbone of efficient
+                retail operations...
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* FORM SECTION */}
+        <div className="w-full md:w-1/2 p-4 sm:p-3 md:pl-5 md:pr-5 flex flex-col justify-center">
+          <p className="text-center text-sm sm:text-base">WELCOME TO</p>
+
+          <div className="flex justify-center items-center mb-2 flex-wrap">
+            <Infinity size={55} color="black" />
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-widest ml-2">
+              INFINITY
+            </h1>
+          </div>
+
+          <div className="mb-4 text-center text-gray-500 text-xs sm:text-sm px-2">
+            Log in to manage sales, inventory, and customers seamlessly from one
+            platform.
+          </div>
+
+          {/* INPUTS */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleLogin();
+            }}
           >
-            Login
-          </button>
-        </form>
+            <div className="flex flex-col">
+              <input
+                type="email"
+                name="email"
+                autoComplete="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none text-sm sm:text-base"
+              />
 
-        <p className="text-center text-white mt-4 text-sm">
-          Don't have an account?{" "}
-          <span className="underline cursor-pointer hover:text-yellow-300">
-            Sign Up
-          </span>
-        </p>
+              <p
+                className={`text-xs ${errors.email ? "text-red-500" : "invisible"}`}
+              >
+                {errors.email || "placeholder"}
+              </p>
+
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full text-black py-2 my-1 bg-transparent border-b border-black outline-none pr-10 text-sm sm:text-base"
+                />
+
+                <span
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-2.5 sm:top-3 cursor-pointer text-gray-600"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </span>
+              </div>
+
+              <p
+                className={`text-xs ${errors.password ? "text-red-500" : "invisible"}`}
+              >
+                {errors.password || "placeholder"}
+              </p>
+            </div>
+             <button
+            onClick={handleLogin}
+            disabled={loading}
+            className="w-full h-12 cursor-pointer bg-black text-white mt-6 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2 text-sm sm:text-base"
+          >
+            {loading && (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            )}
+            {loading ? "Logging in..." : "Login"}
+          </button>
+                    <p
+            className={`text-sm mt-2 text-center ${error ? "text-red-500" : "invisible"}`}
+          >
+            {error || "placeholder"}
+          </p>
+
+          </form>
+
+          {/* OPTIONS */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 text-xs sm:text-sm gap-2">
+            <label className="flex items-center gap-2">
+              <input type="checkbox" />
+              Remember me
+            </label>
+
+            <p 
+              onClick={() => navigate("/forgot-password")}
+              className="cursor-pointer text-gray-500 text-right hover:text-black transition-colors"
+            >
+              Forgot Password?
+            </p>
+          </div>
+
+         
+
+
+          <p className="text-xs sm:text-sm text-center text-gray-600 mt-4">
+            Don’t have an account?{" "}
+            <span
+              onClick={() => navigate("/register")}
+              className="text-black cursor-pointer font-medium"
+            >
+              Sign up
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );
