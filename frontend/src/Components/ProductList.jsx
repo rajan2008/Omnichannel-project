@@ -56,7 +56,7 @@ const ProductList = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 p-6">
+    <div className="min-h-screen bg-linear-to-br from-gray-100 to-gray-200 p-6">
 
       {/* 🔍 Search + Sort */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">

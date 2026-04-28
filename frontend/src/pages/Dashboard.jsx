@@ -144,7 +144,7 @@ export default function Dashboard() {
           </nav>
           <button
             onClick={logout}
-            className="w-full mt-auto mt-12 py-3 rounded-lg font-semibold transition hover:opacity-90"
+            className="w-full mt-12 py-3 rounded-lg font-semibold transition hover:opacity-90"
             style={{ backgroundColor: colors.background, color: colors.primary }}
           >
             Logout
