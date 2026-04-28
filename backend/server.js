@@ -8,6 +8,7 @@ import authRoutes from "./src/routes/authRoutes.js";
 import inventoryRoutes from "./src/routes/inventoryRoutes.js";
 import orderRoutes from "./src/routes/orderRoutes.js";
 import storeRoutes from "./src/routes/storeRoutes.js";
+import dashboardRoutes from "./src/routes/dashboardRoutes.js";
 import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
 
 const app = express();
@@ -18,6 +19,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/stores", storeRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.get("/api", (req, res) => res.send("API is running"));
 
