@@ -1,11 +1,11 @@
 import express from "express";
-import { checkout, getOrders, getStats } from "../controllers/orderController.js";
-import { protect, allowRoles } from "../middleware/authMiddleware.js";
+import { checkout, cancelOrder, bulkSyncOrders } from "../controllers/orderController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.post("/checkout", protect, checkout);
-router.get("/", protect, getOrders);
-router.get("/stats", protect, allowRoles("admin", "manager"), getStats);
+router.post("/bulk-sync", protect, bulkSyncOrders);
+router.patch("/:id/cancel", protect, cancelOrder);
 
 export default router;
