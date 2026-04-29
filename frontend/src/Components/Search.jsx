@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import api from "../api/axiosInstance.js";
+import { getProducts } from "../api/productApi.js";
 
 const Search = () => {
   const [search, setSearch] = useState("");
@@ -12,19 +12,16 @@ const Search = () => {
     try {
       setLoading(true);
 
-      let url = `/inventory?page=${pageNumber}&limit=10`;
-      if (search.trim()) url += `&search=${search.trim()}`;
-
-      const res = await api.get(url);
+      const data = await getProducts(search.trim(), pageNumber);
 
       if (isLoadMore) {
-        setProducts((prev) => [...prev, ...res.data.products]);
+        setProducts((prev) => [...prev, ...data.products]);
       } else {
-        setProducts(res.data.products);
+        setProducts(data.products);
       }
 
-      setPage(res.data.currentPage);
-      setTotalPages(res.data.totalPages);
+      setPage(data.currentPage);
+      setTotalPages(data.totalPages);
 
     } catch (err) {
       console.log(err);
@@ -32,6 +29,7 @@ const Search = () => {
       setLoading(false);
     }
   };
+
 
   // Initial load
   useEffect(() => {

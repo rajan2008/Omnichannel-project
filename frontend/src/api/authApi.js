@@ -36,3 +36,22 @@ export const resetPassword = async (token, data) => {
     throw error.response?.data?.message || "Failed to reset password";
   }
 };
+
+export const getProfile = async () => {
+  try {
+    const res = await api.get("/auth/profile");
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch profile";
+  }
+};
+
+export const verifyOtp = async (data) => {
+  try {
+    const res = await api.post("/auth/verify-otp", data);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "OTP verification failed";
+  }
+};
+

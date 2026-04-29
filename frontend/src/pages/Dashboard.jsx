@@ -1,6 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import api from "../api/axiosInstance.js";
+import { getProfile } from "../api/authApi";
+import { getProducts } from "../api/productApi";
+import { getDashboardStats } from "../api/dashboardApi";
+import { getStores } from "../api/storeApi";
+import { checkoutOrder } from "../api/orderApi";
+
 import { 
   LayoutDashboard, 
   Package, 
@@ -23,6 +28,8 @@ import {
   ChevronRight
 } from "lucide-react";
 import toast from "react-hot-toast";
+import Sidebar from "../Components/Sidebar";
+
 
 const categoryImages = {
   Electronics: "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=300&h=300",
@@ -77,20 +84,21 @@ export default function Dashboard() {
 
     const loadData = async () => {
       try {
-        const [profileRes, productsRes, statsRes, storesRes] = await Promise.all([
-          api.get("/auth/profile"),
-          api.get("/inventory"),
-          api.get("/dashboard/stats"),
-          api.get("/stores"),
+        const [profileData, productsData, statsData, storesData] = await Promise.all([
+          getProfile(),
+          getProducts(),
+          getDashboardStats(),
+          getStores(),
         ]);
 
-        setUser(profileRes.data);
-        setProducts(productsRes.data.products || []);
-        setFilteredProducts(productsRes.data.products || []);
-        setStats(statsRes.data);
-        setStores(storesRes.data);
-        if (storesRes.data.length > 0) setSelectedStore(storesRes.data[0]._id);
+        setUser(profileData);
+        setProducts(productsData.products || []);
+        setFilteredProducts(productsData.products || []);
+        setStats(statsData);
+        setStores(storesData);
+        if (storesData.length > 0) setSelectedStore(storesData[0]._id);
       } catch (error) {
+
         console.error("Dashboard load error:", error);
         toast.error("Failed to load dashboard data");
       } finally {
@@ -185,20 +193,21 @@ export default function Dashboard() {
         storeId: selectedStore
       };
 
-      await api.post("/orders/checkout", payload);
+      await checkoutOrder(payload);
       
       toast.success("Order placed successfully!", { id: loadingToast });
       setCart([]);
       setIsCartOpen(false);
-      const [productsRes, statsRes] = await Promise.all([
-        api.get("/inventory"),
-        api.get("/dashboard/stats"),
+      const [productsData, statsData] = await Promise.all([
+        getProducts(),
+        getDashboardStats(),
       ]);
-      setProducts(productsRes.data.products || []);
-      setStats(statsRes.data);
+      setProducts(productsData.products || []);
+      setStats(statsData);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Checkout failed", { id: loadingToast });
+      toast.error(error instanceof String ? error : (error.message || "Checkout failed"), { id: loadingToast });
     }
+
   };
 
   const logout = () => {
@@ -228,52 +237,15 @@ export default function Dashboard() {
       )}
 
       {/* SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-50 transition-transform duration-300 lg:relative lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
-        <div className="p-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/20">
-              <ShoppingCart className="text-white w-6 h-6" />
-            </div>
-            <span className="text-white font-bold text-xl tracking-tight">OmniPOS</span>
-          </div>
-          <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => setIsSidebarOpen(false)}>
-            <X size={24} />
-          </button>
-        </div>
+      <Sidebar 
+        activeTab={activeTab} 
+        setActiveTab={setActiveTab} 
+        isSidebarOpen={isSidebarOpen} 
+        setIsSidebarOpen={setIsSidebarOpen} 
+        user={user} 
+        logout={logout} 
+      />
 
-        <nav className="flex-1 px-4 py-6 space-y-2">
-          {[
-            { id: "pos", label: "Point of Sale", icon: ShoppingCart },
-            { id: "stats", label: "Statistics", icon: LayoutDashboard },
-          ].map(item => (
-            <button 
-              key={item.id}
-              onClick={() => { setActiveTab(item.id); setIsSidebarOpen(false); }}
-              className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all ${activeTab === item.id ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/40" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}
-            >
-              <item.icon size={22} />
-              <span className="font-semibold">{item.label}</span>
-            </button>
-          ))}
-
-          <div className="pt-4 pb-2"><p className="text-[10px] uppercase tracking-widest text-slate-500 px-3">Management</p></div>
-          <button className="w-full flex items-center gap-4 p-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all"><Package size={22} /><span className="font-semibold">Inventory</span></button>
-          <button className="w-full flex items-center gap-4 p-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all"><Layers size={22} /><span className="font-semibold">Orders</span></button>
-        </nav>
-
-        <div className="p-4 border-t border-slate-800">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-bold">{user?.name?.charAt(0)}</div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
-              <p className="text-[10px] text-slate-500 truncate capitalize">{user?.role}</p>
-            </div>
-          </div>
-          <button onClick={logout} className="w-full flex items-center gap-4 p-3 rounded-xl text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all">
-            <LogOut size={22} /><span className="font-semibold">Logout</span>
-          </button>
-        </div>
-      </aside>
 
       {/* MAIN CONTENT */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
