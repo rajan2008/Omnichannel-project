@@ -7,6 +7,10 @@ const productSchema = new mongoose.Schema(
     category: { type: String, required: true },
     costPrice: { type: Number, required: true },
     basePrice: { type: Number, required: true },
+    image: { 
+      type: String, 
+      default: "https://res.cloudinary.com/placeholder/image/upload/v1/products/default.png" 
+    },
     stock: { type: Number, default: 0 },
     lowStockThreshold: { type: Number, default: 10 },
     store: { type: mongoose.Schema.Types.ObjectId, ref: "Store", required: true },

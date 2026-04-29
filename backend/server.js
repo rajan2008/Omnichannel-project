@@ -8,16 +8,25 @@ import authRoutes from "./src/routes/authRoutes.js";
 import inventoryRoutes from "./src/routes/inventoryRoutes.js";
 import orderRoutes from "./src/routes/orderRoutes.js";
 import storeRoutes from "./src/routes/storeRoutes.js";
+import adminRoutes from "./src/routes/adminRoutes.js";
+import managerRoutes from "./src/routes/managerRoutes.js";
+import cashierRoutes from "./src/routes/cashierRoutes.js";
 import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Public/Common Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/stores", storeRoutes);
+
+// Role-Specific Routes (Clean for Frontend)
+app.use("/api/admin", adminRoutes);
+app.use("/api/manager", managerRoutes);
+app.use("/api/cashier", cashierRoutes);
 
 app.get("/api", (req, res) => res.send("API is running"));
 
@@ -37,3 +46,5 @@ const startServr = async () => {
 };
 
 startServr();
+
+export { app };

@@ -28,7 +28,14 @@ export const getProducts = async (req, res) => {
 
 export const addProduct = async (req, res) => {
   try {
-    const product = await Product.create(req.body);
+    const productData = { ...req.body };
+    
+    // Agar file upload hui hai, to uska URL image field me daal do
+    if (req.file) {
+      productData.image = req.file.path;
+    }
+
+    const product = await Product.create(productData);
     await clearProductCache();
     await logActivity(req.user.id, "PRODUCT_CREATE", `Created ${product.name}`, product._id);
     res.status(201).json(product);
