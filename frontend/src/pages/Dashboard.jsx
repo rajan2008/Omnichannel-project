@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { 
+  addToCart as addToCartAction, 
+  updateQuantity as updateQuantityAction, 
+  removeFromCart as removeFromCartAction 
+} from "../redux/slices/cartSlice";
 import { getProfile } from "../api/authApi";
 import { getProducts } from "../api/productApi";
 import { getDashboardStats } from "../api/dashboardApi";
@@ -25,7 +31,8 @@ import {
   Layers,
   Menu,
   X,
-  ChevronRight
+  ChevronRight,
+  CheckCircle2
 } from "lucide-react";
 import toast from "react-hot-toast";
 import Sidebar from "../Components/Sidebar";
@@ -48,7 +55,7 @@ const getProductImage = (product) => {
 };
 
 const formatCurrency = (value) =>
-  new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(value);
+  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(value);
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -68,11 +75,15 @@ export default function Dashboard() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("newest");
+  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
 
-  // Cart State
-  const [cart, setCart] = useState([]);
+  // Redux Cart State
+  const dispatch = useDispatch();
+  const cart = useSelector((state) => state.cart.items);
   const [paymentMethod, setPaymentMethod] = useState("cash");
 
   useEffect(() => {
@@ -110,18 +121,35 @@ export default function Dashboard() {
   }, [navigate]);
 
   useEffect(() => {
-    let result = products;
+    let result = [...products];
+    
     if (category !== "All") {
       result = result.filter(p => p.category === category);
     }
+    
     if (searchQuery) {
       result = result.filter(p => 
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.sku?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
+
+    // Sort Logic
+    if (sortBy === "price-low") result.sort((a, b) => a.basePrice - b.basePrice);
+    else if (sortBy === "price-high") result.sort((a, b) => b.basePrice - a.basePrice);
+    else if (sortBy === "name") result.sort((a, b) => a.name.localeCompare(b.name));
+    else if (sortBy === "newest") result.reverse(); // Assuming latest products are at the end
+    
     setFilteredProducts(result);
-  }, [searchQuery, category, products]);
+  }, [searchQuery, category, products, sortBy]);
+
+  const isFiltered = searchQuery !== "" || category !== "All" || sortBy !== "newest";
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setCategory("All");
+    setSortBy("newest");
+  };
 
   const categories = useMemo(() => {
     const cats = ["All", ...new Set(products.map(p => p.category))];
@@ -133,81 +161,24 @@ export default function Dashboard() {
       toast.error("Item out of stock");
       return;
     }
-
-    setCart(prev => {
-      const existing = prev.find(item => item._id === product._id);
-      if (existing) {
-        if (existing.quantity >= product.stock) {
-          toast.error("Max stock reached");
-          return prev;
-        }
-        return prev.map(item => 
-          item._id === product._id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-    setIsCartOpen(true);
+    dispatch(addToCartAction(product));
   };
 
   const updateQuantity = (id, delta) => {
-    setCart(prev => {
-      return prev.map(item => {
-        if (item._id === id) {
-          const newQty = item.quantity + delta;
-          if (newQty < 1) return item;
-          if (newQty > item.stock) {
-            toast.error("Max stock reached");
-            return item;
-          }
-          return { ...item, quantity: newQty };
-        }
-        return item;
-      });
-    });
+    dispatch(updateQuantityAction({ id, delta }));
   };
 
   const removeFromCart = (id) => {
-    setCart(prev => prev.filter(item => item._id !== id));
+    dispatch(removeFromCartAction(id));
   };
 
   const subtotal = cart.reduce((acc, item) => acc + (item.basePrice * item.quantity), 0);
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (cart.length === 0) return;
-    if (!selectedStore) {
-      toast.error("Please select a store");
-      return;
-    }
-
-    const loadingToast = toast.loading("Processing checkout...");
-    try {
-      const payload = {
-        items: cart.map(item => ({
-          productId: item._id,
-          quantity: item.quantity
-        })),
-        paymentMethod,
-        storeId: selectedStore
-      };
-
-      await checkoutOrder(payload);
-      
-      toast.success("Order placed successfully!", { id: loadingToast });
-      setCart([]);
-      setIsCartOpen(false);
-      const [productsData, statsData] = await Promise.all([
-        getProducts(),
-        getDashboardStats(),
-      ]);
-      setProducts(productsData.products || []);
-      setStats(statsData);
-    } catch (error) {
-      toast.error(error instanceof String ? error : (error.message || "Checkout failed"), { id: loadingToast });
-    }
-
+    navigate("/checkout");
   };
 
   const logout = () => {
@@ -234,6 +205,9 @@ export default function Dashboard() {
       )}
       {isCartOpen && activeTab === "pos" && (
         <div className="xl:hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 transition-opacity" onClick={() => setIsCartOpen(false)} />
+      )}
+      {(isSortModalOpen || isFilterModalOpen) && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] transition-opacity" onClick={() => { setIsSortModalOpen(false); setIsFilterModalOpen(false); }} />
       )}
 
       {/* SIDEBAR */}
@@ -266,85 +240,151 @@ export default function Dashboard() {
           <div className="flex-1 flex overflow-hidden">
             {/* PRODUCT SELECTOR */}
             <div className="flex-1 flex flex-col min-w-0 bg-slate-50">
-              <div className="bg-white border-b border-slate-200 p-4 md:px-8 md:py-5 flex flex-col md:flex-row items-stretch md:items-center gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input 
-                    type="text" 
-                    placeholder="Search by name or SKU..."
-                    className="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+              <div className="bg-white border-b border-slate-200 p-4 md:px-8 md:py-5 flex flex-col gap-4">
+                <div className="flex items-center gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input 
+                      type="text" 
+                      placeholder="Search for products..."
+                      className="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-xl focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-sm transition-all"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="hidden md:flex items-center gap-3">
+                    <select 
+                      value={selectedStore}
+                      onChange={(e) => setSelectedStore(e.target.value)}
+                      className="bg-slate-100 border-none rounded-xl px-4 py-2 text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer opacity-70 hover:opacity-100 transition-all"
+                    >
+                      {stores.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                    </select>
+                  </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <select 
-                    value={selectedStore}
-                    onChange={(e) => setSelectedStore(e.target.value)}
-                    className="flex-1 md:flex-none bg-slate-100 border-none rounded-xl px-4 py-2 text-sm font-semibold focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
+
+                {/* FLIPKART STYLE SORT/FILTER BAR (MOBILE ONLY) */}
+                <div className="flex md:hidden border-t border-slate-100 -mx-4 mt-2">
+                  <button 
+                    onClick={() => setIsSortModalOpen(true)}
+                    className="flex-1 py-3 flex items-center justify-center gap-2 text-sm font-bold text-slate-600 border-r border-slate-100 active:bg-slate-50 transition-colors"
                   >
-                    {stores.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-                  </select>
+                    <ArrowRight size={16} className="rotate-90" /> Sort
+                  </button>
+                  <button 
+                    onClick={() => setIsFilterModalOpen(true)}
+                    className="flex-1 py-3 flex items-center justify-center gap-2 text-sm font-bold text-slate-600 active:bg-slate-50 transition-colors"
+                  >
+                    <Layers size={16} /> Filter
+                  </button>
+                </div>
+
+                {/* DESKTOP SORT BUTTONS */}
+                <div className="hidden md:flex items-center gap-2 pt-2 overflow-x-auto no-scrollbar">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 mr-2">Sort By:</span>
+                  {[
+                    { id: "newest", label: "Newest First" },
+                    { id: "price-low", label: "Price: Low to High" },
+                    { id: "price-high", label: "Price: High to Low" },
+                    { id: "name", label: "Name: A-Z" },
+                  ].map(opt => (
+                    <button 
+                      key={opt.id}
+                      onClick={() => setSortBy(opt.id)}
+                      className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${sortBy === opt.id ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" : "text-slate-500 hover:text-indigo-600"}`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 
-              {/* CATEGORIES */}
-              <div className="px-4 md:px-8 py-3 flex items-center gap-2 overflow-x-auto no-scrollbar bg-slate-50 border-b border-slate-200/50">
-                {categories.map(cat => (
+              {/* CATEGORIES & CLEAR */}
+              <div className="px-4 md:px-8 py-3 flex items-center justify-between bg-slate-50 border-b border-slate-200/50">
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1 mr-4">
+                  {categories.map(cat => (
+                    <button 
+                      key={cat}
+                      onClick={() => setCategory(cat)}
+                      className={`px-4 py-1.5 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap transition-all hover:scale-105 active:scale-95 ${category === cat ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" : "bg-white text-slate-500 border border-slate-200 hover:border-indigo-400 hover:text-indigo-600"}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                {isFiltered && (
                   <button 
-                    key={cat}
-                    onClick={() => setCategory(cat)}
-                    className={`px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all ${category === cat ? "bg-indigo-600 text-white shadow-md shadow-indigo-200" : "bg-white text-slate-500 border border-slate-200 hover:border-indigo-400 hover:text-indigo-600"}`}
+                    onClick={clearFilters}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black text-red-500 hover:bg-red-50 rounded-lg transition-colors whitespace-nowrap uppercase tracking-wider"
                   >
-                    {cat}
+                    <X size={14} /> Clear
                   </button>
-                ))}
+                )}
               </div>
 
               {/* GRID */}
-              <div className="flex-1 overflow-y-auto p-4 md:p-8">
-                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-5">
-                  {filteredProducts.map(product => (
-                    <div 
-                      key={product._id}
-                      onClick={() => addToCart(product)}
-                      className={`group relative bg-white rounded-2xl p-3 md:p-4 border border-slate-200 cursor-pointer transition-all hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/10 active:scale-[0.97] ${product.stock <= 0 ? "opacity-60 grayscale" : ""}`}
-                    >
-                      <div className="aspect-square bg-slate-100 rounded-xl mb-3 md:mb-4 flex items-center justify-center overflow-hidden relative">
-                        <img 
-                          src={getProductImage(product)} 
-                          alt={product.name} 
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" 
-                        />
-                        <div className="absolute inset-0 bg-indigo-900/0 group-hover:bg-indigo-900/10 transition-colors" />
-                        {product.stock <= 5 && product.stock > 0 && (
-                          <div className="absolute top-2 left-2 bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-sm uppercase tracking-tighter">Low</div>
-                        )}
-                        {product.stock <= 0 && (
-                          <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center backdrop-blur-[1px]">
-                            <span className="bg-white text-slate-900 text-[10px] font-black px-3 py-1 rounded-full uppercase">Out of Stock</span>
+              <div className={`flex-1 overflow-y-auto p-4 md:p-8 ${cart.length > 0 ? "pb-28 xl:pb-8" : ""}`}>
+                {filteredProducts.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 md:gap-5">
+                    {filteredProducts.map(product => (
+                      <div 
+                        key={product._id}
+                        onClick={() => addToCart(product)}
+                        className={`group relative bg-white rounded-2xl p-3 md:p-4 border border-slate-200 cursor-pointer transition-all hover:border-indigo-400 hover:shadow-2xl hover:shadow-indigo-500/10 active:scale-[0.97] ${product.stock <= 0 ? "opacity-60 grayscale" : ""}`}
+                      >
+                        <div className="aspect-square bg-slate-100 rounded-xl mb-3 md:mb-4 flex items-center justify-center overflow-hidden relative">
+                          <img 
+                            src={getProductImage(product)} 
+                            alt={product.name} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" 
+                          />
+                          <div className="absolute inset-0 bg-indigo-900/0 group-hover:bg-indigo-900/10 transition-colors" />
+                          {product.stock <= 5 && product.stock > 0 && (
+                            <div className="absolute top-2 left-2 bg-amber-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md shadow-sm uppercase tracking-tighter">Low</div>
+                          )}
+                          {product.stock <= 0 && (
+                            <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center backdrop-blur-[1px]">
+                              <span className="bg-white text-slate-900 text-[10px] font-black px-3 py-1 rounded-full uppercase">Out of Stock</span>
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="font-bold text-xs md:text-sm text-slate-800 line-clamp-1 mb-0.5">{product.name}</h3>
+                        <p className="text-[9px] md:text-[10px] text-slate-400 font-bold mb-2 md:mb-3 uppercase tracking-widest">{product.category}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm md:text-lg font-black text-indigo-600">{formatCurrency(product.basePrice)}</span>
+                          <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:rotate-90">
+                            <Plus size={16} strokeWidth={3} />
                           </div>
-                        )}
-                      </div>
-                      <h3 className="font-bold text-xs md:text-sm text-slate-800 line-clamp-1 mb-0.5">{product.name}</h3>
-                      <p className="text-[9px] md:text-[10px] text-slate-400 font-bold mb-2 md:mb-3 uppercase tracking-widest">{product.category}</p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm md:text-lg font-black text-indigo-600">{formatCurrency(product.basePrice)}</span>
-                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:rotate-90">
-                          <Plus size={16} strokeWidth={3} />
                         </div>
                       </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-center py-20 animate-in fade-in zoom-in duration-500">
+                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-slate-300">
+                      <Search size={40} />
                     </div>
-                  ))}
-                </div>
+                    <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tighter">No items found</h3>
+                    <p className="text-slate-500 max-w-xs mx-auto mb-6 font-medium">We couldn't find any products matching your current filters or search query.</p>
+                    <button 
+                      onClick={clearFilters}
+                      className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all active:scale-95 shadow-xl shadow-indigo-200 uppercase text-xs tracking-widest"
+                    >
+                      Clear all filters
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* CART SIDEBAR - RESPONSIVE SLIDE */}
             <aside className={`fixed inset-y-0 right-0 w-full sm:w-[400px] bg-white border-l border-slate-200 flex flex-col z-50 transition-transform duration-300 xl:relative xl:translate-x-0 ${isCartOpen ? "translate-x-0" : "translate-x-full"}`}>
               <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg md:text-xl font-black text-slate-800">Order Summary</h2>
+                <div onClick={() => navigate("/checkout")} className="cursor-pointer group">
+                  <h2 className="text-lg md:text-xl font-black text-slate-800 group-hover:text-indigo-600 transition-colors flex items-center gap-2">
+                    Order Summary
+                    <ChevronRight size={18} className="text-slate-300 group-hover:text-indigo-600 transition-all group-hover:translate-x-1" />
+                  </h2>
                   <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">Active Transaction</p>
                 </div>
                 <button className="xl:hidden p-2 text-slate-400 hover:text-slate-800" onClick={() => setIsCartOpen(false)}><X size={24} /></button>
@@ -398,7 +438,7 @@ export default function Dashboard() {
                   <div className="flex justify-between items-center pt-3 border-t border-slate-200 mt-2"><span className="text-base md:text-lg font-black text-slate-900 uppercase">Total</span><span className="text-xl md:text-2xl font-black text-indigo-600">{formatCurrency(total)}</span></div>
                 </div>
                 <button disabled={cart.length === 0} onClick={handleCheckout} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl shadow-indigo-200 hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-50 disabled:grayscale uppercase tracking-widest text-xs">
-                  Checkout Order <ArrowRight size={18} />
+                  Review & Checkout <ArrowRight size={18} />
                 </button>
               </div>
             </aside>
@@ -465,17 +505,103 @@ export default function Dashboard() {
           </div>
         )}
 
-        {/* FLOATING CART BUTTON (MOBILE) */}
+        {/* MOBILE BOTTOM SUMMARY BAR */}
         {!isCartOpen && activeTab === "pos" && cart.length > 0 && (
-          <button 
-            onClick={() => setIsCartOpen(true)}
-            className="xl:hidden fixed bottom-6 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full shadow-2xl flex items-center justify-center z-40 animate-bounce transition-transform active:scale-90"
-          >
-            <ShoppingCart size={28} />
-            <span className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-xs font-black border-2 border-white">{cart.reduce((a, b) => a + b.quantity, 0)}</span>
-          </button>
+          <div className="xl:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 z-40 flex items-center justify-between shadow-[0_-10px_40px_rgba(0,0,0,0.05)] animate-in slide-in-from-bottom duration-300">
+            <div className="flex flex-col">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total Amount</span>
+              <span className="text-lg font-black text-indigo-600">{formatCurrency(total)}</span>
+            </div>
+            <button 
+              onClick={() => navigate("/checkout")}
+              className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-indigo-200 active:scale-95 transition-all text-sm"
+            >
+              Order Summary
+              <div className="w-5 h-5 bg-white/20 rounded-md flex items-center justify-center text-[10px]">
+                {cart.reduce((a, b) => a + b.quantity, 0)}
+              </div>
+            </button>
+          </div>
         )}
       </main>
+      {/* FLIPKART STYLE SORT BOTTOM SHEET */}
+      <div className={`fixed inset-x-0 bottom-0 bg-white z-[70] transition-transform duration-300 rounded-t-[2rem] shadow-2xl ${isSortModalOpen ? "translate-y-0" : "translate-y-full"}`}>
+        <div className="p-6">
+          <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6" />
+          <h3 className="text-lg font-black mb-4 uppercase tracking-tighter">Sort By</h3>
+          <div className="space-y-2">
+            {[
+              { id: "newest", label: "Newest First" },
+              { id: "price-low", label: "Price: Low to High" },
+              { id: "price-high", label: "Price: High to Low" },
+              { id: "name", label: "Name: A-Z" },
+            ].map(opt => (
+              <button 
+                key={opt.id}
+                onClick={() => { setSortBy(opt.id); setIsSortModalOpen(false); }}
+                className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${sortBy === opt.id ? "bg-indigo-50 text-indigo-600 font-bold" : "text-slate-600 font-medium"}`}
+              >
+                {opt.label}
+                {sortBy === opt.id && <CheckCircle2 className="w-5 h-5" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* FLIPKART STYLE FILTER DRAWER */}
+      <div className={`fixed inset-y-0 right-0 w-[85%] bg-white z-[70] transition-transform duration-300 shadow-2xl flex flex-col ${isFilterModalOpen ? "translate-x-0" : "translate-x-full"}`}>
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <h3 className="text-xl font-black uppercase tracking-tighter">Filters</h3>
+          <button onClick={() => setIsFilterModalOpen(false)} className="p-2 text-slate-400"><X size={24} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6 space-y-8">
+            <div>
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Categories</h4>
+              <div className="grid grid-cols-1 gap-2">
+                {categories.map(cat => (
+                  <button 
+                    key={cat}
+                    onClick={() => setCategory(cat)}
+                    className={`w-full text-left p-4 rounded-2xl transition-all ${category === cat ? "bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-100" : "bg-slate-50 text-slate-600 font-medium border border-slate-100"}`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Store Location</h4>
+              <div className="grid grid-cols-1 gap-2">
+                {stores.map(s => (
+                  <button 
+                    key={s._id}
+                    onClick={() => setSelectedStore(s._id)}
+                    className={`w-full text-left p-4 rounded-2xl transition-all ${selectedStore === s._id ? "bg-indigo-600 text-white font-bold shadow-lg shadow-indigo-100" : "bg-slate-50 text-slate-600 font-medium border border-slate-100"}`}
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="p-6 border-t border-slate-100 flex gap-4">
+          <button 
+            onClick={clearFilters}
+            className="flex-1 py-4 font-black text-xs uppercase tracking-widest text-slate-400"
+          >
+            Clear All
+          </button>
+          <button 
+            onClick={() => setIsFilterModalOpen(false)}
+            className="flex-1 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-200"
+          >
+            Apply Filters
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
