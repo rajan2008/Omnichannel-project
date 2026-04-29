@@ -8,6 +8,7 @@ import authRoutes from "./src/routes/authRoutes.js";
 import inventoryRoutes from "./src/routes/inventoryRoutes.js";
 import orderRoutes from "./src/routes/orderRoutes.js";
 import storeRoutes from "./src/routes/storeRoutes.js";
+import dashboardRoutes from "./src/routes/dashboardRoutes.js";
 import adminRoutes from "./src/routes/adminRoutes.js";
 import managerRoutes from "./src/routes/managerRoutes.js";
 import cashierRoutes from "./src/routes/cashierRoutes.js";
@@ -22,6 +23,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/inventory", inventoryRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/stores", storeRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // Role-Specific Routes (Clean for Frontend)
 app.use("/api/admin", adminRoutes);
