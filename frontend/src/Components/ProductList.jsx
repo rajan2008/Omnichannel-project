@@ -56,25 +56,31 @@ const ProductList = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 px-6 md:px-12 py-10">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-6 md:px-12 py-10">
 
       {/* 🔷 Header */}
-      <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-8">
-        Explore Products
-      </h1>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+        <h1 className="text-4xl font-bold text-gray-900 tracking-tight">
+          Explore Products
+        </h1>
+
+        <p className="text-gray-500 text-sm">
+          Discover premium collections ✨
+        </p>
+      </div>
 
       {/* 🔍 Search + Sort */}
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-10">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-12">
 
         <input
           type="text"
-          placeholder="Search for products..."
-          className="w-full md:w-1/2 px-5 py-3 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-black outline-none shadow-sm"
+          placeholder="Search products..."
+          className="w-full md:w-1/2 px-5 py-3 rounded-2xl border border-gray-200 bg-white/70 backdrop-blur-md focus:ring-2 focus:ring-black outline-none shadow-md"
           onChange={(e) => setSearch(e.target.value)}
         />
 
         <select
-          className="w-full md:w-1/4 px-5 py-3 rounded-xl border border-gray-300 bg-white focus:ring-2 focus:ring-black outline-none shadow-sm"
+          className="w-full md:w-1/4 px-5 py-3 rounded-2xl border border-gray-200 bg-white/70 backdrop-blur-md focus:ring-2 focus:ring-black outline-none shadow-md"
           onChange={(e) => setSort(e.target.value)}
         >
           <option value="">Sort By</option>
@@ -91,25 +97,28 @@ const ProductList = () => {
           return (
             <div
               key={product._id}
-              className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition duration-300 overflow-hidden border border-gray-100"
+              className="group relative bg-white/70 backdrop-blur-xl rounded-3xl shadow-md hover:shadow-2xl transition duration-500 border border-gray-200 overflow-hidden"
             >
+              {/* Glow Effect */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-gradient-to-tr from-black/5 to-transparent"></div>
+
               {/* 🖼 Image */}
-              <div className="relative overflow-hidden bg-gray-100">
+              <div className="relative overflow-hidden">
                 <img
                   src={product.images[0]}
                   alt={product.name}
-                  className="w-full h-56 object-cover group-hover:scale-105 transition duration-300"
+                  className="w-full h-56 object-cover group-hover:scale-110 transition duration-500"
                 />
 
                 {/* 🔥 Discount Badge */}
-                <span className="absolute top-3 left-3 bg-black text-white text-xs px-3 py-1 rounded-full shadow">
+                <span className="absolute top-4 left-4 bg-black text-white text-xs px-3 py-1 rounded-full shadow-lg">
                   {product.discount}% OFF
                 </span>
               </div>
 
               {/* 📦 Info */}
-              <div className="p-5">
-                <h2 className="text-lg font-semibold text-gray-800 group-hover:text-black transition">
+              <div className="p-6 relative z-10">
+                <h2 className="text-lg font-semibold text-gray-900 group-hover:text-black transition">
                   {product.name}
                 </h2>
 
@@ -118,8 +127,8 @@ const ProductList = () => {
                 </p>
 
                 {/* 💰 Price */}
-                <div className="flex items-center gap-3 mt-3">
-                  <p className="text-xl font-bold text-gray-900">
+                <div className="flex items-center gap-3 mt-4">
+                  <p className="text-2xl font-bold text-gray-900">
                     ₹{finalPrice}
                   </p>
                   <p className="text-gray-400 line-through text-sm">
@@ -137,7 +146,7 @@ const ProductList = () => {
                 </p>
 
                 {/* 🛒 Button */}
-                <button className="mt-5 w-full bg-black text-white py-2.5 rounded-xl font-medium hover:bg-gray-800 active:scale-95 transition">
+                <button className="mt-6 w-full bg-black text-white py-3 rounded-2xl font-medium tracking-wide hover:bg-gray-900 active:scale-95 transition duration-300">
                   Add to Cart
                 </button>
               </div>
