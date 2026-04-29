@@ -1,12 +1,15 @@
 import { useNavigate } from "react-router-dom";
-import { loginUser } from "../../Utils/api";
+import { loginUser } from "../../api/authApi.js";
 import { useState } from "react";
 import login from "../../assets/login.jpg";
+import { useDispatch } from "react-redux";
 import { Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import { Infinity } from "lucide-react";
+import { setUser } from "../../redux/slices/authSlice.js";
 const Login = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [errors, setErrors] = useState({});
@@ -50,21 +53,22 @@ const Login = () => {
       setError("");
 
       const res = await loginUser(formData);
-      console.log(res);
-
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
+      dispatch(setUser(res.user));
       toast.success(res.message);
       setTimeout(() => {
-        navigate("/search");
+        navigate("/dashboard");
       }, 1000);
     } catch (err) {
-      
-      const message = err || "Login failed";
+  const message =
+    typeof err === "string"
+      ? err
+      : err?.message || "Login failed";
 
-      setError(message);
-      toast.error(message);
-    } finally {
+  setError(message);
+  toast.error(message);
+} finally {
       setLoading(false);
     }
   };
@@ -171,22 +175,21 @@ const Login = () => {
                 {errors.password || "placeholder"}
               </p>
             </div>
-             <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full h-12 cursor-pointer bg-black text-white mt-6 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2 text-sm sm:text-base"
-          >
-            {loading && (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            )}
-            {loading ? "Logging in..." : "Login"}
-          </button>
-                    <p
-            className={`text-sm mt-2 text-center ${error ? "text-red-500" : "invisible"}`}
-          >
-            {error || "placeholder"}
-          </p>
-
+            <button
+              onClick={handleLogin}
+              disabled={loading}
+              className="w-full h-12 cursor-pointer bg-black text-white mt-6 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2 text-sm sm:text-base"
+            >
+              {loading && (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              )}
+              {loading ? "Logging in..." : "Login"}
+            </button>
+            <p
+              className={`text-sm mt-2 text-center ${error ? "text-red-500" : "invisible"}`}
+            >
+              {error || "placeholder"}
+            </p>
           </form>
 
           {/* OPTIONS */}
@@ -196,16 +199,13 @@ const Login = () => {
               Remember me
             </label>
 
-            <p 
+            <p
               onClick={() => navigate("/forgot-password")}
               className="cursor-pointer text-gray-500 text-right hover:text-black transition-colors"
             >
               Forgot Password?
             </p>
           </div>
-
-         
-
 
           <p className="text-xs sm:text-sm text-center text-gray-600 mt-4">
             Don’t have an account?{" "}

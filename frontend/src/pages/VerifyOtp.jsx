@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import api from "../api/axiosInstance.js";
+import { verifyOtp } from "../api/authApi.js";
 
 export default function VerifyOtp() {
   const navigate = useNavigate();
@@ -15,16 +15,17 @@ export default function VerifyOtp() {
     setError("");
     setLoading(true);
     try {
-      const { data } = await api.post("/auth/verify-otp", { email, otp });
+      const data = await verifyOtp({ email, otp });
       localStorage.setItem("token", data.token);
       localStorage.setItem("user", JSON.stringify(data.user));
       navigate("/dashboard");
     } catch (err) {
-      setError(err.response?.data?.message || "Invalid OTP");
+      setError(err instanceof String ? err : (err.message || "Invalid OTP"));
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">

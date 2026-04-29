@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { resetPassword } from "../../Utils/api";
+import { resetPassword } from "../../api/authApi.js";
 import { useState } from "react";
 import login from "../../assets/login.jpg";
 import { Eye, EyeOff, Lock } from "lucide-react";
