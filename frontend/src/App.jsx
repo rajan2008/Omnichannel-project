@@ -30,59 +30,68 @@ useEffect(() => {
       <Toaster />
 
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/reset-password/:token" element={<ResetPassword />} />
+  {/* Public Routes */}
+  <Route path="/login" element={<Login />} />
+  <Route path="/register" element={<Register />} />
+  <Route path="/forgot-password" element={<ForgotPassword />} />
+  <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <Checkout />
-            </ProtectedRoute>
-          }
-        />
+  {/* Dashboard (sab use kar sakte hain) */}
+  <Route
+    path="/dashboard"
+    element={
+      <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
+        <Dashboard />
+      </ProtectedRoute>
+    }
+  />
 
-        <Route
-          path="/productlist"
-          element={
-            <ProtectedRoute>
-              <ProductList />
-            </ProtectedRoute>
-          }
-        />
+  {/* Checkout (sirf cashier + manager + admin) */}
+  <Route
+    path="/checkout"
+    element={
+      <ProtectedRoute allowedRoles={["cashier", "manager", "admin"]}>
+        <Checkout />
+      </ProtectedRoute>
+    }
+  />
 
-        <Route
-          path="/inventory"
-          element={
-            <ProtectedRoute>
-              <Inventory />
-            </ProtectedRoute>
-          }
-        />
+  {/* Product List (view sab kar sakte hain) */}
+  <Route
+    path="/productlist"
+    element={
+      <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
+        <ProductList />
+      </ProtectedRoute>
+    }
+  />
 
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <Profile />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/"
-          element={<Navigate to={token ? "/dashboard" : "/login"} />}
-        />
-      </Routes>
+  {/* Inventory (sirf manager + admin) */}
+  <Route
+    path="/inventory"
+    element={
+      <ProtectedRoute allowedRoles={["admin", "manager"]}>
+        <Inventory />
+      </ProtectedRoute>
+    }
+  />
+
+  {/* Profile (sab logged in users) */}
+  <Route
+    path="/profile"
+    element={
+      <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
+        <Profile />
+      </ProtectedRoute>
+    }
+  />
+
+  {/* Default redirect */}
+  <Route
+    path="/"
+    element={<Navigate to={token ? "/dashboard" : "/login"} />}
+  />
+</Routes>
     </>
   );
 }

@@ -20,19 +20,40 @@ const Sidebar = ({
 }) => {
   const navigate = useNavigate();
 
+  const role = user?.role;
+
   const menuItems = [
     {
       id: "pos",
       label: "Point of Sale",
       icon: ShoppingCart,
       path: "/dashboard",
+      roles: ["cashier", "manager", "admin"],
     },
-    { id: "stats", label: "Statistics", icon: LayoutDashboard, path: "/stats" },
+    {
+      id: "stats",
+      label: "Statistics",
+      icon: LayoutDashboard,
+      path: "/stats",
+      roles: ["admin", "manager"],
+    },
   ];
 
   const managementItems = [
-    { id: "inventory", label: "Inventory", icon: Package, path: "/inventory" },
-    { id: "orders", label: "Orders", icon: Layers, path: "/orders" },
+    {
+      id: "inventory",
+      label: "Inventory",
+      icon: Package,
+      path: "/inventory",
+      roles: ["admin", "manager"],
+    },
+    {
+      id: "orders",
+      label: "Orders",
+      icon: Layers,
+      path: "/orders",
+      roles: ["cashier", "manager", "admin"],
+    },
   ];
 
   return (
@@ -57,19 +78,21 @@ const Sidebar = ({
       </div>
 
       <nav className="flex-1 px-4 py-6 space-y-2">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => {
-              navigate(item.path);
-              setIsSidebarOpen(false);
-            }}
-            className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all ${activeTab === item.id ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/40" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}
-          >
-            <item.icon size={22} />
-            <span className="font-semibold">{item.label}</span>
-          </button>
-        ))}
+        {menuItems
+          .filter((item) => item.roles.includes(role))
+          .map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                navigate(item.path);
+                setIsSidebarOpen(false);
+              }}
+              className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all ${activeTab === item.id ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/40" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}
+            >
+              <item.icon size={22} />
+              <span className="font-semibold">{item.label}</span>
+            </button>
+          ))}
 
         <div className="pt-4 pb-2">
           <p className="text-[10px] uppercase tracking-widest text-slate-500 px-3">
@@ -77,19 +100,21 @@ const Sidebar = ({
           </p>
         </div>
 
-        {managementItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => {
-              navigate(item.path);
-              setIsSidebarOpen(false);
-            }}
-            className="w-full flex items-center gap-4 p-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all"
-          >
-            <item.icon size={22} />
-            <span className="font-semibold">{item.label}</span>
-          </button>
-        ))}
+        {managementItems
+          .filter((item) => item.roles.includes(role))
+          .map((item) => (
+            <button
+              key={item.id}
+              onClick={() => {
+                navigate(item.path);
+                setIsSidebarOpen(false);
+              }}
+              className="w-full flex items-center gap-4 p-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all"
+            >
+              <item.icon size={22} />
+              <span className="font-semibold">{item.label}</span>
+            </button>
+          ))}
       </nav>
 
       <div className="p-4 border-t border-slate-800">

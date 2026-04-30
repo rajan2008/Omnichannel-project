@@ -49,8 +49,7 @@ const Inventory = () => {
     <div className="flex p-5">
   <Sidebar/>
       {/* Search */}
-      <div className="flex">
-        <SearchBar search={search} setSearch={setSearch} />
+      <SearchBar search={search} setSearch={setSearch} />
 
       {/* Loading */}
       {loading && page === 1 && <p>Loading...</p>}
@@ -87,7 +86,6 @@ const Inventory = () => {
       {!loading && products.length === 0 && (
         <p className="text-center mt-5">No Products Found</p>
       )}
-      </div>
     </div>
   );
 };

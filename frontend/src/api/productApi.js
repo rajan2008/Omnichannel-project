@@ -2,7 +2,7 @@ import api from "./axiosInstance.js";
 
 export const getProducts = async (search = "", page = 1) => {
   try {
-    let url = `/inventory?page=${page}&limit=20`; 
+    let url = `/inventory?page=${page}&limit=10`; 
 
     if (search) url += `&search=${search}`;
 
@@ -12,4 +12,3 @@ export const getProducts = async (search = "", page = 1) => {
     throw error.response?.data?.message || "Failed to fetch products";
   }
 };
-
