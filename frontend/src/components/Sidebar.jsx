@@ -21,13 +21,18 @@ const Sidebar = ({
   const navigate = useNavigate();
 
   const menuItems = [
-    { id: "pos", label: "Point of Sale", icon: ShoppingCart },
-    { id: "stats", label: "Statistics", icon: LayoutDashboard },
+    {
+      id: "pos",
+      label: "Point of Sale",
+      icon: ShoppingCart,
+      path: "/dashboard",
+    },
+    { id: "stats", label: "Statistics", icon: LayoutDashboard, path: "/stats" },
   ];
 
   const managementItems = [
-    { id: "inventory", label: "Inventory", icon: Package },
-    { id: "orders", label: "Orders", icon: Layers },
+    { id: "inventory", label: "Inventory", icon: Package, path: "/inventory" },
+    { id: "orders", label: "Orders", icon: Layers, path: "/orders" },
   ];
 
   return (
@@ -56,7 +61,7 @@ const Sidebar = ({
           <button
             key={item.id}
             onClick={() => {
-              if (setActiveTab) setActiveTab(item.id);
+              navigate(item.path);
               setIsSidebarOpen(false);
             }}
             className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all ${activeTab === item.id ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/40" : "text-slate-400 hover:bg-slate-800 hover:text-white"}`}
@@ -75,6 +80,10 @@ const Sidebar = ({
         {managementItems.map((item) => (
           <button
             key={item.id}
+            onClick={() => {
+              navigate(item.path);
+              setIsSidebarOpen(false);
+            }}
             className="w-full flex items-center gap-4 p-3 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-all"
           >
             <item.icon size={22} />

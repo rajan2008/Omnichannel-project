@@ -12,7 +12,7 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "./redux/slices/authSlice.js";
 import Profile from "./pages/Profile.jsx";
-import Inventory from "./Components/Inventory.jsx";
+import Inventory from "./pages/Inventory.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -62,7 +62,7 @@ useEffect(() => {
         />
 
         <Route
-          path="/search"
+          path="/inventory"
           element={
             <ProtectedRoute>
               <Inventory />

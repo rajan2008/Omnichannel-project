@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser, logout } from "../redux/slices/authSlice";
+import Sidebar from "../Components/Sidebar";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -85,6 +86,7 @@ const Profile = () => {
     <>
 
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    <Sidebar/>
       <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md">
 
         <h2 className="text-2xl font-bold mb-4 text-center">

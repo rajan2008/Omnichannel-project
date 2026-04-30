@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { getProducts } from "../api/productApi.js";
+import SearchBar from "../Components/SearchBar.jsx";
+import useDebounce from "../Utils/hooks/useDebounce.js";
+import Sidebar from "../Components/Sidebar.jsx";
 
 const Inventory = () => {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search, 500);
+
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -12,7 +17,7 @@ const Inventory = () => {
     try {
       setLoading(true);
 
-      const data = await getProducts(search.trim(), pageNumber);
+      const data = await getProducts(debouncedSearch.trim(), pageNumber);
 
       if (isLoadMore) {
         setProducts((prev) => [...prev, ...data.products]);
@@ -22,7 +27,6 @@ const Inventory = () => {
 
       setPage(data.currentPage);
       setTotalPages(data.totalPages);
-
     } catch (err) {
       console.log(err);
     } finally {
@@ -30,35 +34,23 @@ const Inventory = () => {
     }
   };
 
-
   // Initial load
   useEffect(() => {
     fetchProducts(1);
   }, []);
 
-  // Search debounce
+  // Debounced search
   useEffect(() => {
-    const delay = setTimeout(() => {
-      setPage(1);
-      fetchProducts(1, false);
-    }, 1000);
-
-    return () => clearTimeout(delay);
-  }, [search]);
+    setPage(1);
+    fetchProducts(1, false);
+  }, [debouncedSearch]);
 
   return (
-    <div className="p-5">
-
+    <div className="flex p-5">
+  <Sidebar/>
       {/* Search */}
-      <div className="mb-5">
-        <input
-          type="text"
-          placeholder="Search products..."
-          className="border px-3 py-2 w-full max-w-md"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+      <div className="flex">
+        <SearchBar search={search} setSearch={setSearch} />
 
       {/* Loading */}
       {loading && page === 1 && <p>Loading...</p>}
@@ -74,7 +66,7 @@ const Inventory = () => {
         ))}
       </div>
 
-      {/* Load More Button */}
+      {/* Load More */}
       {page < totalPages && !loading && (
         <div className="text-center mt-6">
           <button
@@ -95,6 +87,7 @@ const Inventory = () => {
       {!loading && products.length === 0 && (
         <p className="text-center mt-5">No Products Found</p>
       )}
+      </div>
     </div>
   );
 };
