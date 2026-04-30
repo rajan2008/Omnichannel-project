@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/userSchema.js";
+import OTP from "../models/otpSchema.js";
 import crypto from "crypto";
 import sendEmail from "../utils/sendEmail.js";
 
@@ -15,16 +16,59 @@ const generateToken = (user) => {
   );
 };
 
-// Register — public, role always cashier
+// 1. Send Registration OTP
+export const sendRegistrationOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ message: "Email already registered" });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+    
+    await OTP.findOneAndUpdate(
+      { email },
+      { otp: hashedOTP, createdAt: Date.now() },
+      { upsert: true, new: true }
+    );
+
+    await sendEmail({
+      email,
+      subject: "Your Registration OTP",
+      message: `Your OTP for registration is: ${otp}. It expires in 10 minutes.`,
+    });
+
+    res.status(200).json({ message: "OTP sent to email." });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// 2. Complete Registration
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, otp } = req.body;
+
+    const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+    const otpRecord = await OTP.findOne({ email });
+
+    if (!otpRecord || otpRecord.otp !== hashedOTP) {
+      return res.status(400).json({ message: "Invalid or expired OTP" });
+    }
 
     const existing = await User.findOne({ email });
-    if (existing)
-      return res.status(400).json({ message: "Email already registered" });
+    if (existing) return res.status(400).json({ message: "Email already registered" });
 
-    const user = await User.create({ name, email, password, phone, role: "cashier" });
+    const user = await User.create({ 
+      name, 
+      email, 
+      password, 
+      phone, 
+      role: "cashier",
+      isEmailVerified: true 
+    });
+
+    await OTP.deleteOne({ email });
     const token = generateToken(user);
 
     res.status(201).json({ 
@@ -37,94 +81,135 @@ export const registerUser = async (req, res) => {
   }
 };
 
-//Login API
+// Login
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    if (!process.env.JWT_SECRET) {
-      throw new Error("JWT_SECRET is not defined");
-    }
-
     const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    if (!user.isActive) {
-      return res.status(403).json({ message: "Account is deactivated" });
-    }
-
+    if (!user) return res.status(400).json({ message: "Invalid credentials" });
+    if (!user.isActive) return res.status(403).json({ message: "Account is deactivated" });
+    
     const isMatch = await user.comparePassword(password);
+    if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
 
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials" });
+    if (!user.isEmailVerified) {
+      return res.status(403).json({ message: "Please verify your email before logging in" });
     }
 
     user.lastLogin = new Date();
     await user.save();
 
     const token = generateToken(user);
-
     res.status(200).json({
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        phone: user.phone,
-        isActive: user.isActive,
-      },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone },
     });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Admin creates users
+// Admin Creates User
 export const createUserByAdmin = async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
-
-    if (!["admin", "manager", "cashier"].includes(role)) {
-      return res.status(400).json({ message: "Invalid role" });
-    }
-
     const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ message: "Email already registered" });
-    }
+    if (existing) return res.status(400).json({ message: "Email already registered" });
 
-    const user = await User.create({
-      name,
-      email,
-      password,
-      phone,
-      role,
-    });
+    const user = await User.create({ name, email, password, phone, role, isEmailVerified: true });
 
     res.status(201).json({
       message: `${role} account created successfully.`,
       user: { id: user._id, name: user.name, email: user.email, role: user.role }
     });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get logged in user profile
+// Get Profile
 export const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Update Profile (NO OTP for email/phone change as per user request)
+export const updateProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (req.body.email && req.body.email !== user.email) {
+      const existing = await User.findOne({ email: req.body.email });
+      if (existing) return res.status(400).json({ message: "Email already in use" });
+      user.email = req.body.email;
+    }
+
+    user.name = req.body.name || user.name;
+    user.phone = req.body.phone || user.phone;
+    if (req.body.password) user.password = req.body.password;
+
+    const updatedUser = await user.save();
+    res.status(200).json({
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      phone: updatedUser.phone,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Admin: Get All Users
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find({}).select("-password");
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json(users);
+  }
+};
+
+// Admin: Update User
+export const updateUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    user.phone = req.body.phone || user.phone;
+    user.role = req.body.role || user.role;
+    user.isActive = req.body.isActive !== undefined ? req.body.isActive : user.isActive;
+    user.store = req.body.store || user.store;
+
+    if (req.body.password) user.password = req.body.password;
+
+    const updatedUser = await user.save();
+    res.status(200).json({ message: "User updated successfully", user: updatedUser });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Admin: Delete User
+export const deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.role === "admin") return res.status(400).json({ message: "Cannot delete admin" });
+
+    await user.deleteOne();
+    res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -135,32 +220,21 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     const resetToken = user.getResetPasswordToken();
     await user.save({ validateBeforeSave: false });
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
-
-    const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please click on the link below to reset your password: \n\n ${resetUrl}`;
+    const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
+    const message = `Password Reset Link: ${resetUrl}`;
 
     try {
-      await sendEmail({
-        email: user.email,
-        subject: "Password Reset Token",
-        message,
-      });
-
+      await sendEmail({ email: user.email, subject: "Password Reset Token", message });
       res.status(200).json({ message: "Email sent" });
     } catch (error) {
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
       await user.save({ validateBeforeSave: false });
-
       return res.status(500).json({ message: "Email could not be sent" });
     }
   } catch (error) {
@@ -171,28 +245,17 @@ export const forgotPassword = async (req, res) => {
 // Reset Password
 export const resetPassword = async (req, res) => {
   try {
-    const resetPasswordToken = crypto
-      .createHash("sha256")
-      .update(req.params.token)
-      .digest("hex");
+    const resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex");
+    const user = await User.findOne({ resetPasswordToken, resetPasswordExpire: { $gt: Date.now() } });
 
-    const user = await User.findOne({
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() },
-    });
-
-    if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
-    }
+    if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
     user.password = req.body.password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
-
     await user.save();
 
-    const token = generateToken(user);
-    res.status(200).json({ message: "Password reset successful", token });
+    res.status(200).json({ message: "Password reset successful" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
