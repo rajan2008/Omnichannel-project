@@ -18,7 +18,6 @@ const Profile = () => {
 
   const [loading, setLoading] = useState(false);
 
-  // 🔥 Redux → form fill
   useEffect(() => {
     if (user) {
       setForm({
@@ -31,7 +30,6 @@ const Profile = () => {
     }
   }, [user, navigate]);
 
-  // 🔥 API sync (latest data)
   useEffect(() => {
     const fetchLatestUser = async () => {
       try {
@@ -84,6 +82,8 @@ const Profile = () => {
   if (!user) return <div className="p-5">Loading...</div>;
 
   return (
+    <>
+
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md">
 
@@ -142,6 +142,7 @@ const Profile = () => {
 
       </div>
     </div>
+    </>
   );
 };
 

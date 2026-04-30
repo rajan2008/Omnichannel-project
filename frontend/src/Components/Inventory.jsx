@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getProducts } from "../api/productApi.js";
 
-const Search = () => {
+const Inventory = () => {
   const [search, setSearch] = useState("");
   const [products, setProducts] = useState([]);
   const [page, setPage] = useState(1);
@@ -99,4 +99,4 @@ const Search = () => {
   );
 };
 
-export default Search;
+export default Inventory;
