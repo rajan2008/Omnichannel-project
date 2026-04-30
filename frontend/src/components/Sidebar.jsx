@@ -7,6 +7,7 @@ import {
   LogOut, 
   X 
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Sidebar = ({ 
   activeTab, 
@@ -17,6 +18,9 @@ const Sidebar = ({
   logout,
   title = "OmniPOS" 
 }) => {
+  const navigate = useNavigate()
+  console.log(user);
+  
   const menuItems = [
     { id: "pos", label: "Point of Sale", icon: ShoppingCart },
     { id: "stats", label: "Statistics", icon: LayoutDashboard },
@@ -72,7 +76,9 @@ const Sidebar = ({
       </nav>
 
       <div className="p-4 border-t border-slate-800">
-        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 mb-4">
+        <div 
+        onClick={()=> navigate('/profile')}
+        className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/50 mb-4">
           <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center text-white font-bold">
             {user?.name?.charAt(0)}
           </div>

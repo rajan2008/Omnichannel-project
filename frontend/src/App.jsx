@@ -12,16 +12,18 @@ import { Toaster } from "react-hot-toast";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "./redux/slices/authSlice.js";
+import Profile from "./pages/Profile.jsx";
 
 function App() {
   const dispatch = useDispatch();
+  const token = localStorage.getItem("token");
+useEffect(() => {
+  const user = localStorage.getItem("user");
 
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem("user"));
-    if (user) {
-      dispatch(setUser(user));
-    }
-  }, []);
+  if (user && token) {
+    dispatch(setUser(JSON.parse(user)));
+  }
+}, [dispatch]);
 
   return (
     <>
@@ -59,12 +61,27 @@ function App() {
           }
         />
 
-        <Route path="/search" element={
-          <ProtectedRoute>
-            <Search/>
-          </ProtectedRoute>
-        } />
-        <Route path="/" element={<Navigate to="/login" />} />
+        <Route
+          path="/search"
+          element={
+            <ProtectedRoute>
+              <Search />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/"
+          element={<Navigate to={token ? "/dashboard" : "/login"} />}
+        />
       </Routes>
     </>
   );

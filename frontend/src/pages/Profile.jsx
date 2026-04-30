@@ -1,50 +1,68 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
+import { useSelector, useDispatch } from "react-redux";
+import { setUser, logout } from "../redux/slices/authSlice";
 
 const Profile = () => {
-  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const user = useSelector((state) => state.auth.user);
+
   const [form, setForm] = useState({
     name: "",
     email: "",
+    phone: "",
   });
+
   const [loading, setLoading] = useState(false);
 
-  const navigate = useNavigate();
-
-  // Fetch user data
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-      const res = await api.get("/auth/me"); // API endpoint
-      setUser(res.data);
-      setForm({
-        name: res.data.name,
-        email: res.data.email,
-      });
-    } catch (error) {
-      console.log(error);
-      navigate("/login");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // 🔥 Redux → form fill
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (user) {
+      setForm({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      });
+    } else {
+      navigate("/login");
+    }
+  }, [user, navigate]);
 
-  // Handle input
+  // 🔥 API sync (latest data)
+  useEffect(() => {
+    const fetchLatestUser = async () => {
+      try {
+        const res = await api.get("/auth/me");
+
+        dispatch(setUser(res.data));
+        localStorage.setItem("user", JSON.stringify(res.data));
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    fetchLatestUser();
+  }, [dispatch]);
+
+  // input change
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Update profile
+  // update profile
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
-      await api.put("/auth/update", form);
+
+      const res = await api.put("/auth/update", form);
+
+      dispatch(setUser(res.data));
+      localStorage.setItem("user", JSON.stringify(res.data));
+
       alert("Profile updated");
     } catch (error) {
       console.log(error);
@@ -54,63 +72,70 @@ const Profile = () => {
     }
   };
 
-  // Logout
+  // logout
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    dispatch(logout());
     navigate("/login");
   };
 
-  if (loading && !user) {
-    return <div className="p-5">Loading...</div>;
-  }
+  if (!user) return <div className="p-5">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
       <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md">
-        
+
         <h2 className="text-2xl font-bold mb-4 text-center">
-          User Profile
+          Profile
         </h2>
 
-        {/* Profile Info */}
+        {/* Info */}
+        <div className="mb-4 text-sm text-gray-600">
+          <p><strong>Role:</strong> {user.role}</p>
+          <p><strong>Status:</strong> {user.isActive ? "Active" : "Inactive"}</p>
+          <p><strong>Verified:</strong> {user.isVerified ? "Yes" : "No"}</p>
+        </div>
+
+        {/* Form */}
         <form onSubmit={handleUpdate} className="space-y-4">
           
-          <div>
-            <label className="text-sm">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full border p-2 rounded mt-1"
-            />
-          </div>
+          <input
+            type="text"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+          />
 
-          <div>
-            <label className="text-sm">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              className="w-full border p-2 rounded mt-1"
-              disabled
-            />
-          </div>
+          <input
+            type="email"
+            value={form.email}
+            disabled
+            className="w-full border p-2 rounded bg-gray-100"
+          />
+
+          <input
+            type="text"
+            name="phone"
+            value={form.phone}
+            onChange={handleChange}
+            className="w-full border p-2 rounded"
+          />
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-black text-white py-2 rounded hover:bg-gray-800"
+            className="w-full bg-black text-white py-2 rounded"
           >
-            {loading ? "Updating..." : "Update Profile"}
+            {loading ? "Updating..." : "Update"}
           </button>
         </form>
 
-        {/* Logout */}
         <button
           onClick={handleLogout}
-          className="w-full mt-4 bg-red-500 text-white py-2 rounded hover:bg-red-600"
+          className="w-full mt-4 bg-red-500 text-white py-2 rounded"
         >
           Logout
         </button>

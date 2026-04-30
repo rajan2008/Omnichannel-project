@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../api/authApi.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import login from "../../assets/login.jpg";
 import { useDispatch } from "react-redux";
 import { Eye, EyeOff } from "lucide-react";
@@ -19,6 +19,12 @@ const Login = () => {
     password: "",
   });
 
+  useEffect(() => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    navigate("/dashboard");
+  }
+}, [navigate]);
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -223,3 +229,5 @@ const Login = () => {
 };
 
 export default Login;
+
+
