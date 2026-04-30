@@ -5,7 +5,6 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import Checkout from "./pages/Checkout";
-import Search from "./Components/search";
 import ProductList from "./Components/ProductList";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
@@ -13,6 +12,7 @@ import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { setUser } from "./redux/slices/authSlice.js";
 import Profile from "./pages/Profile.jsx";
+import Inventory from "./Components/Inventory.jsx";
 
 function App() {
   const dispatch = useDispatch();
@@ -65,7 +65,7 @@ useEffect(() => {
           path="/search"
           element={
             <ProtectedRoute>
-              <Search />
+              <Inventory />
             </ProtectedRoute>
           }
         />
