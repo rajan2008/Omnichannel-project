@@ -86,7 +86,19 @@ const Profile = () => {
     <>
 
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-    <Sidebar/>
+    <Sidebar
+          user={user}
+          activeTab="inventory"
+          setActiveTab={() => {}}
+          isSidebarOpen={true}
+          setIsSidebarOpen={() => {}}
+          logout={() => {
+            localStorage.clear();
+            window.location.href = "/login";
+          }}
+          onOpenCart={() => {}}
+          cartCount={0}
+        />
       <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md">
 
         <h2 className="text-2xl font-bold mb-4 text-center">

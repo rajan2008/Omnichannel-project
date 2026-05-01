@@ -36,27 +36,34 @@ const Sidebar = ({
     { id: "profile", label: "My Profile", icon: UserIcon, roles: ["admin", "manager", "cashier"] },
   ];
 
-  const renderMenuItem = (item) => {
-    if (item.roles && !item.roles.includes(user?.role?.toLowerCase())) return null;
+const renderMenuItem = (item) => {
+  if (item.roles && !item.roles.includes(user?.role?.toLowerCase())) return null;
 
-    return (
-      <button 
-        key={item.id}
-        onClick={() => { 
-          if (setActiveTab) setActiveTab(item.id); 
-          setIsSidebarOpen(false); 
-        }}
-        className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all ${
-          activeTab === item.id 
-            ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/40" 
-            : "text-slate-400 hover:bg-slate-800 hover:text-white"
-        }`}
-      >
-        <item.icon size={22} />
-        <span className="font-semibold">{item.label}</span>
-      </button>
-    );
-  };
+  return (
+    <button 
+      key={item.id}
+      onClick={() => { 
+        if (setActiveTab) setActiveTab(item.id); 
+        
+        // ✅ ROUTE NAVIGATION ADD
+        if (item.id === "stats") navigate("/dashboard");
+        if (item.id === "inventory") navigate("/inventory");
+        if (item.id === "orders") navigate("/dashboard?tab=orders"); // optional
+        if (item.id === "profile") navigate("/profile");
+
+        setIsSidebarOpen(false); 
+      }}
+      className={`w-full flex items-center gap-4 p-3 rounded-xl transition-all ${
+        activeTab === item.id 
+          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-900/40" 
+          : "text-slate-400 hover:bg-slate-800 hover:text-white"
+      }`}
+    >
+      <item.icon size={22} />
+      <span className="font-semibold">{item.label}</span>
+    </button>
+  );
+};
 
   return (
     <aside className={`fixed inset-y-0 left-0 w-64 bg-slate-900 flex flex-col z-50 transition-transform duration-300 lg:relative lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>

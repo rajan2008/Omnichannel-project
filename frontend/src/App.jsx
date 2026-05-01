@@ -70,7 +70,7 @@ useEffect(() => {
   <Route
     path="/inventory"
     element={
-      <ProtectedRoute allowedRoles={["admin", "manager"]}>
+      <ProtectedRoute allowedRoles={["admin", "cashier","manager"]}>
         <Inventory />
       </ProtectedRoute>
     }
