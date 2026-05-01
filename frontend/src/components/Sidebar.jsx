@@ -24,12 +24,11 @@ const Sidebar = ({
   const navigate = useNavigate();
 
   const menuItems = [
-    { id: "pos", label: "Point of Sale", icon: ShoppingCart, roles: ["admin", "manager", "cashier"] },
-    { id: "stats", label: "Statistics", icon: LayoutDashboard, roles: ["admin", "manager"] },
+    { id: "stats", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "manager", "cashier"] },
   ];
 
   const managementItems = [
-    { id: "inventory", label: "Inventory", icon: Package, roles: ["admin", "manager"] },
+    { id: "inventory", label: "Inventory", icon: Package, roles: ["admin", "manager", "cashier"] },
     { id: "orders", label: "Orders", icon: Layers, roles: ["admin", "manager", "cashier"] },
   ];
 
@@ -64,7 +63,7 @@ const Sidebar = ({
       <div className="p-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/20">
-            <ShoppingCart className="text-white w-6 h-6" />
+            <LayoutDashboard className="text-white w-6 h-6" />
           </div>
           <span className="text-white font-bold text-xl tracking-tight">{title}</span>
         </div>

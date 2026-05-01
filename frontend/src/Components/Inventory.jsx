@@ -1,5 +1,6 @@
 import React from "react";
 import { Package, Plus, Search, Filter } from "lucide-react";
+import RoleWrapper from "./RoleWrapper";
 
 const Inventory = ({ products, formatCurrency }) => {
   return (
@@ -10,9 +11,11 @@ const Inventory = ({ products, formatCurrency }) => {
             <h1 className="text-2xl md:text-3xl font-black text-slate-900 uppercase tracking-tighter">Inventory Management</h1>
             <p className="text-slate-500 font-medium">Track and manage your product stock levels across all locations.</p>
           </div>
-          <button className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 uppercase text-xs tracking-widest">
-            <Plus size={18} /> Add Product
-          </button>
+          <RoleWrapper allowedRoles={['admin', 'manager']}>
+            <button className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200 uppercase text-xs tracking-widest">
+              <Plus size={18} /> Add Product
+            </button>
+          </RoleWrapper>
         </div>
 
         <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm">

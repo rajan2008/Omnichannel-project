@@ -2,6 +2,8 @@ import express from "express";
 import {
   getProducts,
   addProduct,
+  updateProduct,
+  deleteProduct,
   bulkUploadProducts,
   getStockPredictions,
   bulkPriceUpdate,
@@ -21,5 +23,7 @@ router.post("/bulk-upload", protect, allowRoles("admin"), bulkUploadProducts);
 router.get("/:productId/recommendations", protect, getStoreRecommendations);
 router.post("/self-heal", protect, allowRoles("admin"), healInventory);
 router.post("/", protect, allowRoles("admin", "manager"), addProduct);
+router.patch("/:id", protect, allowRoles("admin", "manager"), updateProduct);
+router.delete("/:id", protect, allowRoles("admin", "manager"), deleteProduct);
 
 export default router;

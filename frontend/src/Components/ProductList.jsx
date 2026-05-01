@@ -1,170 +1,36 @@
-import { useState } from "react";
+import React from 'react';
+import { Search } from 'lucide-react';
+import ProductCard from './ProductCard';
 
-const productsData = [
-  {
-    _id: "1",
-    name: "Nike Air Max",
-    brand: "Nike",
-    category: "Footwear",
-    basePrice: 5000,
-    discount: 10,
-    stock: 50,
-    images: ["https://via.placeholder.com/300"]
-  },
-  {
-    _id: "2",
-    name: "Adidas Hoodie",
-    brand: "Adidas",
-    category: "Clothing",
-    basePrice: 2500,
-    discount: 15,
-    stock: 30,
-    images: ["https://via.placeholder.com/300"]
-  },
-  {
-    _id: "3",
-    name: "Apple iPhone 14",
-    brand: "Apple",
-    category: "Electronics",
-    basePrice: 75000,
-    discount: 5,
-    stock: 15,
-    images: ["https://via.placeholder.com/300"]
+const ProductList = ({ products, onAddToCart, formatCurrency, onClearFilters }) => {
+  if (products.length === 0) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center text-center py-20 animate-in fade-in zoom-in duration-500">
+        <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-slate-300">
+          <Search size={40} />
+        </div>
+        <h3 className="text-xl font-black text-slate-800 mb-2 uppercase tracking-tighter">No items found</h3>
+        <p className="text-slate-500 max-w-xs mx-auto mb-6 font-medium">We couldn't find any products matching your current filters or search query.</p>
+        <button
+          onClick={onClearFilters}
+          className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all active:scale-95 shadow-xl shadow-indigo-200 uppercase text-xs tracking-widest"
+        >
+          Clear all filters
+        </button>
+      </div>
+    );
   }
-];
-
-const ProductList = () => {
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("");
-
-  const getFinalPrice = (price, discount) => {
-    return Math.round(price - (price * discount) / 100);
-  };
-
-  const filteredProducts = productsData.filter((product) =>
-    product.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    if (sort === "low") {
-      return (
-        getFinalPrice(a.basePrice, a.discount) -
-        getFinalPrice(b.basePrice, b.discount)
-      );
-    }
-    if (sort === "high") {
-      return (
-        getFinalPrice(b.basePrice, b.discount) -
-        getFinalPrice(a.basePrice, a.discount)
-      );
-    }
-    return 0;
-  });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 sm:px-6 md:px-12 py-6 md:py-10">
-
-      {/* 🔷 Header */}
-      <div className="flex flex-col md:flex-row justify-between items-center mb-8 md:mb-10 gap-3 md:gap-4 text-center md:text-left">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-          Explore Products
-        </h1>
-
-        <p className="text-gray-500 text-xs sm:text-sm">
-          Discover premium collections ✨
-        </p>
-      </div>
-
-      {/* 🔍 Search + Sort */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8 md:mb-12">
-
-        <input
-          type="text"
-          placeholder="Search products..."
-          className="w-full md:w-2/3 px-4 md:px-5 py-2 md:py-3 rounded-xl md:rounded-2xl border border-gray-200 bg-white/70 backdrop-blur-md focus:ring-2 focus:ring-black outline-none shadow-sm md:shadow-md text-sm md:text-base"
-          onChange={(e) => setSearch(e.target.value)}
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-3 md:gap-5">
+      {products.map(product => (
+        <ProductCard
+          key={product._id}
+          product={product}
+          onAddToCart={onAddToCart}
+          formatCurrency={formatCurrency}
         />
-
-        <select
-          className="w-full md:w-1/3 px-4 md:px-5 py-2 md:py-3 rounded-xl md:rounded-2xl border border-gray-200 bg-white/70 backdrop-blur-md focus:ring-2 focus:ring-black outline-none shadow-sm md:shadow-md text-sm md:text-base"
-          onChange={(e) => setSort(e.target.value)}
-        >
-          <option value="">Sort By</option>
-          <option value="low">Price: Low → High</option>
-          <option value="high">Price: High → Low</option>
-        </select>
-      </div>
-
-      {/* 🛍 Product Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-10">
-        {sortedProducts.map((product) => {
-          const finalPrice = getFinalPrice(
-            product.basePrice,
-            product.discount
-          );
-
-          return (
-            <div
-              key={product._id}
-              className="group relative bg-white/70 backdrop-blur-xl rounded-2xl md:rounded-3xl shadow-sm md:shadow-md hover:shadow-xl md:hover:shadow-2xl transition duration-500 border border-gray-200 overflow-hidden"
-            >
-              {/* Glow Effect */}
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-500 bg-gradient-to-tr from-black/5 to-transparent"></div>
-
-              {/* 🖼 Image */}
-              <div className="relative overflow-hidden">
-                <img
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="w-full h-44 sm:h-48 md:h-56 lg:h-60 object-cover group-hover:scale-110 transition duration-500"
-                />
-
-                {/* 🔥 Discount Badge */}
-                <span className="absolute top-3 left-3 md:top-4 md:left-4 bg-black text-white text-[10px] md:text-xs px-2 md:px-3 py-1 rounded-full shadow-lg">
-                  {product.discount}% OFF
-                </span>
-              </div>
-
-              {/* 📦 Info */}
-              <div className="p-4 md:p-6 relative z-10">
-                <h2 className="text-base md:text-lg font-semibold text-gray-900 group-hover:text-black transition">
-                  {product.name}
-                </h2>
-
-                <p className="text-gray-400 text-xs md:text-sm mt-1">
-                  {product.brand} • {product.category}
-                </p>
-
-                {/* 💰 Price */}
-                <div className="flex items-center gap-2 md:gap-3 mt-3 md:mt-4">
-                  <p className="text-lg md:text-2xl font-bold text-gray-900">
-                    ₹{finalPrice}
-                  </p>
-                  <p className="text-gray-400 line-through text-xs md:text-sm">
-                    ₹{product.basePrice}
-                  </p>
-                </div>
-
-                {/* 📦 Stock */}
-                <p
-                  className={`text-xs md:text-sm mt-1 md:mt-2 font-medium ${
-                    product.stock > 0
-                      ? "text-green-600"
-                      : "text-red-500"
-                  }`}
-                >
-                  {product.stock > 0 ? "In Stock" : "Out of Stock"}
-                </p>
-
-                {/* 🛒 Button */}
-                <button className="mt-4 md:mt-6 w-full bg-black text-white py-2 md:py-3 rounded-xl md:rounded-2xl text-sm md:text-base font-medium tracking-wide hover:bg-gray-900 active:scale-95 transition duration-300">
-                  Add to Cart
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      ))}
     </div>
   );
 };
