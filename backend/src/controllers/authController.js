@@ -47,7 +47,7 @@ export const sendRegistrationOTP = async (req, res) => {
 // 2. Complete Registration
 export const registerUser = async (req, res) => {
   try {
-    const { name, email, password, phone, otp } = req.body;
+    const { name, email, password, phone, otp, store } = req.body;
 
     const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
     const otpRecord = await OTP.findOne({ email });
@@ -65,7 +65,8 @@ export const registerUser = async (req, res) => {
       password,
       phone,
       role: "cashier",
-      isEmailVerified: true
+      store,
+      isEmailVerified: true 
     });
 
     await OTP.deleteOne({ email });
@@ -104,7 +105,7 @@ export const loginUser = async (req, res) => {
     res.status(200).json({
       message: "Login successful",
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone },
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone, store: user.store },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -114,11 +115,11 @@ export const loginUser = async (req, res) => {
 // Admin Creates User
 export const createUserByAdmin = async (req, res) => {
   try {
-    const { name, email, password, phone, role } = req.body;
+    const { name, email, password, phone, role, store } = req.body;
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: "Email already registered" });
 
-    const user = await User.create({ name, email, password, phone, role, isEmailVerified: true });
+    const user = await User.create({ name, email, password, phone, role, store, isEmailVerified: true });
 
     res.status(201).json({
       message: `${role} account created successfully.`,
@@ -132,7 +133,7 @@ export const createUserByAdmin = async (req, res) => {
 // Get Profile
 export const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const user = await User.findById(req.user.id).select("-password").populate("store");
     if (!user) return res.status(404).json({ message: "User not found" });
     res.status(200).json(user);
   } catch (error) {
@@ -163,6 +164,7 @@ export const updateProfile = async (req, res) => {
       email: updatedUser.email,
       role: updatedUser.role,
       phone: updatedUser.phone,
+      store: updatedUser.store,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

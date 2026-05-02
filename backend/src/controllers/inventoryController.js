@@ -15,14 +15,27 @@ export const clearProductCache = async (id = null) => {
 export const getProducts = async (req, res) => {
   try {
     const { page = 1, limit = 50, search = "" } = req.query;
-    const query = search ? {
-      isActive: true,
-      $or: [
-        { name: { $regex: search, $options: "i" } },
-        { category: { $regex: search, $options: "i" } },
-        { sku: { $regex: search, $options: "i" } },
-      ],
-    } : { isActive: true };
+    
+    let query = { isActive: true };
+    
+    // Filter by store if not admin
+    if (req.user.role !== "admin") {
+      if (!req.user.store) {
+        return res.status(403).json({ message: "No store assigned to this user" });
+      }
+      query.store = req.user.store;
+    }
+
+    if (search) {
+      query = {
+        ...query,
+        $or: [
+          { name: { $regex: search, $options: "i" } },
+          { category: { $regex: search, $options: "i" } },
+          { sku: { $regex: search, $options: "i" } },
+        ],
+      };
+    }
 
     const products = await Product.find(query).limit(limit * 1).skip((page - 1) * limit);
     const total = await Product.countDocuments(query);
@@ -36,6 +49,15 @@ export const getProducts = async (req, res) => {
 export const addProduct = async (req, res) => {
   try {
     const productData = { ...req.body };
+    
+    // Automatically assign store if not admin
+    if (req.user.role !== "admin") {
+      if (!req.user.store) {
+        return res.status(403).json({ message: "No store assigned to this user. Cannot add products." });
+      }
+      productData.store = req.user.store;
+    }
+
     if (req.file) productData.image = req.file.path.replace(/\\/g, "/");
     const product = await Product.create(productData);
     await clearProductCache();
@@ -50,6 +72,11 @@ export const updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
+
+    // Store-based access control
+    if (req.user.role !== "admin" && product.store.toString() !== req.user.store.toString()) {
+      return res.status(403).json({ message: "Access denied: Product belongs to another store" });
+    }
 
     const updateData = { ...req.body };
     if (req.file) {
@@ -70,6 +97,11 @@ export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
+
+    // Store-based access control
+    if (req.user.role !== "admin" && product.store.toString() !== req.user.store.toString()) {
+      return res.status(403).json({ message: "Access denied: Product belongs to another store" });
+    }
     if (product.image && fs.existsSync(product.image)) fs.unlinkSync(product.image);
 
     await product.deleteOne();

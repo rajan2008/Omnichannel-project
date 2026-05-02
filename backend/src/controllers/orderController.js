@@ -8,7 +8,16 @@ export const checkout = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { items, paymentMethod, storeId } = req.body;
+    const { items, paymentMethod } = req.body;
+    let { storeId } = req.body;
+
+    // Force storeId if not admin
+    if (req.user.role !== "admin") {
+      if (!req.user.store) {
+        return res.status(403).json({ message: "No store assigned to this user" });
+      }
+      storeId = req.user.store;
+    }
     let total = 0;
     const orderItems = [];
 
@@ -80,7 +89,8 @@ export const bulkSyncOrders = async (req, res) => {
 
 export const getOrders = async (req, res) => {
   try {
-    const orders = await Order.find()
+    const query = req.user.role === "admin" ? {} : { store: req.user.store };
+    const orders = await Order.find(query)
       .populate("cashier", "name")
       .populate("store", "name")
       .sort({ createdAt: -1 });

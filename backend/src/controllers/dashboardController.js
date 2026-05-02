@@ -6,11 +6,22 @@ export const getDashboardStats = async (req, res) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const matchQuery = { orderStatus: "COMPLETED" };
+    const productQuery = { $expr: { $lte: ["$stock", "$lowStockThreshold"] }, isActive: true };
+
+    if (req.user.role !== "admin") {
+      if (!req.user.store) {
+        return res.status(403).json({ message: "No store assigned to this user" });
+      }
+      matchQuery.store = req.user.store;
+      productQuery.store = req.user.store;
+    }
+
     const stats = await Order.aggregate([
       {
         $facet: {
           todayStats: [
-            { $match: { createdAt: { $gte: today }, orderStatus: "COMPLETED" } },
+            { $match: { ...matchQuery, createdAt: { $gte: today } } },
             {
               $group: {
                 _id: null,
@@ -20,7 +31,7 @@ export const getDashboardStats = async (req, res) => {
             },
           ],
           totalStats: [
-            { $match: { orderStatus: "COMPLETED" } },
+            { $match: matchQuery },
             {
               $group: {
                 _id: null,
@@ -33,10 +44,7 @@ export const getDashboardStats = async (req, res) => {
       },
     ]);
 
-    const lowStockCount = await Product.countDocuments({
-      $expr: { $lte: ["$stock", "$lowStockThreshold"] },
-      isActive: true
-    });
+    const lowStockCount = await Product.countDocuments(productQuery);
 
     const todayStats = stats[0].todayStats[0] || { revenue: 0, count: 0 };
     const totalStats = stats[0].totalStats[0] || { revenue: 0, count: 0 };
