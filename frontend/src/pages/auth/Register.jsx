@@ -1,265 +1,147 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Eye, EyeOff } from "lucide-react";
-import register from "../../assets/register.png";
+import { useNavigate } from "react-router-dom";
 import { registerUser } from "../../api/authApi.js";
-import { Infinity } from "lucide-react";
+import { useEffect, useState } from "react";
+import register from "../../assets/register.png";
+import { ShieldPlus, Eye, EyeOff, Sun, Moon } from "lucide-react";
 import toast from "react-hot-toast";
+
 const Register = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
-    phone: "",
-    role: "cashier",
   });
 
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
+
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    if (root.classList.contains('dark')) {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDark(false);
+    } else {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDark(true);
+    }
+  };
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+      setIsDark(true);
+    }
+    const token = localStorage.getItem("token");
+    if (token) navigate("/dashboard");
+  }, [navigate]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-
-    setErrors({
-      ...errors,
-      [e.target.name]: "",
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const validate = () => {
-    let newErrors = {};
-
-    if (!formData.name) newErrors.name = "Name is required";
-    if (!formData.email) newErrors.email = "Email is required";
-    if (!formData.password) newErrors.password = "Password is required";
-    if (!formData.confirmPassword)
-      newErrors.confirmPassword = "Confirm password is required";
-    if (!formData.phone) newErrors.phone = "Phone is required";
-
-    if (
-      formData.password &&
-      formData.confirmPassword &&
-      formData.password !== formData.confirmPassword
-    ) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-
-    if (!validate()) return;
-
+  const handleRegister = async () => {
     try {
       setLoading(true);
-
-      const res = await registerUser(formData);
-      toast.success(res.message)
-
-      setFormData({
-        name: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-        phone: "",
-        role: "cashier",
-      });
-
-      navigate("/login"); // ✅ now will work
+      await registerUser(formData);
+      toast.success("Workspace registered successfully.");
+      setTimeout(() => navigate("/login"), 1000);
     } catch (err) {
-      console.log(err);
-      alert(err || "Register failed");
+      toast.error(err?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
   };
-    const inputStyle =
-    "w-full text-black sm:py-2 py-1 bg-transparent border-b border-black outline-none text-sm sm:text-base";
 
   return (
-    <div className="relative md:h-dvh min-h-dvh flex items-center justify-center px-3 sm:px-4 py-3 sm:py-6 bg-gray-50 overflow-hidden box-border">
-      <div className="relative z-10 w-full max-w-6xl flex flex-col md:flex-row rounded-2xl overflow-hidden shadow-xl bg-white">
-        {/* LEFT */}
-        <div className="w-full md:w-1/2 p-5 sm:p-6 md:p-10 flex flex-col justify-center">
-          <p className="text-center text-sm sm:text-base">WELCOME TO</p>
-          <div className="flex justify-center items-center mb-2 flex-wrap">
-            <Infinity size={55} color="black" />
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-widest ml-2">
-              INFINITY
-            </h1>
-          </div>
-          <div className="mb-4 text-center text-gray-500 text-xs sm:text-sm px-2">
-            Log in to manage sales, inventory, and customers seamlessly from one
-            platform.
-          </div>
+    <div className="w-full h-screen flex bg-white dark:bg-[#11121d] font-sans text-slate-900 dark:text-white transition-colors duration-300 overflow-hidden relative">
+      {/* THEME TOGGLE */}
+      <button 
+        onClick={toggleTheme}
+        className="fixed top-8 right-8 z-50 p-3 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-brand-red transition-all shadow-sm"
+      >
+        {isDark ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-400" />}
+      </button>
 
-          <form onSubmit={handleRegister} className="space-y-1 sm:space-y-6">
-            {/* NAME + EMAIL */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-4">
-              <div>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={inputStyle}
-                />
-                <p
-                  className={`text-xs ${errors.name ? "text-red-500" : "invisible"}`}
-                >
-                  {errors.name || "placeholder"}
-                </p>
-              </div>
-
-              <div>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  autoComplete="username"
-                  className={inputStyle}
-                />
-                <p
-                  className={`text-xs ${errors.email ? "text-red-500" : "invisible"}`}
-                >
-                  {errors.email || "placeholder"}
-                </p>
-              </div>
+      {/* LEFT FORM SECTION */}
+      <div className="w-full lg:w-[500px] flex flex-col justify-center px-10 sm:px-16 lg:px-12 z-10 bg-white dark:bg-[#11121d] overflow-y-auto no-scrollbar">
+        <div className="py-12">
+          <div className="mb-10 flex flex-col items-center lg:items-start">
+            <div className="w-12 h-12 mb-6">
+              <img src="/logo.svg" className="w-full h-full object-contain" alt="Logo" />
             </div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">Create Workspace</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Set up your business profile on Vendora.</p>
+          </div>
 
-            {/* PASSWORD + CONFIRM */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-4">
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  autoComplete="new-password"
-                  className={inputStyle}
-                />
-                <span
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-2 cursor-pointer"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </span>
-                <p
-                  className={`text-xs ${errors.password ? "text-red-500" : "invisible"}`}
-                >
-                  {errors.password || "placeholder"}
-                </p>
-              </div>
-
-              <div>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  placeholder="Confirm Password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  autoComplete="new-password"
-                  className={inputStyle}
-                />
-                <p
-                  className={`text-xs ${errors.confirmPassword ? "text-red-500" : "invisible"}`}
-                >
-                  {errors.confirmPassword || "placeholder"}
-                </p>
-              </div>
-            </div>
-
-            {/* PHONE + ROLE */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 sm:gap-4">
-              <div>
-                <input
-                  type="tel"
-                  name="phone"
-                  placeholder="Phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  className={inputStyle}
-                />
-                <p
-                  className={`text-xs ${errors.phone ? "text-red-500" : "invisible"}`}
-                >
-                  {errors.phone || "placeholder"}
-                </p>
-              </div>
-
-              <select
-                name="role"
-                value={formData.role}
+          <form onSubmit={(e) => { e.preventDefault(); handleRegister(); }} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Business Name / Full Name</label>
+              <input
+                type="text"
+                name="name"
+                placeholder="Enterprise name or Individual"
+                value={formData.name}
                 onChange={handleChange}
-                className={inputStyle}
-              >
-                <option value="cashier">Cashier</option>
-                <option value="manager">Manager</option>
-                <option value="admin">Admin</option>
-              </select>
+                className="w-full text-slate-900 dark:text-white py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg outline-none focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-semibold text-sm"
+              />
             </div>
 
-            {/* BUTTON */}
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Work Email</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="contact@enterprise.com"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full text-slate-900 dark:text-white py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg outline-none focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-semibold text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Secure Passcode</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Minimum 8 characters"
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full text-slate-900 dark:text-white py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg outline-none focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-semibold text-sm"
+              />
+            </div>
+
+            <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+              By creating an account, you agree to our <span className="text-brand-red cursor-pointer hover:underline">Terms of Service</span> and <span className="text-brand-red cursor-pointer hover:underline">Privacy Policy</span>.
+            </p>
+
             <button
               type="submit"
               disabled={loading}
-              className={`w-full h-8 mt-2 sm:h-12 rounded-md flex items-center justify-center gap-2 transition 
-  ${loading ? "bg-gray-700 text-white cursor-not-allowed" : "bg-black hover:bg-gray-800 text-white"}`}
+              className="w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-2.5 font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-slate-900/10 active:scale-[0.98] disabled:opacity-50"
             >
-              {loading && (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              )}
-              {loading ? "Registering..." : "Register"}
+              {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <ShieldPlus size={16} />}
+              {loading ? "Registering..." : "Initialize Workspace"}
             </button>
-
-            {/* LOGIN LINK */}
-            <p className="text-sm text-center text-gray-600">
-              Already have an account?{" "}
-              <Link to="/login" className="text-black font-semibold">
-                Login
-              </Link>
-            </p>
           </form>
-        </div>
 
-        {/* RIGHT IMAGE */}
-        <div className="hidden md:block md:w-1/2 relative">
-          <img
-            src={register}
-            alt="login visual"
-            className="w-full h-full object-cover"
-          />
-
-          <div className="absolute inset-0 bg-[rgba(0,0,0,0.5)]"></div>
-
-          <div className="absolute inset-0 flex items-center justify-center px-4">
-            <div className="text-white text-center">
-              <div className="flex justify-center items-center mb-1 flex-wrap">
-                <Infinity size={55} color="white" />
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">
-                  INFINITY
-                </h1>
-              </div>
-
-              <p className="text-xs sm:text-sm leading-relaxed p-2 sm:p-4 text-gray-200">
-                A modern Point of Sale (POS) system is the backbone of efficient
-                retail operations...
-              </p>
-            </div>
+          <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Already have a workspace?</p>
+            <button onClick={() => navigate("/login")} className="text-xs font-bold text-slate-900 dark:text-white hover:text-brand-red transition-all underline underline-offset-4 decoration-brand-red/30">Sign in to existing account</button>
           </div>
+        </div>
+      </div>
+
+      {/* RIGHT IMAGE SECTION */}
+      <div className="hidden lg:block flex-1 relative bg-slate-50 dark:bg-[#1a1c2c]">
+        <img src={register} alt="register visual" className="w-full h-full object-cover grayscale-[10%] brightness-[90%] dark:brightness-[50%]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-[#11121d] via-transparent to-transparent"></div>
+        <div className="absolute bottom-12 left-12 max-w-sm">
+          <h2 className="text-4xl font-bold text-white tracking-tight mb-4 drop-shadow-lg">Scale Your Retail Empire</h2>
+          <p className="text-white/90 font-medium leading-relaxed drop-shadow-md">Join thousands of businesses managing their inventory, sales, and customers on Vendora.</p>
         </div>
       </div>
     </div>

@@ -11,12 +11,15 @@ import {
 } from "../controllers/storeController.js";
 import { createUserByAdmin, getAllUsers, updateUser, deleteUser } from "../controllers/authController.js";
 import { protect, isAdmin } from "../middleware/authMiddleware.js";
+import multer from "multer";
+
+const upload = multer({ dest: "uploads/" });
 
 const router = express.Router();
 
 router.use(protect, isAdmin);
 
-router.post("/inventory/bulk-upload", bulkUploadProducts);
+router.post("/inventory/bulk-upload", upload.single("file"), bulkUploadProducts);
 router.patch("/inventory/bulk-price-update", bulkPriceUpdate);
 router.post("/inventory/self-heal", healInventory);
 

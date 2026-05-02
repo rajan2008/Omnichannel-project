@@ -13,85 +13,88 @@ import { useDispatch } from "react-redux";
 import { setUser } from "./redux/slices/authSlice.js";
 import Profile from "./pages/Profile.jsx";
 import Inventory from "./pages/Inventory.jsx";
+import UserManagement from "./pages/UserManagement.jsx";
+import StoreManagement from "./pages/StoreManagement.jsx";
 
 function App() {
   const dispatch = useDispatch();
   const token = localStorage.getItem("token");
-useEffect(() => {
-  const user = localStorage.getItem("user");
-
-  if (user && token) {
-    dispatch(setUser(JSON.parse(user)));
-  }
-}, [dispatch]);
+  
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user && token) {
+      dispatch(setUser(JSON.parse(user)));
+    }
+  }, [dispatch, token]);
 
   return (
     <>
       <Toaster />
-
       <Routes>
-  {/* Public Routes */}
-  <Route path="/login" element={<Login />} />
-  <Route path="/register" element={<Register />} />
-  <Route path="/forgot-password" element={<ForgotPassword />} />
-  <Route path="/reset-password/:token" element={<ResetPassword />} />
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-  {/* Dashboard (sab use kar sakte hain) */}
-  <Route
-    path="/dashboard"
-    element={
-      <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
-        <Dashboard />
-      </ProtectedRoute>
-    }
-  />
+        {/* Protected Dashboard */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-  {/* Checkout (sirf cashier + manager + admin) */}
-  <Route
-    path="/checkout"
-    element={
-      <ProtectedRoute allowedRoles={["cashier", "manager", "admin"]}>
-        <Checkout />
-      </ProtectedRoute>
-    }
-  />
+        {/* Management Routes */}
+        <Route
+          path="/users"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "manager"]}>
+              <UserManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stores"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <StoreManagement />
+            </ProtectedRoute>
+          }
+        />
 
-  {/* Product List (view sab kar sakte hain) */}
-  <Route
-    path="/productlist"
-    element={
-      <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
-        <ProductList />
-      </ProtectedRoute>
-    }
-  />
+        {/* Inventory */}
+        <Route
+          path="/inventory"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
+              <Inventory />
+            </ProtectedRoute>
+          }
+        />
 
-  {/* Inventory (sirf manager + admin) */}
-  <Route
-    path="/inventory"
-    element={
-      <ProtectedRoute allowedRoles={["admin", "cashier","manager"]}>
-        <Inventory />
-      </ProtectedRoute>
-    }
-  />
+        {/* Profile */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
 
-  {/* Profile (sab logged in users) */}
-  <Route
-    path="/profile"
-    element={
-      <ProtectedRoute allowedRoles={["admin", "manager", "cashier"]}>
-        <Profile />
-      </ProtectedRoute>
-    }
-  />
+        {/* Legacy / Compatibility */}
+        <Route path="/checkout" element={<Navigate to="/dashboard" />} />
+        <Route path="/productlist" element={<Navigate to="/inventory" />} />
 
-  {/* Default redirect */}
-  <Route
-    path="/"
-    element={<Navigate to={token ? "/dashboard" : "/login"} />}
-  />
-</Routes>
+        {/* Default redirect */}
+        <Route
+          path="/"
+          element={<Navigate to={token ? "/dashboard" : "/login"} />}
+        />
+      </Routes>
     </>
   );
 }

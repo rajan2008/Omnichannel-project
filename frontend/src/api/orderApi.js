@@ -8,3 +8,21 @@ export const checkoutOrder = async (orderData) => {
     throw error.response?.data?.message || "Checkout failed";
   }
 };
+
+export const getOrders = async () => {
+  try {
+    const res = await api.get("/orders");
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch orders";
+  }
+};
+
+export const cancelOrder = async (id) => {
+  try {
+    const res = await api.patch(`/cashier/orders/${id}/cancel`);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to cancel order";
+  }
+};

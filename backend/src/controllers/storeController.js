@@ -3,7 +3,8 @@ import Store from "../models/storeSchema.js";
 // Add Store
 export const addStore = async (req, res, next) => {
   try {
-    const store = await Store.create(req.body);
+    const storeData = { ...req.body, admin: req.user.id };
+    const store = await Store.create(storeData);
     res.status(201).json({ message: "Store created successfully", store });
   } catch (error) {
     next(error);

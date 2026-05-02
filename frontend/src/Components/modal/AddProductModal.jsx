@@ -1,22 +1,37 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "../../api/axiosInstance";
+import { X, Package, DollarSign, BarChart3, Upload, Loader2, Plus, CheckCircle2, Tag, Hash, Zap, Store } from "lucide-react";
+import toast from "react-hot-toast";
 
 const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
   const user = useSelector((state) => state.auth.user);
-  console.log("USER FULL OBJECT:", user);
   const [form, setForm] = useState({
     name: "",
     sku: "",
     category: "",
-    costPrice: "",
     basePrice: "",
     stock: "",
-    lowStockThreshold: "",
+    store: "" // New field for Admin
   });
 
+  const [stores, setStores] = useState([]);
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && user?.role === "admin") {
+      const fetchStores = async () => {
+        try {
+          const res = await axios.get("/stores");
+          setStores(res.data || []);
+        } catch (err) {
+          console.error("Failed to load stores");
+        }
+      };
+      fetchStores();
+    }
+  }, [isOpen, user]);
 
   if (!isOpen) return null;
 
@@ -28,146 +43,171 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
   };
 
   const handleSubmit = async () => {
+    if (!form.name || !form.basePrice || !form.category) {
+      toast.error("Please fill required fields");
+      return;
+    }
+
     try {
       setLoading(true);
-
       const formData = new FormData();
 
       Object.keys(form).forEach((key) => {
         const value = form[key];
-
-        console.log(key, value); // 🔥 DEBUG
-
-        if (!value) return;
-
+        if (!value && key !== "store") return;
         formData.append(
           key,
-          ["costPrice", "basePrice", "stock", "lowStockThreshold"].includes(key)
-            ? Number(value)
-            : value,
+          ["basePrice", "stock"].includes(key) ? Number(value) : value
         );
       });
 
-      const storeId = user?.store?._id || user?.storeId;
-
-      if (!storeId) {
-        return alert("Store not found in user object");
+      // Handle Store Assignment
+      const finalStoreId = user.role === "admin" ? form.store : (user?.store?._id || user?.storeId);
+      
+      if (!finalStoreId) {
+        toast.error("Please select or assign a store");
+        setLoading(false);
+        return;
       }
-if (user.role !== "admin") {
-  const storeId = user?.store?._id || user?.storeId;
-
-  if (!storeId) {
-    alert("Store not found");
-    return;
-  }
-
-  formData.append("store", storeId);
-}
+      
+      formData.delete("store"); // Remove empty or old store from iteration
+      formData.append("store", finalStoreId);
+      
       if (image) formData.append("image", image);
 
       await axios.post("/inventory", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      toast.success("Product added successfully");
       refreshProducts();
       onClose();
     } catch (err) {
-      console.log(err.response?.data);
-      alert(err.response?.data?.message || "Failed");
+      toast.error(err.response?.data?.message || "Failed to add product");
     } finally {
       setLoading(false);
     }
   };
 
+  const categories = ["Electronics", "Footwear", "Clothing", "Accessories", "Beauty", "Home", "Food"];
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white w-[420px] p-5 rounded-lg flex flex-col gap-3">
-        {/* Title */}
-        <h2 className="text-lg font-bold">Add Product</h2>
-
-        {/* Inputs */}
-        <input
-          name="name"
-          placeholder="Product Name"
-          value={form.name}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
-
-        <input
-          name="sku"
-          placeholder="SKU"
-          value={form.sku}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
-
-        <input
-          name="category"
-          placeholder="Category"
-          value={form.category}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
-
-        <input
-          name="costPrice"
-          type="number"
-          placeholder="Cost Price"
-          value={form.costPrice}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
-
-        <input
-          name="basePrice"
-          type="number"
-          placeholder="Base Price"
-          value={form.basePrice}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
-
-        <input
-          name="stock"
-          type="number"
-          placeholder="Stock"
-          value={form.stock}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
-
-        <input
-          name="lowStockThreshold"
-          type="number"
-          placeholder="Low Stock Threshold"
-          value={form.lowStockThreshold}
-          onChange={handleChange}
-          className="border p-2 rounded"
-        />
-
-        {/* Image Upload */}
-        <input
-          type="file"
-          onChange={(e) => setImage(e.target.files[0])}
-          className="border p-2 rounded"
-        />
-
-        {/* Buttons */}
-        <div className="flex justify-between mt-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
-          >
-            Cancel
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={onClose} />
+      <div className="bg-white dark:bg-[#1a1c2c] w-full max-w-md rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col">
+        {/* HEADER */}
+        <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-brand-red text-white rounded-xl flex items-center justify-center">
+              <Plus size={18} />
+            </div>
+            <h2 className="text-base font-black text-slate-900 dark:text-white tracking-tight">Add Product</h2>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-brand-red">
+            <X size={18} />
           </button>
+        </div>
 
+        {/* FORM */}
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
+          {user?.role === "admin" && (
+            <div className="space-y-1">
+              <label className="text-[9px] font-black text-brand-red uppercase tracking-widest px-1">Assign to Branch / Store *</label>
+              <div className="relative">
+                <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-red" size={14} />
+                <select
+                  name="store"
+                  value={form.store}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-2.5 bg-brand-red/5 border border-brand-red/20 rounded-xl outline-none font-bold text-xs dark:text-white appearance-none cursor-pointer"
+                >
+                  <option value="" className="dark:bg-[#1a1c2c]">Select Store / Branch...</option>
+                  {stores.map(s => <option key={s._id} value={s._id} className="dark:bg-[#1a1c2c]">{s.name}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-1">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Product Name *</label>
+            <input
+              name="name"
+              placeholder="e.g. Wireless Mouse"
+              value={form.name}
+              onChange={handleChange}
+              className="w-full p-2.5 bg-slate-50 dark:bg-[#11121d] border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:border-brand-red transition-all font-bold text-xs dark:text-white"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Category *</label>
+              <select
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                className="w-full p-2.5 bg-slate-50 dark:bg-[#11121d] border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:border-brand-red transition-all font-bold text-xs dark:text-white appearance-none cursor-pointer"
+              >
+                <option value="" className="dark:bg-[#1a1c2c]">Select...</option>
+                {categories.map(c => <option key={c} value={c} className="dark:bg-[#1a1c2c]">{c}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">SKU / Barcode (Optional)</label>
+              <input
+                name="sku"
+                placeholder="Leave blank if none"
+                value={form.sku}
+                onChange={handleChange}
+                className="w-full p-2.5 bg-slate-50 dark:bg-[#11121d] border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:border-brand-red transition-all font-bold text-xs dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Price (INR) *</label>
+              <input
+                name="basePrice"
+                type="number"
+                placeholder="0.00"
+                value={form.basePrice}
+                onChange={handleChange}
+                className="w-full p-2.5 bg-slate-50 dark:bg-[#11121d] border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:border-brand-red transition-all font-bold text-xs dark:text-white"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Stock Qty</label>
+              <input
+                name="stock"
+                type="number"
+                placeholder="0"
+                value={form.stock}
+                onChange={handleChange}
+                className="w-full p-2.5 bg-slate-50 dark:bg-[#11121d] border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:border-brand-red transition-all font-bold text-xs dark:text-white"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Image Asset</label>
+            <div className="relative border-2 border-dashed border-slate-200 dark:border-white/10 rounded-xl p-4 text-center hover:border-brand-red transition-all">
+              <input type="file" onChange={(e) => setImage(e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer" />
+              <Upload className="mx-auto text-slate-300 mb-2" size={20} />
+              <p className="text-[10px] font-bold text-slate-500 truncate">{image ? image.name : "Click to upload image"}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* FOOTER */}
+        <div className="p-6 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5">
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-4 py-2 bg-black text-white rounded hover:bg-gray-800"
+            className="w-full py-3 bg-brand-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-red/20 hover:bg-brand-darkred active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
-            {loading ? "Adding..." : "Add Product"}
+            {loading ? <Loader2 className="animate-spin" size={14} /> : <Zap size={14} />}
+            {loading ? "Adding Asset..." : "Confirm & Create Product"}
           </button>
         </div>
       </div>

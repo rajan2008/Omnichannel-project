@@ -14,7 +14,7 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "omnichannel_products",
+    folder: "vendora_products",
     allowed_formats: ["jpg", "png", "jpeg", "webp"],
     transformation: [{ width: 500, height: 500, crop: "limit" }],
   },

@@ -1,4 +1,4 @@
-# Omnichannel POS & Inventory System
+# Vendora POS & Inventory System
 
 ## Recent Updates
 

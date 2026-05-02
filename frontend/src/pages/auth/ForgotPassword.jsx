@@ -46,7 +46,7 @@ const ForgotPassword = () => {
             <div className="text-white text-center">
               <div className="flex justify-center items-center mb-1 flex-wrap">
                 <Infinity size={55} color="white" />
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">INFINITY</h1>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">VENDORA</h1>
               </div>
               <p className="text-xs sm:text-sm leading-relaxed p-2 sm:p-4 text-gray-200">
                 Secure your account with our advanced authentication system.
@@ -59,13 +59,13 @@ const ForgotPassword = () => {
         <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-center bg-white/80">
           <button 
             onClick={() => navigate("/login")}
-            className="flex items-center gap-2 text-gray-600 hover:text-black mb-6 transition-colors self-start"
+            className="flex items-center gap-2 text-brand-gray hover:text-brand-red mb-6 transition-colors self-start"
           >
             <ArrowLeft size={18} />
             <span className="text-sm font-medium">Back to Login</span>
           </button>
 
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Forgot Password?</h2>
+          <h2 className="text-2xl font-black text-brand-dark uppercase tracking-tighter mb-2">Forgot Password?</h2>
           <p className="text-gray-500 text-sm mb-8">
             Enter your email address and we'll send you a link to reset your password.
           </p>
@@ -78,14 +78,14 @@ const ForgotPassword = () => {
                 placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-black focus:ring-1 focus:ring-black outline-none transition-all text-sm"
+                className="w-full px-4 py-3 rounded-lg border border-brand-light focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none transition-all text-sm"
               />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-black text-white rounded-lg hover:bg-gray-800 transition-all flex items-center justify-center gap-2 font-medium"
+              className="w-full h-12 bg-brand-red text-white rounded-lg hover:bg-brand-darkred transition-all flex items-center justify-center gap-2 font-black uppercase text-xs tracking-widest shadow-lg shadow-brand-red/20"
             >
               {loading && <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
               {loading ? "Sending link..." : "Send Reset Link"}

@@ -3,10 +3,10 @@ import { loginUser } from "../../api/authApi.js";
 import { useEffect, useState } from "react";
 import login from "../../assets/login.jpg";
 import { useDispatch } from "react-redux";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck, Sun, Moon } from "lucide-react";
 import toast from "react-hot-toast";
-import { Infinity } from "lucide-react";
 import { setUser } from "../../redux/slices/authSlice.js";
+
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -19,209 +19,146 @@ const Login = () => {
     password: "",
   });
 
-  useEffect(() => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    navigate("/dashboard");
-  }
-}, [navigate]);
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+  const [themeMode, setThemeMode] = useState(localStorage.getItem('theme') || 'light');
 
-    setErrors({
-      ...errors,
-      [e.target.name]: "",
-    });
+  const applyTheme = (mode) => {
+    const root = document.documentElement;
+    if (mode === 'dark') {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setThemeMode('dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setThemeMode('light');
+    }
   };
+
+  const toggleTheme = () => {
+    applyTheme(themeMode === 'dark' ? 'light' : 'dark');
+  };
+
+  useEffect(() => {
+    applyTheme(localStorage.getItem('theme') || 'light');
+    const token = localStorage.getItem("token");
+    if (token) navigate("/dashboard");
+  }, [navigate]);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setErrors({ ...errors, [e.target.name]: "" });
+  };
+
   const validate = () => {
     let newErrors = {};
-
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    }
-
+    if (!formData.email) newErrors.email = "Email is required";
+    if (!formData.password) newErrors.password = "Password is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleLogin = async () => {
     if (!validate()) return;
-
     try {
       setLoading(true);
       setError("");
-
       const res = await loginUser(formData);
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
       dispatch(setUser(res.user));
-      toast.success(res.message);
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1000);
+      toast.success("Identity verified. Access granted.");
+      setTimeout(() => navigate("/dashboard"), 500);
     } catch (err) {
-  const message =
-    typeof err === "string"
-      ? err
-      : err?.message || "Login failed";
-
-  setError(message);
-  toast.error(message);
-} finally {
+      const message = typeof err === "string" ? err : err?.message || "Authentication failed";
+      setError(message);
+      toast.error(message);
+    } finally {
       setLoading(false);
     }
   };
+
+  const isDark = themeMode === 'dark';
+
   return (
-    <div className="relative w-full h-screen flex py-6 sm:py-8 md:py-4 items-center  justify-center px-3 sm:px-4 md:px-6  overflow-hidden">
-      {/* BACKGROUND BLOBS */}
-      <div className="absolute w-64 h-64 sm:w-80 sm:h-80 bg-gray-400 rounded-full -top-20 -left-20 blur-2xl opacity-40"></div>
+    <div className="w-full h-screen flex bg-white dark:bg-[#11121d] font-sans text-slate-900 dark:text-white transition-colors duration-300 overflow-hidden relative">
+      <button 
+        onClick={toggleTheme}
+        className="fixed top-8 right-8 z-50 p-3 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-brand-red transition-all shadow-sm cursor-pointer"
+      >
+        {isDark ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-400" />}
+      </button>
 
-      <div className="absolute w-80 h-80 sm:w-125 sm:h-125 bg-gray-400 rounded-full -bottom-32 -right-32 blur-2xl opacity-40"></div>
-
-      <div className="absolute w-56 h-56 sm:w-72 sm:h-72 bg-gray-300 rounded-full top-[40%] left-[60%] blur-2xl opacity-25"></div>
-
-      {/* MAIN CONTAINER */}
-      <div className="relative z-10 w-full max-w-5xl flex flex-col md:flex-row rounded-2xl overflow-hidden backdrop-blur-md bg-white/30 shadow-xl">
-        {/* IMAGE SECTION */}
-        <div className="hidden md:block md:w-1/2 relative">
-          <img
-            src={login}
-            alt="login visual"
-            className="w-full h-full object-cover"
-          />
-
-          <div className="absolute inset-0 bg-[rgba(0,0,0,0.5)]"></div>
-
-          <div className="absolute inset-0 flex items-center justify-center px-4">
-            <div className="text-white text-center">
-              <div className="flex justify-center items-center mb-1 flex-wrap">
-                <Infinity size={55} color="white" />
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">
-                  INFINITY
-                </h1>
-              </div>
-
-              <p className="text-xs sm:text-sm leading-relaxed p-2 sm:p-4 text-gray-200">
-                A modern Point of Sale (POS) system is the backbone of efficient
-                retail operations...
-              </p>
-            </div>
+      <div className="w-full lg:w-[450px] flex flex-col justify-center px-10 sm:px-16 lg:px-12 z-10 bg-white dark:bg-[#11121d] transition-colors">
+        <div className="mb-10 flex flex-col items-center lg:items-start">
+          <div className="w-12 h-12 mb-6">
+            <img src="/logo.svg" className="w-full h-full object-contain" alt="Logo" />
           </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">Workspace Login</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Enter your credentials to access Vendora.</p>
         </div>
 
-        {/* FORM SECTION */}
-        <div className="w-full md:w-1/2 p-4 sm:p-3 md:pl-5 md:pr-5 flex flex-col justify-center">
-          <p className="text-center text-sm sm:text-base">WELCOME TO</p>
-
-          <div className="flex justify-center items-center mb-2 flex-wrap">
-            <Infinity size={55} color="black" />
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-widest ml-2">
-              INFINITY
-            </h1>
+        <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Work Email</label>
+            <input
+              type="email"
+              name="email"
+              placeholder="name@company.com"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full text-slate-900 dark:text-white py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg outline-none focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-semibold text-sm"
+            />
+            {errors.email && <p className="text-[10px] text-brand-red font-bold uppercase mt-1 ml-1">{errors.email}</p>}
           </div>
 
-          <div className="mb-4 text-center text-gray-500 text-xs sm:text-sm px-2">
-            Log in to manage sales, inventory, and customers seamlessly from one
-            platform.
-          </div>
-
-          {/* INPUTS */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleLogin();
-            }}
-          >
-            <div className="flex flex-col">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Security Key</label>
+            <div className="relative">
               <input
-                type="email"
-                name="email"
-                autoComplete="email"
-                placeholder="Email"
-                value={formData.email}
+                type={showPassword ? "text" : "password"}
+                name="password"
+                placeholder="••••••••"
+                value={formData.password}
                 onChange={handleChange}
-                className="w-full text-black py-2 my-2 bg-transparent border-b border-black outline-none text-sm sm:text-base"
+                className="w-full text-slate-900 dark:text-white py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg outline-none pr-12 focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-semibold text-sm"
               />
-
-              <p
-                className={`text-xs ${errors.email ? "text-red-500" : "invisible"}`}
-              >
-                {errors.email || "placeholder"}
-              </p>
-
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Password"
-                  autoComplete="current-password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full text-black py-2 my-1 bg-transparent border-b border-black outline-none pr-10 text-sm sm:text-base"
-                />
-
-                <span
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-2.5 sm:top-3 cursor-pointer text-gray-600"
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </span>
-              </div>
-
-              <p
-                className={`text-xs ${errors.password ? "text-red-500" : "invisible"}`}
-              >
-                {errors.password || "placeholder"}
-              </p>
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-brand-red transition-colors">
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
-            <button
-              onClick={handleLogin}
-              disabled={loading}
-              className="w-full h-12 cursor-pointer bg-black text-white mt-6 rounded-md hover:bg-gray-800 transition flex items-center justify-center gap-2 text-sm sm:text-base"
-            >
-              {loading && (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              )}
-              {loading ? "Logging in..." : "Login"}
-            </button>
-            <p
-              className={`text-sm mt-2 text-center ${error ? "text-red-500" : "invisible"}`}
-            >
-              {error || "placeholder"}
-            </p>
-          </form>
-
-          {/* OPTIONS */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-4 text-xs sm:text-sm gap-2">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" />
-              Remember me
-            </label>
-
-            <p
-              onClick={() => navigate("/forgot-password")}
-              className="cursor-pointer text-gray-500 text-right hover:text-black transition-colors"
-            >
-              Forgot Password?
-            </p>
+            {errors.password && <p className="text-[10px] text-brand-red font-bold uppercase mt-1 ml-1">{errors.password}</p>}
           </div>
 
-          <p className="text-xs sm:text-sm text-center text-gray-600 mt-4">
-            Don’t have an account?{" "}
-            <span
-              onClick={() => navigate("/register")}
-              className="text-black cursor-pointer font-medium"
-            >
-              Sign up
-            </span>
-          </p>
+          <div className="flex items-center justify-between pb-2">
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300 text-brand-red focus:ring-brand-red" />
+              <span className="text-[10px] font-bold text-slate-500 group-hover:text-brand-red uppercase tracking-wider transition-colors">Keep Session</span>
+            </label>
+            <button type="button" className="text-[10px] font-bold text-brand-red uppercase tracking-wider hover:underline">Reset Passcode</button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-2.5 font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-slate-900/10 active:scale-[0.98] disabled:opacity-50"
+          >
+            {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <ShieldCheck size={16} />}
+            {loading ? "Authenticating..." : "Authorize Access"}
+          </button>
+        </form>
+
+        <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">New to the platform?</p>
+          <button onClick={() => navigate("/register")} className="text-xs font-bold text-slate-900 dark:text-white hover:text-brand-red transition-all underline underline-offset-4 decoration-brand-red/30">Create your workspace account</button>
+        </div>
+      </div>
+
+      <div className="hidden lg:block flex-1 relative bg-slate-50 dark:bg-[#1a1c2c] transition-colors">
+        <img src={login} alt="login visual" className="w-full h-full object-cover grayscale-[20%] brightness-[90%] dark:brightness-[60%]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-[#11121d] via-transparent to-transparent"></div>
+        <div className="absolute bottom-12 left-12 max-w-sm">
+          <h2 className="text-4xl font-bold text-white tracking-tight mb-4 drop-shadow-lg">Professional Retail Management</h2>
+          <p className="text-white/90 font-medium leading-relaxed drop-shadow-md">Streamline your omnichannel operations with our enterprise-grade POS and inventory ecosystem.</p>
         </div>
       </div>
     </div>
@@ -229,5 +166,3 @@ const Login = () => {
 };
 
 export default Login;
-
-

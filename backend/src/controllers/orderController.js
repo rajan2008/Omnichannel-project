@@ -3,7 +3,7 @@ import Order from "../models/orderSchema.js";
 import Product from "../models/productSchema.js";
 import InventoryLedger from "../models/inventoryLedgerSchema.js";
 import { clearProductCache } from "./inventoryController.js";
-
+import { logActivity } from "../utils/activityLogger.js";
 export const checkout = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -35,6 +35,10 @@ export const checkout = async (req, res) => {
 
     const [order] = await Order.create([{ cashier: req.user.id, store: storeId, items: orderItems, total, subtotal: total, paymentMethod }], { session });
     await session.commitTransaction();
+    
+    // Log the activity after successful commit
+    await logActivity(req.user.id, "ORDER_PLACE", `Placed order #${order._id.toString().slice(-6).toUpperCase()} for ₹${total}`, order._id);
+    
     res.status(201).json({ message: "Order placed", order });
   } catch (error) {
     await session.abortTransaction();
@@ -62,6 +66,10 @@ export const cancelOrder = async (req, res) => {
     order.orderStatus = "CANCELLED";
     await order.save({ session });
     await session.commitTransaction();
+    
+    // Log cancellation
+    await logActivity(req.user.id, "ORDER_CANCEL", `Cancelled order #${order._id.toString().slice(-6).toUpperCase()}`, order._id);
+    
     res.status(200).json({ message: "Order cancelled, stock restored" });
   } catch (error) {
     await session.abortTransaction();

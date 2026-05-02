@@ -1,4 +1,48 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;300;400;500;700;900&display=swap');
+
+@theme {
+  --font-sans: 'Outfit', sans-serif;
+  --color-brand-dark: #2B2D42;
+  --color-brand-gray: #8D99AE;
+  --color-brand-light: #EDF2F4;
+  --color-brand-red: #EF233C;
+  --color-brand-darkred: #D90429;
+  
+  /* Dark Mode specific */
+  --color-surface-50: #ffffff;
+  --color-surface-100: #f8fafc;
+  --color-surface-200: #e2e8f0;
+}
+
+:root {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --bg-sidebar: #ffffff;
+  --text-primary: #020617; /* Deeper Black for Light Mode */
+  --text-secondary: #475569; /* Darker Gray for Light Mode */
+  --border-color: #e2e8f0;
+  --surface-color: #ffffff;
+}
+
+.dark {
+  --bg-primary: #0f172a; /* Deeper Navy for Dark Mode */
+  --bg-secondary: #1e293b;
+  --bg-sidebar: #0f172a;
+  --text-primary: #f8fafc; /* Pure white-ish for Dark Mode */
+  --text-secondary: #94a3b8; /* Lighter Gray for Dark Mode */
+  --border-color: rgba(255,255,255,0.06);
+  --surface-color: #1e293b;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+/* Force Tailwind dark variant to follow .dark class in V4 */
+@custom-variant dark (&:where(.dark, .dark *));
 
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
@@ -8,4 +52,28 @@
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  .glass {
+    @apply bg-white/40 backdrop-blur-xl border border-white/20;
+  }
+  
+  .glass-dark {
+    @apply bg-brand-dark/40 backdrop-blur-xl border border-white/5;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+    100% { transform: translateY(0px); }
+  }
+}
+
+body {
+  background-color: var(--color-brand-light);
+  color: var(--color-brand-dark);
+  font-family: var(--font-sans);
 }

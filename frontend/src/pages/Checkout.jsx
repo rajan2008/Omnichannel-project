@@ -1,243 +1,264 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { clearCart } from "../redux/slices/cartSlice";
+import axios from "../api/axiosInstance";
+import Sidebar from "../Components/Sidebar";
 import { 
-  ArrowLeft, 
-  Trash2, 
-  Plus, 
-  Minus, 
-  Banknote, 
+  ShoppingBag, 
   CreditCard, 
-  Wallet,
-  CheckCircle2,
-  ShoppingCart
+  Banknote, 
+  Wallet, 
+  ArrowLeft, 
+  CheckCircle2, 
+  Loader2, 
+  AlertTriangle,
+  Wifi,
+  WifiOff,
+  Zap
 } from "lucide-react";
-import { updateQuantity, removeFromCart, clearCart } from "../redux/slices/cartSlice";
-import { checkoutOrder } from "../api/orderApi";
-import { getStores } from "../api/storeApi";
 import toast from "react-hot-toast";
 
-const formatCurrency = (value) =>
-  new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(value);
-
-const categoryImages = {
-  Electronics: "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&q=80&w=300&h=300",
-  Footwear: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=300&h=300",
-  Clothing: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&q=80&w=300&h=300",
-  Accessories: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&q=80&w=300&h=300",
-  Beauty: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&q=80&w=300&h=300",
-  Home: "https://images.unsplash.com/photo-1484101403633-562f891dc89a?auto=format&fit=crop&q=80&w=300&h=300",
-  Food: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=300&h=300",
-  Default: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&q=80&w=300&h=300"
-};
-
-const getProductImage = (product) => {
-  if (product.images?.[0] && product.images[0].startsWith("http")) return product.images[0];
-  return categoryImages[product.category] || categoryImages.Default;
-};
-
-export default function Checkout() {
+const Checkout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const cart = useSelector((state) => state.cart.items);
-  const [stores, setStores] = useState([]);
-  const [selectedStore, setSelectedStore] = useState("");
+  const user = useSelector((state) => state.auth.user);
+  
+  const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
-    if (cart.length === 0) {
-      navigate("/dashboard");
-      return;
-    }
-
-    const fetchStores = async () => {
-      try {
-        const data = await getStores();
-        setStores(data);
-        if (data.length > 0) setSelectedStore(data[0]._id);
-      } catch (error) {
-        toast.error("Failed to load stores");
-      }
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success("Connection restored. Syncing pending data...");
+      syncOfflineOrders();
     };
-    fetchStores();
-  }, [cart, navigate]);
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.error("Offline mode active. Orders will be synced later.");
+    };
 
-  const subtotal = cart.reduce((acc, item) => acc + (item.basePrice * item.quantity), 0);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  const subtotal = cart.reduce((acc, item) => acc + item.basePrice * item.quantity, 0);
   const tax = subtotal * 0.08;
   const total = subtotal + tax;
 
-  const handleCheckout = async () => {
-    if (!selectedStore) {
-      toast.error("Please select a store");
-      return;
+  const syncOfflineOrders = async () => {
+    const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
+    if (offlineOrders.length === 0) return;
+
+    let successCount = 0;
+    for (const order of offlineOrders) {
+      try {
+        await axios.post("/orders", order);
+        successCount++;
+      } catch (err) {
+        console.error("Sync failed for order", order);
+      }
     }
 
-    setIsProcessing(true);
-    const loadingToast = toast.loading("Finalizing your order...");
-    try {
-      const payload = {
-        items: cart.map(item => ({
-          productId: item._id,
-          quantity: item.quantity
-        })),
-        paymentMethod,
-        storeId: selectedStore
-      };
-
-      await checkoutOrder(payload);
-      
-      toast.success("Order placed successfully!", { id: loadingToast });
-      dispatch(clearCart());
-      setTimeout(() => navigate("/dashboard"), 2000);
-    } catch (error) {
-      toast.error(error.message || "Checkout failed", { id: loadingToast });
-    } finally {
-      setIsProcessing(false);
+    if (successCount > 0) {
+      toast.success(`${successCount} offline orders synced to live DB!`);
+      localStorage.removeItem("offline_orders");
     }
   };
 
-  return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800 pb-12">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <button 
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 text-slate-600 hover:text-indigo-600 font-bold transition-colors"
-          >
-            <ArrowLeft size={20} />
-            <span>Back to Products</span>
+  const handlePlaceOrder = async () => {
+    if (cart.length === 0) return;
+
+    const orderData = {
+      items: cart.map(item => ({
+        productId: item._id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.basePrice
+      })),
+      totalAmount: total,
+      paymentMethod,
+      storeId: user?.store?._id,
+      customerName: "Walk-in Customer"
+    };
+
+    if (!navigator.onLine) {
+      // OFFLINE LOGIC
+      const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
+      offlineOrders.push({ ...orderData, createdAt: new Date().toISOString(), isOffline: true });
+      localStorage.setItem("offline_orders", JSON.stringify(offlineOrders));
+      
+      toast.success("Order saved offline! Will sync when online.");
+      setOrderSuccess(true);
+      dispatch(clearCart());
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await axios.post("/orders", orderData);
+      setOrderSuccess(true);
+      dispatch(clearCart());
+      toast.success("Order placed successfully on live DB!");
+    } catch (error) {
+      // IF SERVER IS DOWN BUT INTERNET IS ON
+      const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
+      offlineOrders.push({ ...orderData, createdAt: new Date().toISOString(), isOffline: true });
+      localStorage.setItem("offline_orders", JSON.stringify(offlineOrders));
+      
+      toast.error("Server unreachable. Order saved locally.");
+      setOrderSuccess(true);
+      dispatch(clearCart());
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (orderSuccess) {
+    return (
+      <div className="flex h-screen bg-white dark:bg-[#0f172a] items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-6">
+          <div className="w-20 h-20 bg-emerald-500 text-white rounded-[2rem] flex items-center justify-center mx-auto shadow-2xl shadow-emerald-500/20 animate-bounce">
+            <CheckCircle2 size={40} />
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Order Successfully Processed</h1>
+          <p className="text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-widest leading-relaxed">
+            {isOnline ? "The transaction has been synchronized with the live enterprise database." : "The transaction has been cached locally and will sync once the server is reachable."}
+          </p>
+          <button onClick={() => navigate("/dashboard")} className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl hover:bg-brand-red hover:text-white transition-all">
+            Return to Dashboard
           </button>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-md">
-              <ShoppingCart size={18} className="text-white" />
-            </div>
-            <h1 className="font-black text-slate-900 uppercase tracking-tighter">Order Review</h1>
-          </div>
         </div>
-      </header>
+      </div>
+    );
+  }
 
-      <main className="max-w-5xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Item List */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-              <h2 className="text-xl font-black mb-6 flex items-center gap-2">
-                Selected Items
-                <span className="text-xs bg-indigo-50 text-indigo-600 px-2 py-1 rounded-full">{cart.length}</span>
-              </h2>
-              <div className="space-y-6">
-                {cart.map((item) => (
-                  <div key={item._id} className="flex gap-4 items-center animate-in fade-in slide-in-from-left-4 duration-300">
-                    <img 
-                      src={getProductImage(item)} 
-                      className="w-20 h-20 rounded-2xl object-cover border border-slate-100 shadow-sm" 
-                      alt={item.name} 
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-start mb-1">
-                        <h4 className="font-bold text-slate-800 truncate pr-4">{item.name}</h4>
-                        <button 
-                          onClick={() => dispatch(removeFromCart(item._id))}
-                          className="text-slate-300 hover:text-red-500 transition-colors p-1"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                      <p className="text-xs text-slate-400 mb-3 font-semibold uppercase tracking-wider">{item.category}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center bg-slate-50 rounded-xl p-1 border border-slate-100">
-                          <button 
-                            onClick={() => dispatch(updateQuantity({ id: item._id, delta: -1 }))}
-                            className="w-8 h-8 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-lg transition-all"
-                          >
-                            <Minus size={14} strokeWidth={3} />
-                          </button>
-                          <span className="w-10 text-center font-black">{item.quantity}</span>
-                          <button 
-                            onClick={() => dispatch(updateQuantity({ id: item._id, delta: 1 }))}
-                            className="w-8 h-8 flex items-center justify-center hover:bg-white hover:shadow-sm rounded-lg transition-all"
-                          >
-                            <Plus size={14} strokeWidth={3} />
-                          </button>
-                        </div>
-                        <div className="text-right">
-                           <p className="text-xs text-slate-400 font-bold">{formatCurrency(item.basePrice)} each</p>
-                           <p className="font-black text-indigo-600">{formatCurrency(item.basePrice * item.quantity)}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+  return (
+    <div className="flex h-screen bg-white dark:bg-[#0f172a] font-sans transition-colors duration-300 overflow-hidden relative">
+      <Sidebar
+        user={user}
+        activeTab="checkout"
+        isSidebarOpen={false}
+        setIsSidebarOpen={() => {}}
+        logout={() => { localStorage.clear(); navigate("/login"); }}
+        cartCount={cart.reduce((a, b) => a + b.quantity, 0)}
+      />
+
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
+        <header className="bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-white/5 p-8 z-20">
+          <div className="max-w-4xl mx-auto flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <button onClick={() => navigate("/dashboard")} className="w-10 h-10 bg-slate-50 dark:bg-white/5 text-slate-400 rounded-xl flex items-center justify-center hover:text-brand-red transition-all">
+                <ArrowLeft size={20} />
+              </button>
+              <div>
+                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">Terminal Checkout</h1>
+                <div className="flex items-center gap-2 mt-1">
+                  {isOnline ? (
+                    <span className="flex items-center gap-1.5 text-[9px] font-black text-emerald-500 uppercase tracking-widest"><Wifi size={12} /> Live Sync Active</span>
+                  ) : (
+                    <span className="flex items-center gap-1.5 text-[9px] font-black text-amber-500 uppercase tracking-widest"><WifiOff size={12} /> Local Offline Mode</span>
+                  )}
+                </div>
               </div>
+            </div>
+            <div className="hidden md:flex items-center gap-2 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-full border border-slate-200 dark:border-white/5">
+              <Zap size={14} className="text-brand-red" />
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Transaction Guard Active</span>
             </div>
           </div>
+        </header>
 
-          {/* Checkout Controls */}
-          <div className="space-y-6">
-            {/* Store Selection */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-              <h3 className="font-black text-sm uppercase tracking-widest text-slate-400 mb-4">Fulfillment Store</h3>
-              <select 
-                value={selectedStore}
-                onChange={(e) => setSelectedStore(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 font-bold text-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer"
-              >
-                {stores.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-              </select>
-            </div>
-
-            {/* Payment Method */}
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-              <h3 className="font-black text-sm uppercase tracking-widest text-slate-400 mb-4">Payment Method</h3>
-              <div className="grid grid-cols-1 gap-2">
-                {[
-                  { id: "cash", icon: Banknote, label: "Cash Payment" },
-                  { id: "card", icon: CreditCard, label: "Credit/Debit Card" },
-                  { id: "digital_wallet", icon: Wallet, label: "Digital Wallet" },
-                ].map(m => (
-                  <button 
-                    key={m.id} 
-                    onClick={() => setPaymentMethod(m.id)} 
-                    className={`flex items-center gap-4 p-4 rounded-2xl border-2 transition-all ${paymentMethod === m.id ? "bg-indigo-50 border-indigo-600 text-indigo-600" : "bg-transparent border-slate-100 text-slate-400 hover:border-slate-200"}`}
-                  >
-                    <m.icon size={20} />
-                    <span className="font-bold text-sm">{m.label}</span>
-                    {paymentMethod === m.id && <CheckCircle2 className="ml-auto" size={18} />}
-                  </button>
-                ))}
+        <div className="flex-1 overflow-y-auto p-8 no-scrollbar">
+          <div className="max-w-4xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10">
+            {/* ORDER ITEMS */}
+            <div className="lg:col-span-7 space-y-6">
+              <div className="bg-white dark:bg-[#1e293b] rounded-[2rem] border border-slate-200 dark:border-white/5 p-8 shadow-sm">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6">Cart Summary</h3>
+                <div className="space-y-4">
+                  {cart.map(item => (
+                    <div key={item._id} className="flex justify-between items-center p-3 bg-slate-50 dark:bg-black/20 rounded-xl border border-slate-100 dark:border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-white dark:bg-[#111827] rounded-lg flex items-center justify-center font-black text-xs text-brand-red shadow-sm">{item.quantity}x</div>
+                        <div>
+                          <p className="text-xs font-black text-slate-800 dark:text-slate-200">{item.name}</p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">₹{item.basePrice} / unit</p>
+                        </div>
+                      </div>
+                      <p className="text-sm font-black text-slate-900 dark:text-white">₹{item.basePrice * item.quantity}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Total & Action */}
-            <div className="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl shadow-indigo-200 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[50px] rounded-full -mr-16 -mt-16" />
-              <div className="space-y-3 mb-8 relative z-10">
-                <div className="flex justify-between text-indigo-100 font-bold text-sm">
-                  <span>Subtotal</span>
-                  <span>{formatCurrency(subtotal)}</span>
+            {/* PAYMENT & SUMMARY */}
+            <div className="lg:col-span-5 space-y-6">
+              <div className="bg-white dark:bg-[#1e293b] rounded-[2rem] border border-slate-200 dark:border-white/5 p-8 shadow-sm">
+                <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest mb-6">Payment Method</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {[
+                    { id: "cash", icon: Banknote, label: "Cash Payment" },
+                    { id: "card", icon: CreditCard, label: "Credit / Debit Card" },
+                    { id: "digital", icon: Wallet, label: "Digital Wallet / UPI" }
+                  ].map(method => (
+                    <button 
+                      key={method.id} 
+                      onClick={() => setPaymentMethod(method.id)}
+                      className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${paymentMethod === method.id ? 'bg-brand-red/5 border-brand-red text-brand-red' : 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 text-slate-500'}`}
+                    >
+                      <method.icon size={20} />
+                      <span className="text-xs font-black uppercase tracking-widest">{method.label}</span>
+                    </button>
+                  ))}
                 </div>
-                <div className="flex justify-between text-indigo-100 font-bold text-sm">
-                  <span>Tax (8%)</span>
-                  <span>{formatCurrency(tax)}</span>
+
+                <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 space-y-3">
+                  <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
+                    <span>Subtotal</span>
+                    <span>₹{subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-xs font-bold text-slate-400 uppercase">
+                    <span>GST (8%)</span>
+                    <span>₹{tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center pt-2">
+                    <span className="text-sm font-black text-slate-900 dark:text-white uppercase">Grand Total</span>
+                    <span className="text-2xl font-black text-brand-red tracking-tighter">₹{total.toFixed(2)}</span>
+                  </div>
                 </div>
-                <div className="pt-3 border-t border-white/20 flex justify-between items-center">
-                  <span className="font-black uppercase tracking-tighter text-lg">Total</span>
-                  <span className="text-3xl font-black">{formatCurrency(total)}</span>
-                </div>
+
+                <button 
+                  onClick={handlePlaceOrder}
+                  disabled={loading || cart.length === 0}
+                  className="w-full mt-10 py-5 bg-brand-red text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-brand-red/20 hover:bg-brand-darkred active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                >
+                  {loading ? <Loader2 className="animate-spin" size={20} /> : <Zap size={20} />}
+                  {isOnline ? "Process Order" : "Store Offline Order"}
+                </button>
               </div>
-              <button 
-                disabled={isProcessing}
-                onClick={handleCheckout} 
-                className="w-full py-4 bg-white text-indigo-600 rounded-2xl font-black flex items-center justify-center gap-3 hover:bg-indigo-50 active:scale-95 transition-all shadow-lg disabled:opacity-50 uppercase tracking-widest text-xs relative z-10"
-              >
-                {isProcessing ? "Processing..." : "Complete Order"}
-              </button>
+
+              {!isOnline && (
+                <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-6 rounded-2xl flex items-center gap-4">
+                  <AlertTriangle className="text-amber-500" size={24} />
+                  <p className="text-[10px] font-bold text-amber-700 dark:text-amber-500 uppercase leading-relaxed tracking-tight">
+                    You are currently offline. Orders will be saved locally and synchronized when the connection is restored.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </main>
     </div>
   );
-}
+};
+
+export default Checkout;

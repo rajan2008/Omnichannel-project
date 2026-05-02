@@ -2,14 +2,20 @@ import Product from "../models/productSchema.js";
 import InventoryLedger from "../models/inventoryLedgerSchema.js";
 import Store from "../models/storeSchema.js";
 import Order from "../models/orderSchema.js";
-import redisClient from "../config/redis.js";
+import redisClient, { isRedisConnected } from "../config/redis.js";
 import sendEmail from "../utils/sendEmail.js";
 import { logActivity } from "../utils/activityLogger.js";
 import fs from "fs";
+import csv from "csv-parser";
 
 export const clearProductCache = async (id = null) => {
-  if (id) await redisClient.del(`product:${id}`);
-  await redisClient.del("products_all");
+  if (!isRedisConnected) return;
+  try {
+    if (id) await redisClient.del(`product:${id}`);
+    await redisClient.del("products_all");
+  } catch (e) {
+    console.error("Redis cache error:", e.message);
+  }
 };
 
 export const getProducts = async (req, res) => {
@@ -115,10 +121,57 @@ export const deleteProduct = async (req, res) => {
 
 export const bulkUploadProducts = async (req, res) => {
   try {
-    const { products } = req.body;
-    const result = await Product.insertMany(products);
-    await clearProductCache();
-    res.status(201).json({ message: `${result.length} products uploaded`, count: result.length });
+    if (!req.file) {
+      return res.status(400).json({ message: "No CSV file provided" });
+    }
+
+    const results = [];
+    const stores = await Store.find();
+    const storeMap = {};
+    let defaultStoreId = null;
+    
+    stores.forEach((s, idx) => {
+      storeMap[s.name.toLowerCase().trim()] = s._id;
+      if (idx === 0) defaultStoreId = s._id;
+    });
+
+    fs.createReadStream(req.file.path)
+      .pipe(csv({ mapHeaders: ({ header }) => header.trim() }))
+      .on("data", (data) => {
+        let storeId = defaultStoreId; // Fallback to first store
+        if (data.store) {
+          const matchedId = storeMap[data.store.toLowerCase().trim()];
+          if (matchedId) storeId = matchedId;
+        }
+        
+        results.push({
+          name: data.name?.trim() || "Unnamed Product",
+          sku: data.sku?.trim() || `SKU-${Math.floor(Math.random()*10000)}`,
+          category: data.category?.trim() || "General",
+          basePrice: Number(data.basePrice) || 0,
+          costPrice: data.costPrice ? Number(data.costPrice) : Math.round((Number(data.basePrice) || 0) * 0.8),
+          stock: Number(data.stock) || 0,
+          store: storeId,
+          image: data.image?.trim() || ""
+        });
+      })
+      .on("end", async () => {
+        try {
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+          
+          if (results.length === 0) {
+             return res.status(400).json({ message: "No valid data found in CSV" });
+          }
+
+          const result = await Product.insertMany(results);
+          await clearProductCache();
+          res.status(201).json({ message: `${result.length} products uploaded`, count: result.length });
+        } catch (dbError) {
+          res.status(500).json({ message: dbError.message });
+        }
+      });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -132,7 +185,12 @@ export const getStockPredictions = async (req, res) => {
       { $unwind: "$items" },
       { $group: { _id: "$items.product", totalSold: { $sum: "$items.quantity" } } }
     ]);
-    const products = await Product.find({ isActive: true });
+    let productQuery = { isActive: true };
+    if (req.user.role !== "admin") {
+      productQuery.store = req.user.store;
+    }
+
+    const products = await Product.find(productQuery);
     const predictions = products.map(p => {
       const s = stats.find(stat => stat._id.toString() === p._id.toString());
       const daily = s ? s.totalSold / 30 : 0;
@@ -146,9 +204,15 @@ export const getStockPredictions = async (req, res) => {
 
 export const bulkPriceUpdate = async (req, res) => {
   try {
-    const { category, percentageChange } = req.body;
+    const { category, percentageChange } = req.query; // Changed from body for easier GET/PUT handling
     const factor = 1 + (percentageChange / 100);
-    await Product.updateMany({ category, isActive: true }, [ { $set: { basePrice: { $multiply: ["$basePrice", factor] } } } ]);
+    
+    let query = { category, isActive: true };
+    if (req.user.role !== "admin") {
+      query.store = req.user.store;
+    }
+
+    await Product.updateMany(query, [ { $set: { basePrice: { $multiply: ["$basePrice", factor] } } } ]);
     await clearProductCache();
     res.status(200).json({ message: "Prices updated" });
   } catch (error) {
@@ -168,7 +232,11 @@ export const getStoreRecommendations = async (req, res) => {
 
 export const getLowStock = async (req, res) => {
   try {
-    const products = await Product.find({ $expr: { $lte: ["$stock", "$lowStockThreshold"] }, isActive: true });
+    let query = { $expr: { $lte: ["$stock", "$lowStockThreshold"] }, isActive: true };
+    if (req.user.role !== "admin") {
+      query.store = req.user.store;
+    }
+    const products = await Product.find(query).populate("store", "name");
     res.status(200).json({ products, count: products.length });
   } catch (error) {
     res.status(500).json({ message: error.message });

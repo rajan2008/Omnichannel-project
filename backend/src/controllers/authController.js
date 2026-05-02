@@ -86,17 +86,13 @@ export const registerUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).populate("store");
 
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
     if (!user.isActive) return res.status(403).json({ message: "Account is deactivated" });
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
-
-    /*if (!user.isEmailVerified) {
-      return res.status(403).json({ message: "Please verify your email before logging in" });
-    }*/
 
     user.lastLogin = new Date();
     await user.save();
@@ -105,7 +101,14 @@ export const loginUser = async (req, res) => {
     res.status(200).json({
       message: "Login successful",
       token,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone, store: user.store },
+      user: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        role: user.role, 
+        phone: user.phone, 
+        store: user.store // Now fully populated
+      },
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -120,10 +123,19 @@ export const createUserByAdmin = async (req, res) => {
     if (existing) return res.status(400).json({ message: "Email already registered" });
 
     const user = await User.create({ name, email, password, phone, role, store, isEmailVerified: true });
+    
+    // Populate store before sending back
+    const populatedUser = await User.findById(user._id).populate("store");
 
     res.status(201).json({
       message: `${role} account created successfully.`,
-      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+      user: { 
+        id: populatedUser._id, 
+        name: populatedUser.name, 
+        email: populatedUser.email, 
+        role: populatedUser.role,
+        store: populatedUser.store 
+      }
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -158,13 +170,16 @@ export const updateProfile = async (req, res) => {
     if (req.body.password) user.password = req.body.password;
 
     const updatedUser = await user.save();
+    // Populate store before sending back to avoid frontend crashes
+    const populatedUser = await User.findById(updatedUser._id).populate("store");
+
     res.status(200).json({
-      id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-      phone: updatedUser.phone,
-      store: updatedUser.store,
+      id: populatedUser._id,
+      name: populatedUser.name,
+      email: populatedUser.email,
+      role: populatedUser.role,
+      phone: populatedUser.phone,
+      store: populatedUser.store,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -174,10 +189,10 @@ export const updateProfile = async (req, res) => {
 // Admin: Get All Users
 export const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}).select("-password");
+    const users = await User.find({}).populate("store").select("-password");
     res.status(200).json(users);
   } catch (error) {
-    res.status(500).json(users);
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -197,7 +212,10 @@ export const updateUser = async (req, res) => {
     if (req.body.password) user.password = req.body.password;
 
     const updatedUser = await user.save();
-    res.status(200).json({ message: "User updated successfully", user: updatedUser });
+    // Populate store for instant frontend update
+    const populatedUser = await User.findById(updatedUser._id).populate("store");
+    
+    res.status(200).json({ message: "User updated successfully", user: populatedUser });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

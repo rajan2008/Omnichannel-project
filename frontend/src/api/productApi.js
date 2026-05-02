@@ -27,3 +27,18 @@ export const deleteProduct = async (id) => {
   const res = await api.delete(`/inventory/${id}`);
   return res.data;
 };
+
+export const getPredictions = async () => {
+  const res = await api.get("/manager/inventory/predictions");
+  return res.data;
+};
+
+export const selfHealInventory = async () => {
+  const res = await api.post("/admin/inventory/self-heal");
+  return res.data;
+};
+
+export const bulkPriceUpdate = async (updateData) => {
+  const res = await api.patch("/admin/inventory/bulk-price-update", updateData);
+  return res.data;
+};

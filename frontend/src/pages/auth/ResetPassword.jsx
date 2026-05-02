@@ -58,7 +58,7 @@ const ResetPassword = () => {
             <div className="text-white text-center">
               <div className="flex justify-center items-center mb-1 flex-wrap">
                 <Infinity size={55} color="white" />
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">INFINITY</h1>
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">VENDORA</h1>
               </div>
               <p className="text-xs sm:text-sm leading-relaxed p-2 sm:p-4 text-gray-200">
                 Secure your new password to regain access to your account.
@@ -68,7 +68,7 @@ const ResetPassword = () => {
         </div>
 
         <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-center bg-white/80">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Set New Password</h2>
+          <h2 className="text-2xl font-black text-brand-dark uppercase tracking-tighter mb-2">Set New Password</h2>
           <p className="text-gray-500 text-sm mb-8">
             Create a strong password that you haven't used before.
           </p>
@@ -83,17 +83,17 @@ const ResetPassword = () => {
                   placeholder="At least 8 characters"
                   value={formData.password}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-black transition-all text-sm"
+                  className="w-full pl-10 pr-12 py-3 bg-brand-light/30 border border-brand-light rounded-xl outline-none focus:border-brand-red transition-all text-sm"
                 />
-                <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
-                <span onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 cursor-pointer text-gray-400 hover:text-gray-600">
+                <Lock className="absolute left-3 top-3 text-brand-gray" size={18} />
+                <span onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3 cursor-pointer text-brand-gray hover:text-brand-red">
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </span>
               </div>
             </div>
 
             <div className="relative">
-              <label className="text-xs font-semibold text-gray-600 mb-1 block ml-1">Confirm New Password</label>
+              <label className="text-xs font-semibold text-brand-gray mb-1 block ml-1">Confirm New Password</label>
               <div className="relative">
                 <input
                   type={showConfirmPassword ? "text" : "password"}
@@ -101,10 +101,10 @@ const ResetPassword = () => {
                   placeholder="Repeat your password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full pl-10 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-black transition-all text-sm"
+                  className="w-full pl-10 pr-12 py-3 bg-brand-light/30 border border-brand-light rounded-xl outline-none focus:border-brand-red transition-all text-sm"
                 />
-                <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
-                <span onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-3 cursor-pointer text-gray-400 hover:text-gray-600">
+                <Lock className="absolute left-3 top-3 text-brand-gray" size={18} />
+                <span onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-3 cursor-pointer text-brand-gray hover:text-brand-red">
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </span>
               </div>
@@ -113,7 +113,7 @@ const ResetPassword = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-black text-white rounded-xl hover:bg-gray-800 transition-all flex items-center justify-center gap-2 font-bold mt-4"
+              className="w-full h-12 bg-brand-red text-white rounded-xl hover:bg-brand-darkred transition-all flex items-center justify-center gap-2 font-black uppercase text-xs tracking-widest mt-4 shadow-lg shadow-brand-red/20"
             >
               {loading && <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
               {loading ? "Updating..." : "Reset Password"}

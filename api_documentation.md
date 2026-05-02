@@ -1,4 +1,4 @@
-# Omnichannel POS & Inventory - Backend API Documentation
+# Vendora POS & Inventory - Backend API Documentation
 
 This document provides all the necessary details for the frontend team to integrate with the backend.
 

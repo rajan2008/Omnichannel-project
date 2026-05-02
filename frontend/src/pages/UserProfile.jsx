@@ -29,25 +29,25 @@ const UserProfile = () => {
 
   if (loading && !user) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-slate-50">
-        <Loader2 className="w-10 h-10 text-indigo-600 animate-spin" />
+      <div className="flex-1 flex items-center justify-center bg-brand-light">
+        <Loader2 className="w-10 h-10 text-brand-red animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8 lg:p-12">
+    <div className="flex-1 overflow-y-auto bg-brand-light p-4 md:p-8 lg:p-12">
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">My Profile</h1>
-          <p className="text-slate-500 font-medium">Manage your personal information and account settings.</p>
+          <h1 className="text-3xl font-black text-brand-dark uppercase tracking-tighter">My Profile</h1>
+          <p className="text-brand-gray font-medium">Manage your personal information and account settings.</p>
         </div>
 
-        <div className="bg-white rounded-[3rem] border border-slate-200 overflow-hidden shadow-sm">
-          <div className="relative h-48 bg-gradient-to-r from-indigo-600 to-violet-600">
+        <div className="bg-white rounded-[3rem] border border-brand-light overflow-hidden shadow-sm">
+          <div className="relative h-48 bg-gradient-to-r from-brand-red to-brand-darkred">
             <div className="absolute -bottom-16 left-12">
               <div className="w-32 h-32 rounded-[2.5rem] bg-white p-2 shadow-xl">
-                <div className="w-full h-full rounded-[2rem] bg-slate-100 flex items-center justify-center text-indigo-600 text-4xl font-black">
+                <div className="w-full h-full rounded-[2rem] bg-brand-light flex items-center justify-center text-brand-red text-4xl font-black">
                   {user?.name?.charAt(0)}
                 </div>
               </div>
@@ -61,14 +61,14 @@ const UserProfile = () => {
             <div className="flex flex-col md:flex-row justify-between items-start gap-8">
               <div className="flex-1 space-y-8">
                 <div>
-                  <h2 className="text-3xl font-black text-slate-900 mb-1">{user?.name}</h2>
-                  <p className="text-indigo-600 font-bold uppercase tracking-widest text-xs">{user?.role}</p>
+                  <h2 className="text-3xl font-black text-brand-dark mb-1">{user?.name}</h2>
+                  <p className="text-brand-red font-bold uppercase tracking-widest text-xs">{user?.role}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-6">
                     <div className="flex items-center gap-4 group">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all">
+                      <div className="w-12 h-12 rounded-2xl bg-brand-light flex items-center justify-center text-brand-gray group-hover:text-brand-red group-hover:bg-brand-red/10 transition-all">
                         <Mail size={20} />
                       </div>
                       <div>
@@ -78,7 +78,7 @@ const UserProfile = () => {
                     </div>
 
                     <div className="flex items-center gap-4 group">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all">
+                      <div className="w-12 h-12 rounded-2xl bg-brand-light flex items-center justify-center text-brand-gray group-hover:text-brand-red group-hover:bg-brand-red/10 transition-all">
                         <Shield size={20} />
                       </div>
                       <div>
@@ -90,7 +90,7 @@ const UserProfile = () => {
 
                   <div className="space-y-6">
                     <div className="flex items-center gap-4 group">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all">
+                      <div className="w-12 h-12 rounded-2xl bg-brand-light flex items-center justify-center text-brand-gray group-hover:text-brand-red group-hover:bg-brand-red/10 transition-all">
                         <Phone size={20} />
                       </div>
                       <div>
@@ -100,7 +100,7 @@ const UserProfile = () => {
                     </div>
 
                     <div className="flex items-center gap-4 group">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:bg-indigo-50 transition-all">
+                      <div className="w-12 h-12 rounded-2xl bg-brand-light flex items-center justify-center text-brand-gray group-hover:text-brand-red group-hover:bg-brand-red/10 transition-all">
                         <MapPin size={20} />
                       </div>
                       <div>
@@ -112,24 +112,24 @@ const UserProfile = () => {
                 </div>
               </div>
 
-              <button className="flex items-center gap-2 px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200">
+              <button className="flex items-center gap-2 px-8 py-4 bg-brand-dark text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-brand-red transition-all shadow-xl shadow-brand-light">
                 <Edit2 size={16} /> Edit Profile
               </button>
             </div>
 
-            <div className="mt-16 pt-8 border-t border-slate-100">
-              <h3 className="font-black text-slate-900 uppercase tracking-tighter mb-6">Security Settings</h3>
+            <div className="mt-16 pt-8 border-t border-brand-light">
+              <h3 className="font-black text-brand-dark uppercase tracking-tighter mb-6">Security Settings</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 text-left hover:border-indigo-400 transition-all group">
-                  <p className="font-bold text-slate-800 mb-1 group-hover:text-indigo-600">Two-Factor Auth</p>
+                <button className="p-6 rounded-[2rem] bg-brand-light/20 border border-brand-light text-left hover:border-brand-red transition-all group">
+                  <p className="font-bold text-brand-dark mb-1 group-hover:text-brand-red">Two-Factor Auth</p>
                   <p className="text-xs text-slate-400">Currently Disabled</p>
                 </button>
-                <button className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 text-left hover:border-indigo-400 transition-all group">
-                  <p className="font-bold text-slate-800 mb-1 group-hover:text-indigo-600">Password</p>
+                <button className="p-6 rounded-[2rem] bg-brand-light/20 border border-brand-light text-left hover:border-brand-red transition-all group">
+                  <p className="font-bold text-brand-dark mb-1 group-hover:text-brand-red">Password</p>
                   <p className="text-xs text-slate-400">Last changed 3 months ago</p>
                 </button>
-                <button className="p-6 rounded-[2rem] bg-slate-50 border border-slate-100 text-left hover:border-indigo-400 transition-all group">
-                  <p className="font-bold text-slate-800 mb-1 group-hover:text-indigo-600">Sessions</p>
+                <button className="p-6 rounded-[2rem] bg-brand-light/20 border border-brand-light text-left hover:border-brand-red transition-all group">
+                  <p className="font-bold text-brand-dark mb-1 group-hover:text-brand-red">Sessions</p>
                   <p className="text-xs text-slate-400">2 active devices</p>
                 </button>
               </div>
