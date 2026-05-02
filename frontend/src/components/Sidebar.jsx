@@ -206,9 +206,9 @@ const Sidebar = ({
 
       {/* FOOTER - USER PROFILE WITH STORE BADGE */}
       <div className="p-6 bg-slate-50 dark:bg-black/20 border-t border-slate-200 dark:border-white/5 space-y-4">
-        <div className="space-y-1">
-          {footerItems.map(renderMenuItem)}
-        </div>
+        <div className="transition transform hover:scale-103 border border-transparent hover:border-gray-200 rounded-2xl space-y-1">
+  {footerItems.map(renderMenuItem)}
+</div>
         
         <div className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 group hover:border-brand-red/20 transition-all cursor-pointer shadow-sm" onClick={() => navigate('/profile')}>
           <div className="flex items-center gap-3 mb-3">
@@ -242,10 +242,10 @@ const Sidebar = ({
 
         <button 
           onClick={logout} 
-          className="w-full flex items-center gap-3.5 p-3.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-brand-red/10 hover:text-brand-red transition-all duration-300 group cursor-pointer"
+          className="w-full border border-transparent bg-gray-200 flex items-center gap-3.5 p-3 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-brand-red/10 hover:text-brand-red hover:border-gray-300 transition-all duration-300 group cursor-pointer"
         >
           <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="font-bold text-xs tracking-wide">Secure Sign Out</span>
+          <span className="font-bold text-xs tracking-wide">Sign Out</span>
         </button>
       </div>
     </aside>
