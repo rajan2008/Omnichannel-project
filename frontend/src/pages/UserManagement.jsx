@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Sidebar from "../Components/Sidebar";
+import Sidebar from "../Components/SidebarComponent";
 import { useSelector } from "react-redux";
 import { getUsers, createUser, deleteUser, updateUser, getStores } from "../api/managementApi";
 import { 

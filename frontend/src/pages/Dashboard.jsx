@@ -11,7 +11,7 @@ import { getDashboardStats } from "../api/dashboardApi";
 import { getStores } from "../api/storeApi";
 import { getOrders } from "../api/orderApi";
 import Orders from "../Components/Orders";
-import Sidebar from "../Components/Sidebar";
+import Sidebar from "../Components/SidebarComponent";
 import SearchFilterComponent from "../Components/SearchFilterComponent";
 import ProductList from "../Components/ProductList";
 import RoleWrapper from "../Components/RoleWrapper";

@@ -7,7 +7,7 @@ import {
 } from "../api/productApi.js";
 import { getStores } from "../api/storeApi.js";
 import useDebounce from "../Utils/hooks/useDebounce.js";
-import Sidebar from "../Components/Sidebar.jsx";
+import Sidebar from "../Components/SidebarComponent";
 import RoleWrapper from "../Components/RoleWrapper.jsx";
 import AddProductModal from "../Components/modal/AddProductModal.jsx";
 import BulkUploadModal from "../Components/modal/BulkUploadModal.jsx";

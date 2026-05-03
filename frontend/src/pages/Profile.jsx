@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser, logout } from "../redux/slices/authSlice";
-import Sidebar from "../Components/Sidebar";
+import Sidebar from "../Components/SidebarComponent";
 import { 
   User, 
   Mail, 
