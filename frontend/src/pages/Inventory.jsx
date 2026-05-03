@@ -13,7 +13,8 @@ import AddProductModal from "../Components/modal/AddProductModal.jsx";
 import BulkUploadModal from "../Components/modal/BulkUploadModal.jsx";
 import ProductCard from "../Components/ProductCard.jsx";
 import Skeleton from "../Components/Skeleton.jsx";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { addItem } from "../redux/cartSlice.js";
 import {
   Package,
   AlertTriangle,
@@ -37,6 +38,7 @@ const formatCurrency = (value) =>
   );
 
 const Inventory = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const cart = useSelector((state) => state.cart.items);
   const [products, setProducts] = useState([]);
@@ -347,7 +349,20 @@ const Inventory = () => {
                         key={item._id}
                         product={item}
                         formatCurrency={formatCurrency}
-                        onAddToCart={null}
+                        onAddToCart={(item) => {
+                          dispatch(addItem(item));
+                          toast.success(`${item.name} added to cart`, {
+                            icon: "🛒",
+                            style: {
+                              borderRadius: "15px",
+                              background: "#333",
+                              color: "#fff",
+                              fontSize: "10px",
+                              fontWeight: "bold",
+                              textTransform: "uppercase",
+                            },
+                          });
+                        }}
                         onDeleteSuccess={() => fetchProducts(1, false)}
                       />
                     ))}

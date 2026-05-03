@@ -170,7 +170,7 @@ const Sidebar = ({
             >
               <div className="flex items-center gap-3.5">
                 <ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />
-                <span className="font-bold text-xs tracking-wide opacity-80 group-hover:opacity-100">POS Terminal</span>
+                <span className="font-bold text-xs tracking-wide opacity-80 group-hover:opacity-100">Sales Terminal</span>
               </div>
               {cartCount > 0 && (
                 <span className="bg-brand-red text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(239,35,60,0.3)] animate-pulse">

@@ -488,7 +488,7 @@ export default function Dashboard() {
                               onClick={() => setIsCartModalOpen(true)}
                               className="flex items-center gap-3 w-full p-3 bg-brand-red hover:bg-brand-darkred rounded-xl shadow-lg shadow-brand-red/20 transition-all text-[11px] font-black uppercase tracking-widest"
                             >
-                              <ShoppingCart size={14} /> Open POS Checkout
+                              <ShoppingCart size={14} /> Open Sales Terminal
                             </button>
                             <RoleWrapper allowedRoles={["admin", "manager"]}>
                               <button
