@@ -1,15 +1,37 @@
 import { useNavigate } from "react-router-dom";
 import { forgotPassword } from "../../api/authApi.js";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import login from "../../assets/login.jpg";
 import toast from "react-hot-toast";
-import { Infinity, ArrowLeft } from "lucide-react";
+import { ArrowLeft, KeyRound, Mail, Sun, Moon } from "lucide-react";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [themeMode, setThemeMode] = useState(localStorage.getItem('theme') || 'light');
+
+  const applyTheme = (mode) => {
+    const root = document.documentElement;
+    if (mode === 'dark') {
+      root.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setThemeMode('dark');
+    } else {
+      root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setThemeMode('light');
+    }
+  };
+
+  const toggleTheme = () => {
+    applyTheme(themeMode === 'dark' ? 'light' : 'dark');
+  };
+
+  useEffect(() => {
+    applyTheme(localStorage.getItem('theme') || 'light');
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,81 +44,96 @@ const ForgotPassword = () => {
       setLoading(true);
       setError("");
       const res = await forgotPassword({ email });
-      toast.success(res.message);
+      toast.success(res.message || "Reset link dispatched to your inbox.");
     } catch (err) {
-      setError(err);
-      toast.error(err);
+      const message = typeof err === "string" ? err : err?.message || "Verification request failed";
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="relative w-full h-screen flex py-6 sm:py-8 md:py-4 items-center justify-center px-3 sm:px-4 md:px-6 overflow-hidden">
-      {/* BACKGROUND BLOBS */}
-      <div className="absolute w-64 h-64 sm:w-80 sm:h-80 bg-gray-400 rounded-full -top-20 -left-20 blur-2xl opacity-40"></div>
-      <div className="absolute w-80 h-80 sm:w-125 sm:h-125 bg-gray-400 rounded-full -bottom-32 -right-32 blur-2xl opacity-40"></div>
+  const isDark = themeMode === 'dark';
 
-      <div className="relative z-10 w-full max-w-5xl flex flex-col md:flex-row rounded-2xl overflow-hidden backdrop-blur-md bg-white/30 shadow-xl">
-        {/* IMAGE SECTION */}
-        <div className="hidden md:block md:w-1/2 relative">
-          <img src={login} alt="login visual" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-[rgba(0,0,0,0.5)]"></div>
-          <div className="absolute inset-0 flex items-center justify-center px-4">
-            <div className="text-white text-center">
-              <div className="flex justify-center items-center mb-1 flex-wrap">
-                <Infinity size={55} color="white" />
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-widest ml-2">VENDORA</h1>
-              </div>
-              <p className="text-xs sm:text-sm leading-relaxed p-2 sm:p-4 text-gray-200">
-                Secure your account with our advanced authentication system.
-              </p>
-            </div>
+  return (
+    <div className="w-full h-screen flex bg-white dark:bg-[#11121d] font-sans text-slate-900 dark:text-white transition-colors duration-300 overflow-hidden relative">
+      <button 
+        onClick={toggleTheme}
+        className="fixed top-8 right-8 z-50 p-3 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-brand-red transition-all shadow-sm cursor-pointer"
+      >
+        {isDark ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-400" />}
+      </button>
+
+      <div className="w-full lg:w-[450px] flex flex-col justify-center px-10 sm:px-16 lg:px-12 z-10 bg-white dark:bg-[#11121d] transition-colors">
+        <button 
+          onClick={() => navigate("/login")}
+          className="flex items-center gap-2.5 text-slate-400 hover:text-brand-red mb-10 transition-all self-start group cursor-pointer"
+        >
+          <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-white/5 flex items-center justify-center border border-slate-100 dark:border-white/10 group-hover:border-brand-red/30">
+            <ArrowLeft size={16} />
           </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest">Back to Login</span>
+        </button>
+
+        <div className="mb-10 flex flex-col items-center lg:items-start text-center lg:text-left">
+          <div className="w-12 h-12 mb-6 bg-brand-red/10 rounded-xl flex items-center justify-center text-brand-red shadow-inner">
+            <KeyRound size={24} />
+          </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">Recover Access</h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">
+            Lost your security key? Enter your work email below to receive a restoration link.
+          </p>
         </div>
 
-        {/* FORM SECTION */}
-        <div className="w-full md:w-1/2 p-6 sm:p-8 flex flex-col justify-center bg-white/80">
-          <button 
-            onClick={() => navigate("/login")}
-            className="flex items-center gap-2 text-brand-gray hover:text-brand-red mb-6 transition-colors self-start"
-          >
-            <ArrowLeft size={18} />
-            <span className="text-sm font-medium">Back to Login</span>
-          </button>
-
-          <h2 className="text-2xl font-black text-brand-dark uppercase tracking-tighter mb-2">Forgot Password?</h2>
-          <p className="text-gray-500 text-sm mb-8">
-            Enter your email address and we'll send you a link to reset your password.
-          </p>
-
-          <form onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-1 mb-6">
-              <label className="text-sm font-medium text-gray-700 ml-1">Email Address</label>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Work Email</label>
+            <div className="relative">
               <input
                 type="email"
-                placeholder="name@example.com"
+                placeholder="name@company.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 rounded-lg border border-brand-light focus:border-brand-red focus:ring-1 focus:ring-brand-red outline-none transition-all text-sm"
+                className="w-full text-slate-900 dark:text-white py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg outline-none pr-12 focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-semibold text-sm"
               />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300">
+                <Mail size={16} />
+              </div>
             </div>
+          </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-12 bg-brand-red text-white rounded-lg hover:bg-brand-darkred transition-all flex items-center justify-center gap-2 font-black uppercase text-xs tracking-widest shadow-lg shadow-brand-red/20"
-            >
-              {loading && <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-              {loading ? "Sending link..." : "Send Reset Link"}
-            </button>
-          </form>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-2.5 font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-slate-900/10 active:scale-[0.98] disabled:opacity-50"
+          >
+            {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : null}
+            {loading ? "Requesting..." : "Send Restoration Link"}
+          </button>
+        </form>
 
-          {error && (
-            <p className="mt-4 text-center text-sm text-red-500 bg-red-50 py-2 rounded-lg border border-red-100">
+        {error && (
+          <div className="mt-6 p-4 bg-red-50 dark:bg-red-500/10 border border-red-100 dark:border-red-500/20 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+            <p className="text-[10px] font-bold text-red-500 uppercase tracking-widest text-center">
               {error}
             </p>
-          )}
+          </div>
+        )}
+
+        <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 text-center">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            Identity support: <span className="text-slate-900 dark:text-slate-200">support@vendora.com</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="hidden lg:block flex-1 relative bg-slate-50 dark:bg-[#1a1c2c] transition-colors">
+        <img src={login} alt="recovery visual" className="w-full h-full object-cover grayscale-[20%] brightness-[90%] dark:brightness-[60%]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-[#11121d] via-transparent to-transparent"></div>
+        <div className="absolute bottom-12 left-12 max-w-sm">
+          <h2 className="text-4xl font-bold text-white tracking-tight mb-4 drop-shadow-lg">Account Protection</h2>
+          <p className="text-white/90 font-medium leading-relaxed drop-shadow-md">Our multi-layered security ensures your workspace remains protected while providing seamless recovery options.</p>
         </div>
       </div>
     </div>
