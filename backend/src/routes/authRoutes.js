@@ -1,7 +1,8 @@
 import express from "express";
 import { 
   sendRegistrationOTP,
-  registerUser, 
+  registerUser,
+  directRegister,
   createUserByAdmin, 
   loginUser, 
   getProfile, 
@@ -87,6 +88,7 @@ router.post("/send-registration-otp", registerLimiter, sendRegistrationOTP);
  *         description: Invalid or expired OTP
  */
 router.post("/register", registerLimiter, registerUser);
+router.post("/direct-register", registerLimiter, directRegister);
 
 /**
  * @swagger

@@ -44,7 +44,7 @@ export const sendRegistrationOTP = async (req, res) => {
   }
 };
 
-// 2. Complete Registration
+// 2. Complete Registration (with OTP)
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password, phone, otp, store } = req.body;
@@ -70,6 +70,40 @@ export const registerUser = async (req, res) => {
     });
 
     await OTP.deleteOne({ email });
+    const token = generateToken(user);
+
+    res.status(201).json({
+      message: "Registration successful",
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role }
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// 2b. Direct Registration (no OTP — used by frontend Register page)
+export const directRegister = async (req, res) => {
+  try {
+    const { name, email, password, phone, store } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "Name, email and password are required" });
+    }
+
+    const existing = await User.findOne({ email });
+    if (existing) return res.status(400).json({ message: "Email already registered" });
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      phone,
+      role: "cashier",
+      store,
+      isEmailVerified: true
+    });
+
     const token = generateToken(user);
 
     res.status(201).json({
@@ -248,14 +282,19 @@ export const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
     const message = `Password Reset Link: ${resetUrl}`;
 
+    // Always log reset link to console as fallback
+    console.log("\n=== PASSWORD RESET LINK ===");
+    console.log(`User: ${user.email}`);
+    console.log(`Link: ${resetUrl}`);
+    console.log("===========================\n");
+
     try {
       await sendEmail({ email: user.email, subject: "Password Reset Token", message });
-      res.status(200).json({ message: "Email sent" });
-    } catch (error) {
-      user.resetPasswordToken = undefined;
-      user.resetPasswordExpire = undefined;
-      await user.save({ validateBeforeSave: false });
-      return res.status(500).json({ message: "Email could not be sent" });
+      res.status(200).json({ message: "Reset link sent to your email. Also check your backend console." });
+    } catch (emailError) {
+      // Email failed but reset token is still valid — user can use the console link
+      console.warn("Email send failed, but reset link is available in console above.");
+      res.status(200).json({ message: "Reset link generated. Check your backend terminal console for the link." });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });

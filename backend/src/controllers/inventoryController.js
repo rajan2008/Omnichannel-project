@@ -27,7 +27,8 @@ export const getProducts = async (req, res) => {
     // Filter by store if not admin
     if (req.user.role !== "admin") {
       if (!req.user.store) {
-        return res.status(403).json({ message: "No store assigned to this user" });
+        // No store assigned — return empty product list
+        return res.status(200).json({ products: [], totalPages: 0, currentPage: 1, totalProducts: 0 });
       }
       query.store = req.user.store;
     }

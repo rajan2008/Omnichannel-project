@@ -15,7 +15,16 @@ export const registerUser = async (data) => {
     const res = await api.post("/auth/register", data);
     return res.data;
   } catch (error) {
-    throw error.response?.data?.message || "Register failed";
+    throw error.response?.data || { message: "Register failed" };
+  }
+};
+
+export const sendRegistrationOTP = async (data) => {
+  try {
+    const res = await api.post("/auth/send-registration-otp", data);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || { message: "Failed to send OTP" };
   }
 };
 

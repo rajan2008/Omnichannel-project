@@ -97,7 +97,11 @@ export const bulkSyncOrders = async (req, res) => {
 
 export const getOrders = async (req, res) => {
   try {
-    const query = req.user.role === "admin" ? {} : { store: req.user.store };
+    let query = {};
+    if (req.user.role !== "admin") {
+      if (!req.user.store) return res.status(200).json([]);
+      query.store = req.user.store;
+    }
     const orders = await Order.find(query)
       .populate("cashier", "name")
       .populate("store", "name")
