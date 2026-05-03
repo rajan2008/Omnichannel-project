@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Order from "../models/orderSchema.js";
 import Product from "../models/productSchema.js";
-import InventoryLedger from "../models/inventoryLedgerSchema.js";
+
 import { clearProductCache } from "./inventoryController.js";
 import { logActivity } from "../utils/activityLogger.js";
 export const checkout = async (req, res) => {

@@ -14,7 +14,7 @@ mongoose.startSession = jest.fn().mockResolvedValue(mockSession);
 
 const { checkout } = await import("../src/controllers/orderController.js");
 const { default: Product } = await import("../src/models/productSchema.js");
-const { default: Order } = await import("../src/models/orderSchema.js");
+
 
 describe("Advanced Logic Tests", () => {
   it("should rollback transaction on stock error", async () => {

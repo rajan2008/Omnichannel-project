@@ -291,7 +291,7 @@ export const forgotPassword = async (req, res) => {
     try {
       await sendEmail({ email: user.email, subject: "Password Reset Token", message });
       res.status(200).json({ message: "Reset link sent to your email. Also check your backend console." });
-    } catch (emailError) {
+    } catch (_emailError) {
       // Email failed but reset token is still valid — user can use the console link
       console.warn("Email send failed, but reset link is available in console above.");
       res.status(200).json({ message: "Reset link generated. Check your backend terminal console for the link." });

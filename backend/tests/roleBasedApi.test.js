@@ -2,7 +2,7 @@ import request from "supertest";
 import mongoose from "mongoose";
 import { app } from "../server.js"; // Make sure to export app in server.js
 import User from "../src/models/userSchema.js";
-import Product from "../src/models/productSchema.js";
+
 import jwt from "jsonwebtoken";
 
 // Mocking the server since we need it for testing
