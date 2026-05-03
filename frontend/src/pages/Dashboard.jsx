@@ -294,7 +294,7 @@ export default function Dashboard() {
                   <ArrowRight size={12} className="rotate-180" /> Return to
                   Dashboard
                 </button>
-                <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-lg">
+                <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-lg printable-invoice">
                   <div className="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -309,7 +309,10 @@ export default function Dashboard() {
                         </p>
                       </div>
                     </div>
-                    <button className="px-4 py-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-lg font-bold uppercase text-[9px] tracking-widest flex items-center gap-2 hover:bg-brand-red hover:text-white transition-all shadow-md">
+                    <button 
+                      onClick={() => window.print()}
+                      className="px-4 py-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-lg font-bold uppercase text-[9px] tracking-widest flex items-center gap-2 hover:bg-brand-red hover:text-white transition-all shadow-md"
+                    >
                       <Download size={12} /> Receipt
                     </button>
                   </div>

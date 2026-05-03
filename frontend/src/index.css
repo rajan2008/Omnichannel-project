@@ -77,3 +77,46 @@ body {
   color: var(--color-brand-dark);
   font-family: var(--font-sans);
 }
+
+/* PRINT STYLES */
+@media print {
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  /* Hide everything by default during print */
+  nav, 
+  aside, 
+  header, 
+  button, 
+  footer,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Only show the invoice container */
+  .printable-invoice {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: auto;
+    background: white !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    z-index: 9999;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .printable-invoice * {
+    color: black !important;
+    border-color: #eee !important;
+  }
+  
+  .dark {
+    background-color: white !important;
+  }
+}
