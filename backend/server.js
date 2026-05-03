@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+
 import express from "express";
 import cors from "cors";
 import connect from "./src/config/connectdb.js";
@@ -13,6 +14,7 @@ import adminRoutes from "./src/routes/adminRoutes.js";
 import managerRoutes from "./src/routes/managerRoutes.js";
 import cashierRoutes from "./src/routes/cashierRoutes.js";
 import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
+import { setupSwagger } from "./src/config/swagger.js";
 
 const app = express();
 app.use(cors());
@@ -32,6 +34,9 @@ app.use("/api/manager", managerRoutes);
 app.use("/api/cashier", cashierRoutes);
 
 app.get("/api", (req, res) => res.send("API is running"));
+
+// Swagger API Documentation
+setupSwagger(app);
 
 app.use(notFound);
 app.use(errorHandler);
