@@ -37,6 +37,7 @@ const Orders = ({ compact = false }) => {
 
   useEffect(() => {
     fetchOrders();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatCurrency = (value) =>

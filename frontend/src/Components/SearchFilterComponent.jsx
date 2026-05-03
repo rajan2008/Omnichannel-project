@@ -55,6 +55,7 @@ const SearchFilterComponent = ({
     else if (sortBy === "newest") result.reverse();
 
     onFilterChange(result);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, category, sortBy, selectedStore, data]);
   const isFiltered =
     searchQuery !== "" || category !== "All" || sortBy !== "newest";
