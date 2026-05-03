@@ -6,6 +6,7 @@ jest.unstable_mockModule("../src/models/productSchema.js", () => ({
     findById: jest.fn(),
     create: jest.fn(),
     updateMany: jest.fn(),
+    countDocuments: jest.fn(),
   }
 }));
 
@@ -29,7 +30,7 @@ describe("Product API Controllers (Inventory)", () => {
     mockReq = {
       query: {},
       body: {},
-      user: { id: "user123" }
+      user: { id: "user123", role: "manager", store: "store123" }
     };
     mockRes = {
       status: jest.fn().mockReturnThis(),
@@ -64,9 +65,9 @@ describe("Product API Controllers (Inventory)", () => {
     const mockProducts = [{ name: "P1" }, { name: "P2" }];
     Product.find.mockReturnValue({
       limit: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
-      populate: jest.fn().mockResolvedValue(mockProducts)
+      skip: jest.fn().mockResolvedValue(mockProducts),
     });
+    Product.countDocuments.mockResolvedValue(2);
 
     await getProducts(mockReq, mockRes);
 

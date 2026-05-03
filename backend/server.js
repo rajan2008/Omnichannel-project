@@ -53,6 +53,8 @@ const startServr = async () => {
   }
 };
 
-startServr();
+if (process.env.NODE_ENV !== "test") {
+  startServr();
+}
 
 export { app };

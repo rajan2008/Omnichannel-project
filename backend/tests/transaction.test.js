@@ -34,7 +34,7 @@ describe("Order Transaction Logic", () => {
         paymentMethod: "cash",
         storeId: "s1"
       },
-      user: { id: "u1" }
+      user: { id: "u1", role: "cashier", store: "s1" }
     };
     mockRes = {
       status: jest.fn().mockReturnThis(),

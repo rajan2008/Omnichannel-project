@@ -73,6 +73,7 @@ const ProductCard = ({
 
   return (
     <div
+      data-cy="product-card"
       className={`min-w-[180px] snap-start group relative bg-white dark:bg-[#1a1c2c] rounded-2xl p-3 md:p-4 
   border border-slate-100 dark:border-white/5 
   shadow-md hover:shadow-xl 
@@ -109,6 +110,7 @@ const ProductCard = ({
         {canManage && (
           <button
             onClick={handleDelete}
+            data-cy="delete-product"
             className="absolute top-2 right-2 w-8 h-8 bg-white/90 dark:bg-slate-900/90 text-slate-400 hover:text-brand-red rounded-lg flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm"
           >
             <Trash2 size={16} />
@@ -152,6 +154,7 @@ const ProductCard = ({
         <button
           onClick={() => onAddToCart && onAddToCart(product)}
           disabled={product.stock <= 0}
+          data-cy="add-to-cart"
           className="w-7 h-7 md:w-8 md:h-8 rounded-lg bg-brand-red/10 text-brand-red flex items-center justify-center hover:bg-brand-red hover:text-white transition-all transform hover:rotate-90 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Plus size={16} strokeWidth={3} />

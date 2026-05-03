@@ -11,18 +11,18 @@ describe("Role-Based Access Control (RBAC)", () => {
   });
 
   it("admin should see all management options", () => {
-    cy.loginViaApi("admin@vendora.com", "Admin@123");
+    cy.loginViaApi("rajanprajapati41190@gmail.com", "password123");
     cy.visit("/dashboard");
     
     // Admin should see user management, store management in sidebar
     cy.get("nav, [class*='sidebar'], [class*='Sidebar']").within(() => {
-      cy.contains(/user|manage/i).should("exist");
+      cy.contains(/identit|infrastruct/i).should("exist");
     });
   });
 
   it("should protect admin-only routes from non-admin users", () => {
     // Test via API - a non-admin trying admin endpoints
-    cy.loginViaApi("admin@vendora.com", "Admin@123").then(() => {
+    cy.loginViaApi("rajanprajapati41190@gmail.com", "password123").then(() => {
       const token = window.localStorage.getItem("token");
       
       // Admin should have access to user list

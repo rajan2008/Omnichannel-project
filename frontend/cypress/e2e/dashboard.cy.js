@@ -3,7 +3,7 @@
 describe("Dashboard", () => {
   beforeEach(() => {
     // Login via API for speed
-    cy.loginViaApi("admin@vendora.com", "Admin@123");
+    cy.loginViaApi("rajanprajapati41190@gmail.com", "password123");
     cy.visit("/dashboard");
   });
 

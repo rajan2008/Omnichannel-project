@@ -17,6 +17,14 @@ describe("Role-Based API Tests", () => {
     // Connect to a test DB or use existing
     await mongoose.connect(process.env.MONGO_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/vendora_test');
     
+    // Create Test Store
+    const Store = (await import("../src/models/storeSchema.js")).default;
+    const testStore = await Store.findOneAndUpdate(
+      { name: "Test Store" },
+      { location: "Test City", contact: "1234567890" },
+      { upsert: true, new: true }
+    );
+
     // Create Test Users
     const admin = await User.findOneAndUpdate(
       { email: "admin@test.com" },
@@ -25,12 +33,12 @@ describe("Role-Based API Tests", () => {
     );
     const manager = await User.findOneAndUpdate(
       { email: "manager@test.com" },
-      { name: "Manager", password: "password123", role: "manager" },
+      { name: "Manager", password: "password123", role: "manager", store: testStore._id },
       { upsert: true, new: true }
     );
     const cashier = await User.findOneAndUpdate(
       { email: "cashier@test.com" },
-      { name: "Cashier", password: "password123", role: "cashier" },
+      { name: "Cashier", password: "password123", role: "cashier", store: testStore._id },
       { upsert: true, new: true }
     );
 

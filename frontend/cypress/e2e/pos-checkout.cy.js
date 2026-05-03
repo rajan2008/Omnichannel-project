@@ -2,14 +2,14 @@
 
 describe("POS Checkout Flow", () => {
   beforeEach(() => {
-    cy.loginViaApi("admin@vendora.com", "Admin@123");
+    cy.loginViaApi("rajanprajapati41190@gmail.com", "password123");
   });
 
   it("should display inventory products on the dashboard", () => {
     cy.visit("/dashboard");
     
     // Products should be loaded and visible
-    cy.get("[class*='product'], [class*='Product'], [class*='card'], [class*='Card']", { timeout: 15000 })
+    cy.get('[data-cy="product-card"]', { timeout: 15000 })
       .should("have.length.greaterThan", 0);
   });
 
@@ -17,11 +17,11 @@ describe("POS Checkout Flow", () => {
     cy.visit("/dashboard");
     
     // Wait for products to load
-    cy.get("[class*='product'], [class*='Product'], [class*='card'], [class*='Card']", { timeout: 15000 })
+    cy.get('[data-cy="product-card"]', { timeout: 15000 })
       .first()
       .within(() => {
         // Click add to cart button
-        cy.get("button").first().click({ force: true });
+        cy.get('[data-cy="add-to-cart"]').first().click({ force: true });
       });
   });
 
@@ -29,10 +29,10 @@ describe("POS Checkout Flow", () => {
     // First add item to cart via dashboard
     cy.visit("/dashboard");
     
-    cy.get("[class*='product'], [class*='Product'], [class*='card'], [class*='Card']", { timeout: 15000 })
+    cy.get('[data-cy="product-card"]', { timeout: 15000 })
       .first()
       .within(() => {
-        cy.get("button").first().click({ force: true });
+        cy.get('[data-cy="add-to-cart"]').first().click({ force: true });
       });
 
     // Navigate to checkout (if there's a checkout button/link)
@@ -52,7 +52,7 @@ describe("POS Checkout Flow", () => {
 describe("Concurrent Transaction Safety", () => {
   it("should handle checkout API atomically", () => {
     // Test atomic transaction via API
-    cy.loginViaApi("admin@vendora.com", "Admin@123").then(() => {
+    cy.loginViaApi("rajanprajapati41190@gmail.com", "password123").then(() => {
       const token = window.localStorage.getItem("token");
 
       // Get a product first
@@ -100,7 +100,7 @@ describe("Concurrent Transaction Safety", () => {
   });
 
   it("should reject checkout when stock is insufficient", () => {
-    cy.loginViaApi("admin@vendora.com", "Admin@123").then(() => {
+    cy.loginViaApi("rajanprajapati41190@gmail.com", "password123").then(() => {
       const token = window.localStorage.getItem("token");
 
       cy.request({

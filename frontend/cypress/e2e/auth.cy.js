@@ -23,8 +23,8 @@ describe("Authentication Flow", () => {
 
   it("should login successfully with valid credentials and redirect to dashboard", () => {
     // Use the seeded admin account
-    cy.get('input[type="email"]').type("admin@vendora.com");
-    cy.get('input[type="password"]').type("Admin@123");
+    cy.get('input[type="email"]').type("rajanprajapati41190@gmail.com");
+    cy.get('input[type="password"]').type("password123");
     cy.get('button[type="submit"]').click();
 
     // Should redirect to dashboard
@@ -37,12 +37,12 @@ describe("Authentication Flow", () => {
   });
 
   it("should navigate to register page", () => {
-    cy.contains("Register").click();
+    cy.contains("Create your workspace account").click();
     cy.url().should("include", "/register");
   });
 
   it("should navigate to forgot password page", () => {
-    cy.contains("Forgot").click();
+    cy.contains("Reset Passcode").click();
     cy.url().should("include", "/forgot-password");
   });
 });

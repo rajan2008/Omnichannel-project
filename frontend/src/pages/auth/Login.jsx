@@ -134,7 +134,7 @@ const Login = () => {
               <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300 text-brand-red focus:ring-brand-red" />
               <span className="text-[10px] font-bold text-slate-500 group-hover:text-brand-red uppercase tracking-wider transition-colors">Keep Session</span>
             </label>
-            <button type="button" className="text-[10px] font-bold text-brand-red uppercase tracking-wider hover:underline">Reset Passcode</button>
+            <button onClick={() => navigate("/forgot-password")} type="button" className="text-[10px] font-bold text-brand-red uppercase tracking-wider hover:underline">Reset Passcode</button>
           </div>
 
           <button

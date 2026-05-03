@@ -20,7 +20,7 @@ describe("Advanced Logic Tests", () => {
   it("should rollback transaction on stock error", async () => {
     Product.findById.mockReturnValue({ session: jest.fn().mockResolvedValue(null) });
     const res = { status: jest.fn().mockReturnThis(), json: jest.fn() };
-    await checkout({ body: { items: [{ productId: "1", quantity: 1 }] }, user: { id: "1" } }, res);
+    await checkout({ body: { items: [{ productId: "1", quantity: 1 }] }, user: { id: "1", role: "admin" } }, res);
     expect(mockSession.abortTransaction).toHaveBeenCalled();
   });
 });
