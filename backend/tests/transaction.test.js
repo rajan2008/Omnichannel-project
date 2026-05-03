@@ -8,7 +8,8 @@ jest.unstable_mockModule("../src/models/orderSchema.js", () => ({
   default: { create: jest.fn() }
 }));
 jest.unstable_mockModule("../src/config/redis.js", () => ({
-  default: { del: jest.fn() }
+  default: { del: jest.fn() },
+  isRedisConnected: true
 }));
 
 const mockSession = {

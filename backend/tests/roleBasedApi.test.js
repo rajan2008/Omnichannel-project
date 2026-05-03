@@ -15,7 +15,7 @@ describe("Role-Based API Tests", () => {
 
   beforeAll(async () => {
     // Connect to a test DB or use existing
-    await mongoose.connect(process.env.MONGO_URL);
+    await mongoose.connect(process.env.MONGO_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/vendora_test');
     
     // Create Test Users
     const admin = await User.findOneAndUpdate(

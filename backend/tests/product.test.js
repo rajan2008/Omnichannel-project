@@ -14,7 +14,8 @@ jest.unstable_mockModule("../src/config/redis.js", () => ({
     get: jest.fn(),
     set: jest.fn(),
     del: jest.fn(),
-  }
+  },
+  isRedisConnected: true
 }));
 
 const { getProducts, addProduct } = await import("../src/controllers/inventoryController.js");
