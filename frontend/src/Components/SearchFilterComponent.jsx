@@ -24,7 +24,10 @@ const SearchFilterComponent = ({
 
     // ✅ STORE FILTER
     if (selectedStore && selectedStore !== "all") {
-      result = result.filter((p) => p.store === selectedStore);
+      result = result.filter((p) => {
+        const productStoreId = typeof p.store === 'object' ? p.store?._id : p.store;
+        return productStoreId === selectedStore;
+      });
     }
 
     // ✅ CATEGORY
@@ -64,13 +67,13 @@ const SearchFilterComponent = ({
 
   return (
     <div className="w-full">
-      <div className="bg-white dark:bg-transparent p-4 md:px-8 md:py-5 flex flex-col gap-2">
+      <div className="bg-white dark:bg-[#1a1c2c] p-4 md:px-8 md:py-5 flex flex-col gap-2 rounded-2xl shadow-lg border border-slate-100 dark:border-white/5">
         {/* SEARCH + STORE */}
-        <div className="flex  items-center gap-4">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3">
           <div className="flex-1 relative group">
             <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors"
-              size={20}
+              size={18}
             />
             <input
               type="text"
@@ -79,24 +82,23 @@ const SearchFilterComponent = ({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 
   focus:border-brand-red focus:bg-white dark:focus:bg-white/10 
-  rounded-2xl py-1 pl-10 pr-4 outline-none font-semibold 
+  rounded-2xl py-3 pl-10 pr-4 outline-none font-semibold 
   text-slate-900 dark:text-white 
-  placeholder:text-xs 
+  placeholder:text-[10px] 
   transition-all shadow-sm"
             />
           </div>
 
-          <div className="hidden md:flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <select
               value={selectedStore}
               onChange={(e) => setSelectedStore(e.target.value)}
-              className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 
-    rounded-xl px-3 py-2 text-sm font-bold text-slate-900 dark:text-white 
+              className="flex-1 md:flex-none bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 
+    rounded-xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white 
     focus:ring-2 focus:ring-brand-red outline-none cursor-pointer 
-    hover:opacity-100 opacity-80 transition-all"
+    hover:opacity-100 transition-all shadow-sm"
             >
               <option value="all">All Stores</option>
-
               {stores.map((s) => (
                 <option key={s._id} value={s._id} className="dark:bg-[#1a1c2c]">
                   {s.name}

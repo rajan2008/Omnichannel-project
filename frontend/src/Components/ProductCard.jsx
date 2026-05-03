@@ -133,8 +133,14 @@ const ProductCard = ({
         <h3 className="font-bold text-xs md:text-sm text-slate-900 dark:text-white line-clamp-1">
           {product.name}
         </h3>
-        <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+        <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
           {product.category}
+          {product.store?.name && (
+            <>
+              <span className="w-1 h-1 bg-slate-300 rounded-full" />
+              <span className="text-brand-red/70">{product.store.name}</span>
+            </>
+          )}
         </p>
       </div>
 

@@ -15,6 +15,7 @@ import Sidebar from "../Components/Sidebar";
 import SearchFilterComponent from "../Components/SearchFilterComponent";
 import ProductList from "../Components/ProductList";
 import RoleWrapper from "../Components/RoleWrapper";
+import Skeleton from "../Components/Skeleton";
 
 import {
   LayoutDashboard,
@@ -44,6 +45,7 @@ import {
   Activity,
   Globe,
   CloudLightning,
+  Search,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -191,17 +193,6 @@ export default function Dashboard() {
     };
   }, [user]);
 
-  if (loading) {
-    return (
-      <div className="w-full h-screen flex flex-col items-center justify-center bg-white dark:bg-[#0f172a]">
-        <Loader2 className="w-8 h-8 text-brand-red animate-spin mb-3" />
-        <p className="text-slate-500 font-bold uppercase text-[9px] tracking-widest">
-          Initializing...
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-screen bg-white dark:bg-[#0f172a] font-sans transition-colors duration-300 overflow-hidden relative">
       <Sidebar
@@ -220,26 +211,35 @@ export default function Dashboard() {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-auto bg-[#f8fafc] dark:bg-[#0b0f1a]">
         {/* COMPACT TOP BAR */}
-        <header className="bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-white/5 px-8 py-3 z-20">
-          <div className="max-w-7xl mx-auto flex justify-between items-center gap-6">
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-red/10 rounded-full border border-brand-red/10">
-                  <div className="w-1 h-1 bg-brand-red rounded-full animate-pulse" />
-                  <span className="text-[9px] font-black text-brand-red uppercase tracking-widest">
-                    Live
-                  </span>
+        <header className="relative bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-white/5 px-4 md:px-8 py-3 z-50">
+          <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition-all"
+              >
+                <Menu size={20} />
+              </button>
+              
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-red/10 rounded-full border border-brand-red/10">
+                    <div className="w-1 h-1 bg-brand-red rounded-full animate-pulse" />
+                    <span className="text-[9px] font-black text-brand-red uppercase tracking-widest">
+                      Live
+                    </span>
+                  </div>
                 </div>
+                <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                  Hello,{" "}
+                  <span className="text-brand-red">
+                    {user?.name?.split(" ")[0] || "User"}
+                  </span>
+                </h1>
+                <p className="text-slate-400 dark:text-slate-400 text-[9px] font-bold uppercase tracking-widest">
+                  {roleConfig.title}
+                </p>
               </div>
-              <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                Hello,{" "}
-                <span className="text-brand-red">
-                  {user?.name?.split(" ")[0]}
-                </span>
-              </h1>
-              <p className="text-slate-400 dark:text-slate-400 text-[9px] font-bold uppercase tracking-widest">
-                {roleConfig.title}
-              </p>
             </div>
 
             <div className="flex items-center gap-4">
@@ -348,77 +348,85 @@ export default function Dashboard() {
                 {activeTab === "stats" ? (
                   <>
                     {/* STATS GRID */}
-                    <div className="grid grid-cols-1 p-3 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
-                      <div className="bg-white dark:bg-[#1e293b] p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="w-9 h-9 bg-brand-red/10 rounded-lg flex items-center justify-center text-brand-red">
-                            <TrendingUp size={16} />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                      {loading ? (
+                        <>
+                          <Skeleton variant="stats" />
+                          <Skeleton variant="stats" />
+                          <Skeleton variant="stats" />
+                          <Skeleton variant="stats" />
+                        </>
+                      ) : (
+                        <>
+                          <div className="bg-white dark:bg-[#1e293b] p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="w-8 h-8 bg-brand-red/10 rounded-lg flex items-center justify-center text-brand-red">
+                                <Banknote size={16} />
+                              </div>
+                            </div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+                              Daily Revenue
+                            </p>
+                            <h4 className="text-xl font-black text-slate-900 dark:text-white leading-none">
+                              {formatCurrency(stats.today.revenue)}
+                            </h4>
                           </div>
-                          <span className="text-[9px] font-black text-emerald-500 flex items-center gap-0.5">
-                            <ArrowUpRight size={13} /> {stats.today.count} new
-                          </span>
-                        </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
-                          Daily Revenue
-                        </p>
-                        <h4 className="text-xl font-black text-slate-900 dark:text-white leading-none">
-                          {formatCurrency(stats.today.revenue)}
-                        </h4>
-                      </div>
 
-                      <div className="bg-white dark:bg-[#1e293b] p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="w-8 h-8 bg-slate-100 dark:bg-white/5 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400">
-                            <LayoutDashboard size={16} />
+                          <div className="bg-white dark:bg-[#1e293b] p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400">
+                                <Search size={16} />
+                              </div>
+                            </div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+                              Daily Volume
+                            </p>
+                            <h4 className="text-xl font-black text-slate-900 dark:text-white leading-none">
+                              {stats.today.count}
+                            </h4>
                           </div>
-                        </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
-                          Total Sales
-                        </p>
-                        <h4 className="text-xl font-black text-slate-900 dark:text-white leading-none">
-                          {formatCurrency(stats.total.revenue)}
-                        </h4>
-                      </div>
 
-                      <div className="bg-white dark:bg-[#1e293b] p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="w-8 h-8 bg-slate-100 dark:bg-white/5 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400">
-                            <Package size={16} />
+                          <div className="bg-white dark:bg-[#1e293b] p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <div className="flex justify-between items-start mb-3">
+                              <div className="w-8 h-8 bg-slate-100 dark:bg-white/5 rounded-lg flex items-center justify-center text-slate-600 dark:text-slate-400">
+                                <Package size={16} />
+                              </div>
+                            </div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+                              Active SKUs
+                            </p>
+                            <h4 className="text-xl font-black text-slate-900 dark:text-white leading-none">
+                              {products.length}
+                            </h4>
                           </div>
-                        </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
-                          Active SKUs
-                        </p>
-                        <h4 className="text-xl font-black text-slate-900 dark:text-white leading-none">
-                          {products.length}
-                        </h4>
-                      </div>
 
-                      <div
-                        className={`bg-white dark:bg-[#1e293b] p-5 rounded-2xl border transition-all shadow-sm ${stats.lowStockCount > 0 ? "border-red-200 bg-red-50/10" : "border-slate-200 dark:border-white/5"}`}
-                      >
-                        <div className="flex justify-between items-start mb-3">
                           <div
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center ${stats.lowStockCount > 0 ? "bg-brand-red text-white shadow-lg shadow-brand-red/20" : "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"}`}
+                            className={`bg-white dark:bg-[#1e293b] p-5 rounded-2xl border transition-all shadow-sm ${stats.lowStockCount > 0 ? "border-red-200 bg-red-50/10" : "border-slate-200 dark:border-white/5"}`}
                           >
-                            {stats.lowStockCount > 0 ? (
-                              <AlertTriangle size={16} />
-                            ) : (
-                              <CheckCircle2 size={16} />
-                            )}
+                            <div className="flex justify-between items-start mb-3">
+                              <div
+                                className={`w-8 h-8 rounded-lg flex items-center justify-center ${stats.lowStockCount > 0 ? "bg-brand-red text-white shadow-lg shadow-brand-red/20" : "bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"}`}
+                              >
+                                {stats.lowStockCount > 0 ? (
+                                  <AlertTriangle size={16} />
+                                ) : (
+                                  <CheckCircle2 size={16} />
+                                )}
+                              </div>
+                            </div>
+                            <p
+                              className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${stats.lowStockCount > 0 ? "text-red-500" : "text-slate-400"}`}
+                            >
+                              Stock Alerts
+                            </p>
+                            <h4
+                              className={`text-xl font-black ${stats.lowStockCount > 0 ? "text-red-600" : "text-slate-900 dark:text-white"}`}
+                            >
+                              {stats.lowStockCount}
+                            </h4>
                           </div>
-                        </div>
-                        <p
-                          className={`text-[9px] font-black uppercase tracking-widest mb-0.5 ${stats.lowStockCount > 0 ? "text-red-500" : "text-slate-400"}`}
-                        >
-                          Stock Alerts
-                        </p>
-                        <h4
-                          className={`text-xl font-black ${stats.lowStockCount > 0 ? "text-red-600" : "text-slate-900 dark:text-white"}`}
-                        >
-                          {stats.lowStockCount}
-                        </h4>
-                      </div>
+                        </>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -432,7 +440,7 @@ export default function Dashboard() {
                           </p>
                         </div>
 
-                        <div className="bg-white dark:bg-[#1e293b] p-2 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm sticky top-2 z-10">
+                        <div className="bg-white dark:bg-[#1e293b] p-2 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm sticky top-2 z-40">
                           <SearchFilterComponent
                             data={products}
                             onFilterChange={setFilteredProducts}
@@ -444,12 +452,25 @@ export default function Dashboard() {
                         </div>
 
                         <div className="flex-1 mt-2 overflow-y-auto pr-2">
-                          <ProductList
-                            products={filteredProducts}
-                            formatCurrency={formatCurrency}
-                            onAddToCart={addToCart}
-                            compact={true}
-                          />
+                          {loading ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+                              <Skeleton variant="card" />
+                              <Skeleton variant="card" />
+                              <Skeleton variant="card" />
+                              <Skeleton variant="card" />
+                              <Skeleton variant="card" />
+                              <Skeleton variant="card" />
+                              <Skeleton variant="card" />
+                              <Skeleton variant="card" />
+                            </div>
+                          ) : (
+                            <ProductList
+                              products={filteredProducts}
+                              formatCurrency={formatCurrency}
+                              onAddToCart={addToCart}
+                              compact={true}
+                            />
+                          )}
                         </div>
                       </div>
 
