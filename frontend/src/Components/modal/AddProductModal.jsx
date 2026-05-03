@@ -62,7 +62,8 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
       });
 
       // Handle Store Assignment
-      const finalStoreId = user.role === "admin" ? form.store : (user?.store?._id || user?.storeId);
+      const userStoreId = user?.store?._id || user?.store || user?.storeId;
+      const finalStoreId = user.role === "admin" ? form.store : userStoreId;
       
       if (!finalStoreId) {
         toast.error("Please select or assign a store");

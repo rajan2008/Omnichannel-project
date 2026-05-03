@@ -21,6 +21,7 @@ const Orders = ({ compact = false }) => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const fetchOrders = async () => {
     try {
@@ -163,7 +164,10 @@ const Orders = ({ compact = false }) => {
 
                 <div className="flex flex-col md:items-end justify-between gap-2">
                   <p className="text-xl font-black text-slate-900 dark:text-white tracking-tighter">{formatCurrency(order.total)}</p>
-                  <button className="flex items-center gap-2 px-4 py-1.5 bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-brand-red dark:hover:text-white rounded-lg transition-all text-[9px] font-black uppercase tracking-widest border border-slate-100 dark:border-white/10">
+                  <button 
+                    onClick={() => setSelectedOrder(order)}
+                    className="flex items-center gap-2 px-4 py-1.5 bg-slate-50 dark:bg-white/5 text-slate-400 hover:text-brand-red dark:hover:text-white rounded-lg transition-all text-[9px] font-black uppercase tracking-widest border border-slate-100 dark:border-white/10"
+                  >
                     Details <ChevronRight size={12} />
                   </button>
                 </div>
@@ -181,6 +185,69 @@ const Orders = ({ compact = false }) => {
           ))
         )}
       </div>
+
+      {/* ORDER DETAILS MODAL */}
+      {selectedOrder && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setSelectedOrder(null)} />
+          <div className="bg-white dark:bg-[#1a1c2c] w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Order Manifest</h2>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">#{selectedOrder._id.toUpperCase()}</p>
+              </div>
+              <button onClick={() => setSelectedOrder(null)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-white/5 text-slate-400 hover:text-brand-red rounded-xl transition-all shadow-sm border border-slate-100 dark:border-white/5">
+                <XCircle size={20} />
+              </button>
+            </div>
+            
+            <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto no-scrollbar">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5">
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getStatusColor(selectedOrder.orderStatus)}`}>
+                    {selectedOrder.orderStatus}
+                  </span>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5">
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Store</p>
+                  <p className="text-xs font-black text-slate-900 dark:text-white">{selectedOrder.store?.name || "Global Root"}</p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Order Items ({selectedOrder.items?.length})</p>
+                <div className="space-y-2">
+                  {selectedOrder.items?.map((item, idx) => (
+                    <div key={idx} className="flex justify-between items-center p-4 bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-slate-100 dark:bg-white/5 rounded-lg flex items-center justify-center text-slate-500 font-black text-[10px]">
+                          {item.quantity}x
+                        </div>
+                        <span className="text-xs font-bold text-slate-900 dark:text-white">{item.name}</span>
+                      </div>
+                      <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-t dark:border-white/5 flex justify-between items-center">
+              <div>
+                <p className="text-[8px] font-black opacity-50 uppercase tracking-widest">Grand Total</p>
+                <p className="text-2xl font-black">{formatCurrency(selectedOrder.total)}</p>
+              </div>
+              <button 
+                onClick={() => window.print()}
+                className="px-6 py-3 bg-brand-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-red/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+              >
+                <Download size={14} /> Download Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

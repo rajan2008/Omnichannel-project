@@ -7,6 +7,7 @@ const SearchFilterComponent = ({
   stores = [],
   selectedStore,
   setSelectedStore,
+  userRole
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("All");
@@ -89,23 +90,25 @@ const SearchFilterComponent = ({
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedStore}
-              onChange={(e) => setSelectedStore(e.target.value)}
-              className="flex-1 md:flex-none bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 
-    rounded-xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white 
-    focus:ring-2 focus:ring-brand-red outline-none cursor-pointer 
-    hover:opacity-100 transition-all shadow-sm"
-            >
-              <option value="all">All Stores</option>
-              {stores.map((s) => (
-                <option key={s._id} value={s._id} className="dark:bg-[#1a1c2c]">
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          {userRole !== 'cashier' && (
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedStore}
+                onChange={(e) => setSelectedStore(e.target.value)}
+                className="flex-1 md:flex-none bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 
+      rounded-xl px-4 py-3 text-xs font-bold text-slate-900 dark:text-white 
+      focus:ring-2 focus:ring-brand-red outline-none cursor-pointer 
+      hover:opacity-100 transition-all shadow-sm"
+              >
+                <option value="all">All Stores</option>
+                {stores.map((s) => (
+                  <option key={s._id} value={s._id} className="dark:bg-[#1a1c2c]">
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* MOBILE SORT/FILTER */}

@@ -38,6 +38,6 @@ export const updateStore = async (id, storeData) => {
 };
 
 export const deleteStore = async (id) => {
-  const res = await api.delete(`/admin/stores/${id}`);
+  const res = await api.delete(`/stores/${id}`);
   return res.data;
 };

@@ -96,7 +96,7 @@ const StoreManagement = () => {
       toast.success("Store removed");
       fetchStores();
     } catch (error) {
-      toast.error("Failed to delete");
+      toast.error(error.response?.data?.message || "Failed to delete");
     }
   };
 

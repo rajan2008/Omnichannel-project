@@ -49,7 +49,7 @@ const Inventory = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [stores, setStores] = useState([]);
-  const [selectedStore, setSelectedStore] = useState("all");
+  const [selectedStore, setSelectedStore] = useState(user?.role === 'cashier' ? (user.store?._id || user.store) : "all");
   // Advanced Tools States
   const [isHealing, setIsHealing] = useState(false);
   const [predictions, setPredictions] = useState(null);
@@ -94,7 +94,12 @@ const Inventory = () => {
     setPage(1);
     fetchProducts(1, false);
     fetchStores();
-  }, []);
+    
+    // Auto-lock store for cashiers
+    if (user?.role === 'cashier' && user?.store) {
+      setSelectedStore(user.store?._id || user.store);
+    }
+  }, [user]);
 
   const stats = useMemo(() => {
     return {
@@ -191,7 +196,7 @@ const Inventory = () => {
                   <FileUp size={14} /> Batch Sync
                 </button>
               </RoleWrapper>
-              <RoleWrapper allowedRoles={["admin", "manager"]}>
+              <RoleWrapper allowedRoles={["admin", "manager", "cashier"]}>
                 <button
                   onClick={() => setOpenSingle(true)}
                   className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-red text-white rounded-lg font-bold uppercase text-[10px] tracking-widest hover:bg-brand-darkred transition-all shadow-md"
@@ -317,6 +322,7 @@ const Inventory = () => {
                   stores={stores}
                   selectedStore={selectedStore}
                   setSelectedStore={setSelectedStore}
+                  userRole={user?.role}
                 />
               </div>
 
