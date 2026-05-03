@@ -9,6 +9,7 @@ import {
 import { getProducts } from "../api/productApi";
 import { getDashboardStats } from "../api/dashboardApi";
 import { getStores } from "../api/storeApi";
+import { getOrders } from "../api/orderApi";
 import Orders from "../Components/Orders";
 import Sidebar from "../Components/Sidebar";
 import SearchFilterComponent from "../Components/SearchFilterComponent";
@@ -97,6 +98,7 @@ export default function Dashboard() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
+  const [recentOrders, setRecentOrders] = useState([]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -107,16 +109,18 @@ export default function Dashboard() {
 
     const loadData = async () => {
       try {
-        const [productsData, statsData, storesData] = await Promise.all([
+        const [productsData, statsData, storesData, ordersData] = await Promise.all([
           getProducts(),
           getDashboardStats(),
           getStores(),
+          getOrders().catch(() => []),
         ]);
 
         setProducts(productsData.products || []);
         setFilteredProducts(productsData.products || []);
         setStats(statsData);
         setStores(storesData);
+        setRecentOrders(Array.isArray(ordersData) ? ordersData.slice(0, 5) : []);
 
         if (user?.store?._id) {
           setSelectedStore(user.store._id);
@@ -301,11 +305,7 @@ export default function Dashboard() {
                           Order Success
                         </h2>
                         <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
-                          TRX-
-                          {Math.random()
-                            .toString(36)
-                            .substr(2, 6)
-                            .toUpperCase()}
+                          ORD-{new Date().toISOString().slice(2,10).replace(/-/g, '')}-{cart.length}items
                         </p>
                       </div>
                     </div>
@@ -483,9 +483,9 @@ export default function Dashboard() {
                             Audit Log
                           </h3>
                           <div className="space-y-4">
-                            {[1, 2, 3].map((i) => (
+                            {recentOrders.length > 0 ? recentOrders.slice(0, 3).map((order) => (
                               <div
-                                key={i}
+                                key={order._id}
                                 className="flex items-center justify-between group cursor-pointer"
                               >
                                 <div className="flex items-center gap-3">
@@ -494,18 +494,20 @@ export default function Dashboard() {
                                   </div>
                                   <div>
                                     <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                                      TRX-00{i}
+                                      ORD-{order._id?.slice(-6).toUpperCase()}
                                     </p>
-                                    <p className="text-[8px] font-black text-slate-400 uppercase">
-                                      Success
+                                    <p className={`text-[8px] font-black uppercase ${order.orderStatus === 'CANCELLED' ? 'text-red-400' : order.orderStatus === 'PENDING' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                      {order.orderStatus || 'Completed'}
                                     </p>
                                   </div>
                                 </div>
                                 <span className="text-xs font-black text-slate-900 dark:text-white">
-                                  ₹{1200 + i * 250}
+                                  {formatCurrency(order.total)}
                                 </span>
                               </div>
-                            ))}
+                            )) : (
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center py-4">No transactions yet</p>
+                            )}
                           </div>
                           <button
                             onClick={() => {
