@@ -119,7 +119,7 @@ const Register = () => {
   };
 
   return (
-    <div className="w-full h-screen flex bg-white dark:bg-[#11121d] font-sans text-slate-900 dark:text-white transition-colors duration-300 overflow-hidden relative">
+    <div className="w-full min-h-screen flex bg-white dark:bg-[#11121d] font-sans text-slate-900 dark:text-white transition-colors duration-300 overflow-hidden relative">
       {/* THEME TOGGLE */}
       <button 
         onClick={toggleTheme}
@@ -130,9 +130,9 @@ const Register = () => {
 
       {/* LEFT FORM SECTION */}
       <div className="w-full lg:w-[500px] flex flex-col justify-center px-10 sm:px-16 lg:px-12 z-10 bg-white dark:bg-[#11121d] overflow-y-auto no-scrollbar">
-        <div className="py-12">
-          <div className="mb-10 flex flex-col items-center lg:items-start">
-            <div className="w-12 h-12 mb-6">
+        <div className="py-1">
+          <div className="mb-5 flex flex-col items-center lg:items-start">
+            <div className="w-12 h-12 mb-1">
               <img src="/logo.svg" className="w-full h-full object-contain" alt="Logo" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
@@ -256,7 +256,7 @@ const Register = () => {
             </div>
           )}
 
-          <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
+          <div className="mt-3 pt-2 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Already have a workspace?</p>
             <button onClick={() => navigate("/login")} className="text-xs font-bold text-slate-900 dark:text-white hover:text-brand-red transition-all underline underline-offset-4 decoration-brand-red/30">Sign in to existing account</button>
           </div>
@@ -264,8 +264,8 @@ const Register = () => {
       </div>
 
       {/* RIGHT IMAGE SECTION */}
-      <div className="hidden lg:block flex-1 relative bg-slate-50 dark:bg-[#1a1c2c]">
-        <img src={register} alt="register visual" className="w-full h-full object-cover grayscale-[10%] brightness-[90%] dark:brightness-[50%]" />
+      <div className="hidden lg:block flex-1  relative bg-slate-50 dark:bg-[#1a1c2c]">
+        <img src={register} alt="register visual" className="w-full h-full absolute top-3 object-cover grayscale-[20%] brightness-[90%] dark:brightness-[50%]" />
         <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-[#11121d] via-transparent to-transparent"></div>
         <div className="absolute bottom-12 left-12 max-w-sm">
           <h2 className="text-4xl font-bold text-white tracking-tight mb-4 drop-shadow-lg">Scale Your Retail Empire</h2>
