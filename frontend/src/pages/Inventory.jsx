@@ -14,7 +14,7 @@ import BulkUploadModal from "../Components/modal/BulkUploadModal.jsx";
 import ProductCard from "../Components/ProductCard.jsx";
 import Skeleton from "../Components/Skeleton.jsx";
 import { useSelector, useDispatch } from "react-redux";
-import { addItem } from "../redux/cartSlice.js";
+import { addToCart } from "../redux/slices/cartSlice.js";
 import {
   Package,
   AlertTriangle,
@@ -350,7 +350,7 @@ const Inventory = () => {
                         product={item}
                         formatCurrency={formatCurrency}
                         onAddToCart={(item) => {
-                          dispatch(addItem(item));
+                          dispatch(addToCart(item));
                           toast.success(`${item.name} added to cart`, {
                             icon: "🛒",
                             style: {
