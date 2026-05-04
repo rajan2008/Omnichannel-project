@@ -25,6 +25,30 @@ function App() {
     if (user && token) {
       dispatch(setUser(JSON.parse(user)));
     }
+
+    const handleOffline = () => {
+      toast.error("You are currently offline. Some features may be restricted.", {
+        duration: Infinity,
+        id: "offline-toast"
+      });
+    };
+
+    const handleOnline = () => {
+      toast.dismiss("offline-toast");
+      toast.success("You are back online! Syncing data...");
+    };
+
+    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", handleOnline);
+
+    if (!navigator.onLine) {
+      handleOffline();
+    }
+
+    return () => {
+      window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("online", handleOnline);
+    };
   }, [dispatch, token]);
 
   return (

@@ -9,6 +9,7 @@ import {
   bulkPriceUpdate,
   getStoreRecommendations,
   getLowStock,
+  generatePurchaseOrders,
 } from "../controllers/inventoryController.js";
 import { protect, allowRoles } from "../middleware/authMiddleware.js";
 import { healInventory } from "../controllers/selfHealingController.js";
@@ -119,6 +120,20 @@ router.get("/", protect, getProducts);
  *         description: Low stock products list
  */
 router.get("/low-stock", protect, getLowStock);
+
+/**
+ * @swagger
+ * /api/inventory/generate-purchase-orders:
+ *   post:
+ *     summary: Generate automated purchase orders for low stock items
+ *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       201:
+ *         description: Purchase orders generated
+ */
+router.post("/generate-purchase-orders", protect, allowRoles("admin", "manager"), generatePurchaseOrders);
 
 /**
  * @swagger

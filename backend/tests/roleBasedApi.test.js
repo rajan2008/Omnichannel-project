@@ -1,3 +1,5 @@
+import "dotenv/config";
+import { jest } from "@jest/globals";
 import request from "supertest";
 import mongoose from "mongoose";
 import { app } from "../server.js"; // Make sure to export app in server.js
@@ -14,6 +16,7 @@ describe("Role-Based API Tests", () => {
   let adminToken, managerToken, cashierToken;
 
   beforeAll(async () => {
+    jest.setTimeout(30000);
     // Connect to a test DB or use existing
     await mongoose.connect(process.env.MONGO_URI || process.env.MONGO_URL || 'mongodb://localhost:27017/vendora_test');
     

@@ -20,7 +20,7 @@ export const clearProductCache = async (id = null) => {
 
 export const getProducts = async (req, res) => {
   try {
-    const { page = 1, limit = 50, search = "" } = req.query;
+    const { cursor, page = 1, limit = 50, search = "" } = req.query;
     
     let query = { isActive: true };
     
@@ -36,18 +36,31 @@ export const getProducts = async (req, res) => {
     if (search) {
       query = {
         ...query,
-        $or: [
-          { name: { $regex: search, $options: "i" } },
-          { category: { $regex: search, $options: "i" } },
-          { sku: { $regex: search, $options: "i" } },
-        ],
+        $text: { $search: search }
       };
     }
 
-    const products = await Product.find(query).limit(limit * 1).skip((page - 1) * limit);
-    const total = await Product.countDocuments(query);
+    if (cursor) {
+      query._id = { $gt: cursor };
+    }
 
-    res.status(200).json({ products, total, currentPage: Number(page), totalPages: Math.ceil(total / limit) });
+    let products;
+    if (cursor) {
+      products = await Product.find(query).sort({ _id: 1 }).limit(limit * 1);
+    } else {
+      products = await Product.find(query).limit(limit * 1).skip((page - 1) * limit);
+    }
+
+    const total = await Product.countDocuments(query);
+    const nextCursor = products.length > 0 ? products[products.length - 1]._id : null;
+
+    res.status(200).json({ 
+      products, 
+      total, 
+      nextCursor, 
+      currentPage: Number(page), 
+      totalPages: Math.ceil(total / limit) 
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -239,6 +252,39 @@ export const getLowStock = async (req, res) => {
     }
     const products = await Product.find(query).populate("store", "name");
     res.status(200).json({ products, count: products.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const generatePurchaseOrders = async (req, res) => {
+  try {
+    let query = { $expr: { $lte: ["$stock", "$lowStockThreshold"] }, isActive: true };
+    if (req.user.role !== "admin") {
+      query.store = req.user.store;
+    }
+    const lowStockProducts = await Product.find(query).populate("store", "name");
+    
+    if (lowStockProducts.length === 0) {
+      return res.status(200).json({ message: "No low stock items. No purchase orders generated.", orders: [] });
+    }
+
+    const purchaseOrders = lowStockProducts.map(p => ({
+      product: p.name,
+      sku: p.sku,
+      store: p.store ? p.store.name : "Central Warehouse",
+      currentStock: p.stock,
+      recommendedOrderQuantity: Math.max(50, p.lowStockThreshold * 3), // Example logic
+      status: "GENERATED",
+      generatedAt: new Date()
+    }));
+
+    await logActivity(req.user.id, "PO_GENERATE", `Generated ${purchaseOrders.length} purchase orders`, null);
+    
+    res.status(201).json({ 
+      message: `${purchaseOrders.length} purchase orders generated automatically.`, 
+      orders: purchaseOrders 
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

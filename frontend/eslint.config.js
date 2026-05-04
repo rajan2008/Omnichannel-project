@@ -24,7 +24,9 @@ export default defineConfig([
         beforeEach: "readonly",
         before: "readonly",
         afterEach: "readonly",
-        after: "readonly"
+        after: "readonly",
+        Cypress: "readonly",
+        expect: "readonly"
       },
       parserOptions: {
         ecmaVersion: 'latest',
