@@ -24,8 +24,8 @@
 ## 🏗 Architecture Overview
 
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                    CLIENT (Browser)                          │
+┌─────────────────────────────────────────────────────────────┐
+│                    CLIENT (Browser)                         │
 │  ┌─────────────┐  ┌──────────┐  ┌─────────────────────────┐ │
 │  │  React.js   │  │  Redux   │  │   Offline Storage       │ │
 │  │  (Vite)     │  │  Toolkit │  │   (localStorage)        │ │
@@ -35,13 +35,13 @@
           │              │                     │
           ▼              ▼                     ▼
 ┌──────────────────────────────────────────────────────────────┐
-│                 REST API (Express.js)                         │
-│  ┌───────────┐  ┌──────────────┐  ┌───────────────────────┐ │
-│  │   JWT +   │  │   RBAC       │  │   Rate Limiting       │ │
-│  │   bcrypt  │  │   Middleware │  │   (express-rate-limit) │ │
-│  └───────────┘  └──────────────┘  └───────────────────────┘ │
+│                 REST API (Express.js)                        │
+│  ┌───────────┐  ┌──────────────┐  ┌───────────────────────┐  │
+│  │   JWT +   │  │   RBAC       │  │   Rate Limiting       │  │
+│  │   bcrypt  │  │   Middleware │  │   (express-rate-limit)│  │
+│  └───────────┘  └──────────────┘  └───────────────────────┘  │
 │  ┌───────────────────────────────────────────────────────┐   │
-│  │              Business Logic Layer                      │   │
+│  │              Business Logic Layer                     │   │
 │  │  • Atomic Transactions (MongoDB Sessions)             │   │
 │  │  • Stock Predictions (30-day velocity algorithm)      │   │
 │  │  • Self-Healing Inventory Engine                      │   │
@@ -96,8 +96,8 @@
 ## 📊 System Schema Diagram
 
 ```
-┌─────────────┐       ┌──────────────┐       ┌───────────────┐
-│    User      │──────▶│    Store      │◀──────│   Product     │
+┌──────────────┐       ┌──────────────┐        ┌───────────────┐
+│    User      │─────▶│    Store     │◀───────│   Product     │
 │              │  ref  │              │  ref   │               │
 │ • name       │       │ • name       │        │ • name        │
 │ • email      │       │ • location   │        │ • sku (unique)│
@@ -111,8 +111,8 @@
        │                                        └───────┬───────┘
        │                                                │
        ▼                                                ▼
-┌──────────────┐                              ┌─────────────────┐
-│    Order      │────────────────────────────▶│ Inventory Ledger │
+┌──────────────┐                              ┌──────────────────┐
+│    Order     │────────────────────────────▶│ Inventory Ledger │
 │              │                              │                  │
 │ • cashier    │                              │ • product (ref)  │
 │ • store      │                              │ • type (IN/OUT)  │
@@ -121,7 +121,7 @@
 │ • tax        │                              │ • newStock       │
 │ • total      │                              │ • performedBy    │
 │ • payment    │                              │ • notes          │
-│ • status     │                              └─────────────────┘
+│ • status     │                              └──────────────────┘
 │ • channel    │
 │ [Compound    │
 │  Index]      │
@@ -130,11 +130,11 @@
 
 ### RBAC Role Hierarchy
 
-| Role | Permissions |
-|------|------------|
-| **Admin** | Full system access: users, stores, products, orders, settings, self-heal |
-| **Manager** | Store-scoped: products, orders, predictions, store management |
-| **Cashier** | Store-scoped: view products, place orders, cancel orders |
+| Role          | Permissions                                                              |
+|---------------|--------------------------------------------------------------------------|
+| **Admin**     | Full system access: users, stores, products, orders, settings, self-heal |
+| **Manager**   | Store-scoped: products, orders, predictions, store management            |
+| **Cashier**   | Store-scoped: view products, place orders, cancel orders                 |
 
 ---
 
@@ -237,16 +237,16 @@ http://localhost:5000/api-docs.json
 
 ### API Endpoints Summary
 
-| Module | Endpoint | Methods |
-|--------|----------|---------|
-| Auth | `/api/auth/*` | POST, GET, PUT |
-| Inventory | `/api/inventory/*` | GET, POST, PATCH, DELETE |
-| Orders | `/api/orders/*` | GET, POST, PATCH |
-| Stores | `/api/stores/*` | GET, POST, PUT, DELETE |
-| Dashboard | `/api/dashboard/stats` | GET |
-| Admin | `/api/admin/*` | All CRUD |
-| Manager | `/api/manager/*` | Scoped CRUD |
-| Cashier | `/api/cashier/*` | Orders only |
+| Module       | Endpoint                 | Methods                    |
+|--------------|--------------------------|----------------------------|
+| Auth         | `/api/auth/*`            | POST, GET, PUT             |
+| Inventory    | `/api/inventory/*`       | GET, POST, PATCH, DELETE   |
+| Orders       | `/api/orders/*`          | GET, POST, PATCH           |
+| Stores       | `/api/stores/*`          | GET, POST, PUT, DELETE     |
+| Dashboard    | `/api/dashboard/stats`   | GET                        |
+| Admin        | `/api/admin/*`           | All CRUD                   |
+| Manager      | `/api/manager/*`         | Scoped CRUD                |
+| Cashier      | `/api/cashier/*`         | Orders only                |
 
 ---
 
@@ -328,12 +328,12 @@ Tests cover:
 
 ### Test Structure
 
-| File | Coverage |
-|------|----------|
-| `transaction.test.js` | MongoDB session transactions, atomic rollback |
-| `product.test.js` | Product CRUD operations |
-| `roleBasedApi.test.js` | RBAC middleware enforcement |
-| `advanced.test.js` | Edge cases and advanced flows |
+| File                      | Coverage                                         |
+|---------------------------|--------------------------------------------------|
+| `transaction.test.js`     | MongoDB session transactions, atomic rollback    |
+| `product.test.js`         | Product CRUD operations                          |
+| `roleBasedApi.test.js`    | RBAC middleware enforcement                      |
+| `advanced.test.js`        | Edge cases and advanced flows                    |
 
 ---
 

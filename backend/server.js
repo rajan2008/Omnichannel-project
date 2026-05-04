@@ -17,7 +17,10 @@ import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
 import { setupSwagger } from "./src/config/swagger.js";
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:5173",
+  credentials: true,
+}));
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 
@@ -41,7 +44,7 @@ setupSwagger(app);
 app.use(notFound);
 app.use(errorHandler);
 
-const startServr = async () => {
+const startServer = async () => {
   try {
     await connect();
     app.listen(process.env.PORT, () => {
@@ -54,7 +57,7 @@ const startServr = async () => {
 };
 
 if (process.env.NODE_ENV !== "test") {
-  startServr();
+  startServer();
 }
 
 export { app };

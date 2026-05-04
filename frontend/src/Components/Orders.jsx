@@ -187,63 +187,101 @@ const Orders = ({ compact = false }) => {
         )}
       </div>
 
-      {/* ORDER DETAILS MODAL */}
+      {/* PROFESSIONAL ORDER MANIFEST MODAL */}
       {selectedOrder && (
         <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setSelectedOrder(null)} />
-          <div className="bg-white dark:bg-[#1a1c2c] w-full max-w-lg rounded-[2.5rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
-              <div>
-                <h2 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Order Manifest</h2>
-                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">#{selectedOrder._id.toUpperCase()}</p>
+          <div className="absolute inset-0 bg-slate-900/70 backdrop-blur-xl" onClick={() => setSelectedOrder(null)} />
+          <div className="bg-white dark:bg-[#0f172a] w-full max-w-2xl rounded-[2.5rem] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] relative z-10 overflow-hidden animate-in zoom-in-95 duration-500 border border-slate-200 dark:border-white/10">
+            {/* Header Branding */}
+            <div className="p-10 border-b border-slate-100 dark:border-white/5 flex items-start justify-between bg-slate-50/50 dark:bg-white/5">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-brand-red rounded-2xl flex items-center justify-center text-white font-black text-2xl shadow-xl shadow-brand-red/20 rotate-3">V</div>
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">Order Manifest</h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID: #{selectedOrder._id.toUpperCase()}</span>
+                    <div className="w-1 h-1 bg-slate-300 rounded-full" />
+                    <span className="text-[9px] font-black text-brand-red uppercase tracking-widest">{selectedOrder.orderStatus}</span>
+                  </div>
+                </div>
               </div>
-              <button onClick={() => setSelectedOrder(null)} className="w-10 h-10 flex items-center justify-center bg-white dark:bg-white/5 text-slate-400 hover:text-brand-red rounded-xl transition-all shadow-sm border border-slate-100 dark:border-white/5">
-                <XCircle size={20} />
+              <button onClick={() => setSelectedOrder(null)} className="w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 text-slate-400 hover:text-brand-red rounded-2xl transition-all shadow-sm border border-slate-100 dark:border-white/5 hover:scale-110">
+                <XCircle size={24} />
               </button>
             </div>
             
-            <div className="p-8 space-y-6 max-h-[60vh] overflow-y-auto no-scrollbar">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5">
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Status</p>
-                  <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${getStatusColor(selectedOrder.orderStatus)}`}>
-                    {selectedOrder.orderStatus}
-                  </span>
+            <div className="p-10 space-y-10 max-h-[70vh] overflow-y-auto no-scrollbar">
+              {/* Info Grid */}
+              <div className="grid grid-cols-2 gap-10">
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Billing From</p>
+                  <p className="text-xs font-black text-slate-900 dark:text-white mb-1 uppercase tracking-tight">{selectedOrder.store?.name || "Global Workspace"}</p>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase leading-relaxed">
+                    Terminal Terminal-01<br/>
+                    {new Date(selectedOrder.createdAt).toLocaleString()}
+                  </p>
                 </div>
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5">
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Store</p>
-                  <p className="text-xs font-black text-slate-900 dark:text-white">{selectedOrder.store?.name || "Global Root"}</p>
+                <div className="text-right">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Payment Summary</p>
+                  <span className="px-3 py-1 bg-slate-100 dark:bg-white/5 rounded-full text-[10px] font-black uppercase text-brand-red border border-slate-200 dark:border-white/10">
+                    {selectedOrder.paymentMethod || "Cash"} Settlement
+                  </span>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Order Items ({selectedOrder.items?.length})</p>
-                <div className="space-y-2">
-                  {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-4 bg-white dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-slate-100 dark:bg-white/5 rounded-lg flex items-center justify-center text-slate-500 font-black text-[10px]">
-                          {item.quantity}x
-                        </div>
-                        <span className="text-xs font-bold text-slate-900 dark:text-white">{item.name}</span>
-                      </div>
-                      <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</span>
-                    </div>
-                  ))}
+              {/* Items Table */}
+              <div className="space-y-4">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b-2 border-slate-900 dark:border-white">
+                      <th className="text-left py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Item Description</th>
+                      <th className="text-center py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Qty</th>
+                      <th className="text-right py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Total Price</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                    {selectedOrder.items?.map((item, idx) => (
+                      <tr key={idx} className="group">
+                        <td className="py-6">
+                          <p className="text-sm font-black text-slate-900 dark:text-white tracking-tight">{item.name}</p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ref: VND-{item.id?.slice(-6).toUpperCase() || "SKU-PRO"}</p>
+                        </td>
+                        <td className="py-6 text-center text-sm font-black text-slate-900 dark:text-white">{item.quantity}</td>
+                        <td className="py-6 text-right text-sm font-black text-slate-900 dark:text-white">{formatCurrency(item.price * item.quantity)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Grand Total Bar */}
+              <div className="p-8 bg-slate-50 dark:bg-black/20 rounded-3xl border border-slate-100 dark:border-white/5 flex justify-between items-center">
+                <div>
+                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Final Settlement</p>
+                   <p className="text-[9px] font-bold text-emerald-500 uppercase">Verification Passed</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-3xl font-black text-brand-red tracking-tighter leading-none">
+                    {formatCurrency(selectedOrder.total)}
+                  </p>
+                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-2">Inclusive of all taxes</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-8 bg-slate-900 dark:bg-white text-white dark:text-slate-900 border-t dark:border-white/5 flex justify-between items-center">
-              <div>
-                <p className="text-[8px] font-black opacity-50 uppercase tracking-widest">Grand Total</p>
-                <p className="text-2xl font-black">{formatCurrency(selectedOrder.total)}</p>
-              </div>
+            {/* Modal Footer Actions */}
+            <div className="p-8 bg-white dark:bg-[#0f172a] border-t border-slate-100 dark:border-white/5 flex gap-4 no-print">
               <button 
                 onClick={() => window.print()}
-                className="px-6 py-3 bg-brand-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-red/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                className="flex-1 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-brand-red hover:text-white transition-all flex items-center justify-center gap-2"
               >
-                <Download size={14} /> Download Invoice
+                <Download size={16} /> Print Full Invoice
+              </button>
+              <button 
+                onClick={() => setSelectedOrder(null)}
+                className="flex-1 py-4 bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border border-slate-200 dark:border-white/10"
+              >
+                Close View
               </button>
             </div>
           </div>

@@ -10,6 +10,7 @@ import {
   getStoreRecommendations,
   getLowStock,
   generatePurchaseOrders,
+  transferStock,
 } from "../controllers/inventoryController.js";
 import { protect, allowRoles } from "../middleware/authMiddleware.js";
 import { healInventory } from "../controllers/selfHealingController.js";
@@ -134,6 +135,36 @@ router.get("/low-stock", protect, getLowStock);
  *         description: Purchase orders generated
  */
 router.post("/generate-purchase-orders", protect, allowRoles("admin", "manager"), generatePurchaseOrders);
+
+/**
+ * @swagger
+ * /api/inventory/transfer:
+ *   post:
+ *     summary: Transfer stock between stores
+ *     tags: [Inventory]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [productId, fromStoreId, toStoreId, quantity]
+ *             properties:
+ *               productId:
+ *                 type: string
+ *               fromStoreId:
+ *                 type: string
+ *               toStoreId:
+ *                 type: string
+ *               quantity:
+ *                 type: integer
+ *     responses:
+ *       200:
+ *         description: Stock transferred successfully
+ */
+router.post("/transfer", protect, allowRoles("admin"), transferStock);
 
 /**
  * @swagger

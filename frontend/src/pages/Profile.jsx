@@ -21,7 +21,8 @@ import {
   Globe,
   X,
   Lock,
-  Loader2
+  Loader2,
+  Menu
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -118,12 +119,20 @@ const Profile = () => {
         cartCount={(cart || []).reduce((a, b) => a + (b.quantity || 0), 0)}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300 lg:ml-72">
         <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-10 z-20 transition-colors">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-xl bg-slate-100 dark:bg-white/5 text-slate-500"
+              >
+                <Menu size={20} />
+              </button>
+              <div>
               <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter leading-none mb-1">Personal Identity</h1>
               <p className="text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-widest">Manage your personal credentials and platform access.</p>
+            </div>
             </div>
             <div className="flex items-center gap-2 text-[10px] font-black text-brand-red uppercase tracking-widest bg-brand-red/5 px-4 py-2 rounded-full border border-brand-red/10">
               <Shield size={12} /> <span>{user.role} Status Verified</span>

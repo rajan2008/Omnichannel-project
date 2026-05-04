@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/userSchema.js";
 import OTP from "../models/otpSchema.js";
 import crypto from "crypto";
+import sendEmail from "../utils/sendEmail.js";
 
 const generateToken = (user) => {
   return jwt.sign(

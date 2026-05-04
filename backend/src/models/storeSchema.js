@@ -17,7 +17,7 @@ const storeSchema = new mongoose.Schema(
 );
 
 // Cascading deletion logic: Delete associated Users, Products, and Orders when a Store is deleted
-storeSchema.pre("findOneAndDelete", async function (next) {
+storeSchema.pre("findOneAndDelete", async function () {
   const storeId = this.getQuery()["_id"];
   if (storeId) {
     await User.deleteMany({ store: storeId });
@@ -25,7 +25,6 @@ storeSchema.pre("findOneAndDelete", async function (next) {
     await Order.deleteMany({ store: storeId });
     await InventoryLedger.deleteMany({ store: storeId });
   }
-  next();
 });
 
 export default mongoose.model("Store", storeSchema);

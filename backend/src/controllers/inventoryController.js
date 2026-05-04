@@ -1,4 +1,5 @@
 import Product from "../models/productSchema.js";
+import mongoose from "mongoose";
 
 import Store from "../models/storeSchema.js";
 import Order from "../models/orderSchema.js";
@@ -286,6 +287,63 @@ export const generatePurchaseOrders = async (req, res) => {
       orders: purchaseOrders 
     });
   } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const transferStock = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const { productId, fromStoreId, toStoreId, quantity } = req.body;
+
+    if (!quantity || quantity <= 0) {
+      throw new Error("Quantity must be greater than zero");
+    }
+
+    const sourceProduct = await Product.findOne({ _id: productId, store: fromStoreId }).session(session);
+    if (!sourceProduct) {
+      throw new Error("Source product not found in the specified store");
+    }
+    if (sourceProduct.stock < quantity) {
+      throw new Error("Insufficient stock in source store");
+    }
+
+    // Check if product exists in destination store by SKU
+    let destProduct = await Product.findOne({ sku: sourceProduct.sku, store: toStoreId }).session(session);
+    
+    if (!destProduct) {
+      // Create new product entry for the destination store
+      destProduct = new Product({
+        name: sourceProduct.name,
+        sku: sourceProduct.sku,
+        category: sourceProduct.category,
+        costPrice: sourceProduct.costPrice,
+        basePrice: sourceProduct.basePrice,
+        image: sourceProduct.image,
+        lowStockThreshold: sourceProduct.lowStockThreshold,
+        store: toStoreId,
+        stock: 0,
+        isActive: true
+      });
+    }
+
+    // Transfer logic
+    sourceProduct.stock -= quantity;
+    destProduct.stock += quantity;
+
+    await sourceProduct.save({ session });
+    await destProduct.save({ session });
+
+    await logActivity(req.user.id, "STOCK_TRANSFER", `Transferred ${quantity} units of SKU: ${sourceProduct.sku} from store ${fromStoreId} to store ${toStoreId}`, sourceProduct._id);
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({ message: "Stock transferred successfully", sourceStock: sourceProduct.stock, destStock: destProduct.stock });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     res.status(500).json({ message: error.message });
   }
 };
