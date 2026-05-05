@@ -7,6 +7,9 @@ jest.unstable_mockModule("../src/models/productSchema.js", () => ({
 jest.unstable_mockModule("../src/models/orderSchema.js", () => ({
   default: { create: jest.fn() }
 }));
+jest.unstable_mockModule("../src/models/activityLogSchema.js", () => ({
+  default: { create: jest.fn().mockResolvedValue(true) }
+}));
 jest.unstable_mockModule("../src/config/redis.js", () => ({
   default: { del: jest.fn() },
   isRedisConnected: true
@@ -24,6 +27,11 @@ const { checkout } = await import("../src/controllers/orderController.js");
 const { default: Product } = await import("../src/models/productSchema.js");
 const { default: Order } = await import("../src/models/orderSchema.js");
 
+const validUserId = "60d5f1f2e6b0f123456789ac";
+const validStoreId = "60d5f1f2e6b0f123456789ab";
+const validOrderId = "60d5f1f2e6b0f123456789ad";
+
+
 describe("Order Transaction Logic", () => {
   let mockReq, mockRes;
 
@@ -32,9 +40,9 @@ describe("Order Transaction Logic", () => {
       body: {
         items: [{ productId: "p1", quantity: 2 }],
         paymentMethod: "cash",
-        storeId: "s1"
+        storeId: validStoreId
       },
-      user: { id: "u1", role: "cashier", store: "s1" }
+      user: { id: validUserId, role: "cashier", store: validStoreId }
     };
     mockRes = {
       status: jest.fn().mockReturnThis(),
@@ -51,7 +59,7 @@ describe("Order Transaction Logic", () => {
       save: jest.fn().mockResolvedValue(true)
     };
     Product.findById.mockReturnValue({ session: jest.fn().mockResolvedValue(mockProduct) });
-    Order.create.mockResolvedValue([{ _id: "o1", total: 200 }]);
+    Order.create.mockResolvedValue([{ _id: validOrderId, total: 200 }]);
 
     await checkout(mockReq, mockRes);
 

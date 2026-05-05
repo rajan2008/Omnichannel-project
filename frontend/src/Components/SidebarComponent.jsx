@@ -102,6 +102,7 @@ const Sidebar = ({
     return (
       <button 
         key={item.id}
+        data-cy={`nav-${item.id}`}
         onClick={() => { 
           if (setActiveTab) setActiveTab(item.id); 
           navigate(item.path);
@@ -166,6 +167,7 @@ const Sidebar = ({
             
             <button 
               onClick={handlePOSClick}
+              data-cy="nav-pos"
               className="w-full flex items-center justify-between p-3.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all group cursor-pointer"
             >
               <div className="flex items-center gap-3.5">

@@ -10,6 +10,12 @@ jest.unstable_mockModule("../src/models/productSchema.js", () => ({
   }
 }));
 
+jest.unstable_mockModule("../src/models/activityLogSchema.js", () => ({
+  default: {
+    create: jest.fn().mockResolvedValue(true),
+  }
+}));
+
 jest.unstable_mockModule("../src/config/redis.js", () => ({
   default: {
     get: jest.fn(),
@@ -18,6 +24,10 @@ jest.unstable_mockModule("../src/config/redis.js", () => ({
   },
   isRedisConnected: true
 }));
+
+const validId = "60d5f1f2e6b0f123456789ab";
+const validUserId = "60d5f1f2e6b0f123456789ac";
+
 
 const { getProducts, addProduct } = await import("../src/controllers/inventoryController.js");
 const { default: Product } = await import("../src/models/productSchema.js");
@@ -30,7 +40,7 @@ describe("Product API Controllers (Inventory)", () => {
     mockReq = {
       query: {},
       body: {},
-      user: { id: "user123", role: "manager", store: "store123" }
+      user: { id: validUserId, role: "manager", store: validId }
     };
     mockRes = {
       status: jest.fn().mockReturnThis(),
@@ -64,6 +74,7 @@ describe("Product API Controllers (Inventory)", () => {
   it("should return products with pagination", async () => {
     const mockProducts = [{ name: "P1" }, { name: "P2" }];
     Product.find.mockReturnValue({
+      populate: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       skip: jest.fn().mockResolvedValue(mockProducts),
     });

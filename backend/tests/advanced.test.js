@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 
 jest.unstable_mockModule("../src/models/productSchema.js", () => ({ default: { findById: jest.fn(), create: jest.fn(), find: jest.fn() } }));
 jest.unstable_mockModule("../src/models/orderSchema.js", () => ({ default: { create: jest.fn(), findById: jest.fn() } }));
+jest.unstable_mockModule("../src/models/activityLogSchema.js", () => ({ default: { create: jest.fn().mockResolvedValue(true) } }));
 jest.unstable_mockModule("../src/models/inventoryLedgerSchema.js", () => ({ default: { insertMany: jest.fn() } }));
 jest.unstable_mockModule("../src/config/redis.js", () => ({ 
   default: { del: jest.fn(), get: jest.fn(), set: jest.fn() },
