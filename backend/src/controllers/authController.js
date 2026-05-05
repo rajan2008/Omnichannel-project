@@ -317,24 +317,24 @@ export const forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
-    const message = `Password Reset Link: ${resetUrl}`;
-
-    // Always log reset link to console as fallback
-    console.log("\n=== PASSWORD RESET LINK ===");
+    
+    // CRITICAL: Always log this to console so user can recover account
+    console.log("\n" + "=".repeat(30));
+    console.log("PASSWORD RESET LINK GENERATED");
     console.log(`User: ${user.email}`);
     console.log(`Link: ${resetUrl}`);
-    console.log("===========================\n");
+    console.log("=".repeat(30) + "\n");
 
     try {
-      await sendEmail({ email: user.email, subject: "Password Reset Token", message });
-      res.status(200).json({ message: "Reset link sent to your email. Also check your backend console." });
+      await sendEmail({ email: user.email, subject: "Password Reset Token", message: `Reset Link: ${resetUrl}` });
+      return res.status(200).json({ message: "Reset link generated. Check email or server logs." });
     } catch (_emailError) {
-      // Email failed but reset token is still valid — user can use the console link
-      console.warn("Email send failed, but reset link is available in console above.");
-      res.status(200).json({ message: "Reset link generated. Check your backend terminal console for the link." });
+      console.warn("Email service failed, but reset link is logged above.");
+      return res.status(200).json({ message: "Reset link generated. PLEASE CHECK SERVER LOGS." });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Forgot Password Error:", error);
+    res.status(500).json({ message: "Internal server error. Check logs." });
   }
 };
 
