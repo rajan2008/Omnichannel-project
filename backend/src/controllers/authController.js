@@ -25,6 +25,9 @@ export const sendRegistrationOTP = async (req, res) => {
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+    
+    // Log OTP to console as fallback for production debugging/setup
+    console.log(`\n=== REGISTRATION OTP for ${email}: ${otp} ===\n`);
 
     await OTP.findOneAndUpdate(
       { email },
@@ -32,13 +35,18 @@ export const sendRegistrationOTP = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    await sendEmail({
-      email,
-      subject: "Your Registration OTP",
-      message: `Your OTP for registration is: ${otp}. It expires in 10 minutes.`,
-    });
-
-    res.status(200).json({ message: "OTP sent to email." });
+    try {
+      await sendEmail({
+        email,
+        subject: "Your Registration OTP",
+        message: `Your OTP for registration is: ${otp}. It expires in 10 minutes.`,
+      });
+      res.status(200).json({ message: "OTP sent to email." });
+    } catch (_emailError) {
+      // If email fails, still return 200 so user can check logs
+      console.warn("Email service failed, user must check server logs for OTP.");
+      res.status(200).json({ message: "OTP generated. Check server logs for the code." });
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
