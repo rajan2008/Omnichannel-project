@@ -1,5 +1,6 @@
 import Order from "../models/orderSchema.js";
 import Product from "../models/productSchema.js";
+import mongoose from "mongoose";
 
 export const getDashboardStats = async (req, res) => {
   try {
