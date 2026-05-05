@@ -458,92 +458,35 @@ export default function Dashboard() {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
         {/* COMPACT TOP BAR */}
-        <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-6 lg:p-8 z-20 transition-colors">
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <button 
-              onClick={() => setIsSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-brand-red transition-colors"
-            >
-              <Menu size={24} />
-            </button>
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2 mb-1">
-                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-red/10 rounded-full border border-brand-red/10">
-                  <div className="w-1 h-1 bg-brand-red rounded-full animate-pulse" />
-                  <span className="text-[9px] font-black text-brand-red uppercase tracking-widest">
-                    Live
-                  </span>
-                </div>
+        <header className="bg-white/80 dark:bg-[#1a1c2c]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 p-4 lg:p-6 sticky top-0 z-[100] transition-colors">
+          <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-brand-red transition-colors"
+              >
+                <Menu size={22} />
+              </button>
+              <div className="flex flex-col">
+                <h1 className="text-sm lg:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                  Hello, <span className="text-brand-red">{user?.name?.split(' ')[0]}</span>
+                </h1>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                  {user?.role === 'admin' ? "Enterprise Root" : (user?.store?.name || "Terminal Active")}
+                </p>
               </div>
-              <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                Hello,{" "}
-                <span className="text-brand-red">
-                  {user?.name?.split(" ")[0]}
-                </span>
-              </h1>
-              <p className="text-slate-400 dark:text-slate-400 text-[9px] font-bold uppercase tracking-widest">
-                {roleConfig.title}
-              </p>
             </div>
 
-            <div className="flex items-center gap-4">
-              <div className="hidden lg:flex items-center gap-4 bg-slate-50 dark:bg-white/5 p-1.5 pr-4 rounded-xl border border-slate-100 dark:border-white/10 shadow-sm">
-                <div className="w-10 h-10 rounded-lg bg-white dark:bg-[#1f2937] flex flex-col items-center justify-center border border-slate-100 dark:border-white/10">
-                  <span className="text-[9px] font-black text-slate-400 uppercase leading-none mb-0.5">
-                    {new Date().toLocaleString("default", { month: "short" })}
-                  </span>
-                  <span className="text-sm font-black text-slate-900 dark:text-white leading-none">
-                    {new Date().getDate()}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
-                    {user?.role === "admin"
-                      ? "Enterprise Node"
-                      : "Active Location"}
-                  </p>
-                  <p className="text-xs font-black text-slate-900 dark:text-white truncate max-w-[120px]">
-                    {user?.role === "admin"
-                      ? "Global Root"
-                      : user?.store?.name || "Initializing..."}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 relative">
-                <button 
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="w-10 h-10 bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center text-slate-500 hover:text-brand-red transition-all shadow-sm relative"
-                >
-                  <Bell size={18} />
-                  {notifications.length > 0 && (
-                    <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-brand-red rounded-full border-2 border-white dark:border-[#1f2937]" />
-                  )}
-                </button>
-
-                {showNotifications && (
-                  <div className="absolute top-12 right-0 w-64 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-white/5 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2">
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 px-1">Recent Activity</h4>
-                    <div className="space-y-3">
-                      {notifications.map(n => (
-                        <div key={n.id} className="flex gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
-                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${n.type === 'success' ? 'bg-emerald-500' : 'bg-brand-red'}`} />
-                          <div>
-                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight">{n.text}</p>
-                            <p className="text-[8px] text-slate-400 font-bold mt-0.5">{n.time}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  onClick={() => navigate("/profile")}
-                  className="w-10 h-10 bg-brand-red text-white rounded-xl flex items-center justify-center font-black text-sm shadow-md hover:scale-105 active:scale-95 transition-all"
-                >
-                  {user?.name?.charAt(0)}
-                </button>
+            <div className="flex items-center gap-2 lg:gap-4">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="w-9 h-9 bg-slate-100 dark:bg-white/5 rounded-xl flex items-center justify-center text-slate-400 hover:text-brand-red transition-all relative"
+              >
+                <Bell size={18} />
+                <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-brand-red rounded-full" />
+              </button>
+              <div className="w-9 h-9 rounded-xl bg-brand-red flex items-center justify-center text-white font-black text-sm shadow-lg shadow-brand-red/20 cursor-pointer" onClick={() => navigate('/profile')}>
+                {user?.name?.charAt(0)}
               </div>
             </div>
           </div>
@@ -831,16 +774,18 @@ export default function Dashboard() {
                           </p>
                         </div>
 
-                        <div className="bg-white dark:bg-[#1e293b] p-2 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm sticky top-2 z-10">
-                          <SearchFilterComponent
-                            data={products}
-                            onFilterChange={setFilteredProducts}
-                            stores={stores}
-                            selectedStore={selectedStore}
-                            setSelectedStore={setSelectedStore}
-                            compact={true}
-                            showStoreFilter={roleConfig.isAdmin}
-                          />
+                        <div className="bg-[#f8fafc] dark:bg-[#0b0f1a] p-3 -mx-2 mb-4 sticky top-[72px] z-50 transition-colors">
+                          <div className="bg-white dark:bg-[#1e293b] p-2 rounded-2xl border border-slate-200 dark:border-white/5 shadow-xl">
+                            <SearchFilterComponent
+                              data={products}
+                              onFilterChange={setFilteredProducts}
+                              stores={stores}
+                              selectedStore={selectedStore}
+                              setSelectedStore={setSelectedStore}
+                              compact={true}
+                              showStoreFilter={roleConfig.isAdmin}
+                            />
+                          </div>
                         </div>
 
                         <div className="flex-1 mt-2 overflow-y-auto pr-2">

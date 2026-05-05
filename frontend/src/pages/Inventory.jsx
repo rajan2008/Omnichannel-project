@@ -216,46 +216,45 @@ const Inventory = () => {
         onOpenCart={() => {}}
         cartCount={cart.reduce((a, b) => a + b.quantity, 0)}
       />
-
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-transparent transition-colors duration-300">
-        <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-6 lg:p-8 z-20 transition-colors">
-          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-            <div className="flex items-center gap-4 w-full md:w-auto">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
+        <header className="bg-white/80 dark:bg-[#111827]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 p-4 lg:p-6 sticky top-0 z-[100] transition-colors">
+          <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+            <div className="flex items-center gap-3">
               <button 
                 onClick={() => setIsSidebarOpen(true)}
                 className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-brand-red transition-colors"
               >
-                <Menu size={24} />
+                <Menu size={22} />
               </button>
-              <div>
-                <h1 className="text-xl lg:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-none mb-1">
-                  Supply Chain Catalog
+              <div className="flex flex-col">
+                <h1 className="text-sm lg:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                  Global Catalog
                 </h1>
-                <p className="text-slate-500 dark:text-slate-400 text-[10px] lg:text-xs font-medium">
-                  Global inventory oversight and advanced catalog management.
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                  Manage inventory across all nodes
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 w-full md:w-auto">
-              <RoleWrapper allowedRoles={["admin"]}>
-                <button
-                  onClick={() => setOpenBulk(true)}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 text-slate-600 dark:text-slate-300 rounded-lg font-bold uppercase text-[10px] tracking-widest hover:bg-slate-50 dark:hover:bg-white/10 transition-all"
-                >
-                  <FileUp size={14} /> Batch Sync
-                </button>
-              </RoleWrapper>
+            <div className="flex items-center gap-2">
               <RoleWrapper allowedRoles={["admin", "manager"]}>
                 <button
-                  onClick={() => setOpenSingle(true)}
-                  className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-brand-red text-white rounded-lg font-bold uppercase text-[10px] tracking-widest hover:bg-brand-darkred transition-all shadow-md"
+                  onClick={() => setOpenBulk(true)}
+                  className="p-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
+                  title="Batch Sync"
                 >
-                  <Plus size={14} /> New SKU
+                  <FileUp size={18} />
+                </button>
+                <button
+                  onClick={() => setOpenSingle(true)}
+                  className="flex items-center gap-2 px-3 py-2 bg-brand-red text-white rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-brand-darkred transition-all shadow-lg shadow-brand-red/20"
+                >
+                  <Plus size={14} /> <span className="hidden sm:inline">New SKU</span>
                 </button>
               </RoleWrapper>
             </div>
           </div>
+        </header>
 
           <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8 md:mt-10">
             <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 transition-colors">
@@ -339,7 +338,6 @@ const Inventory = () => {
               </div>
             </RoleWrapper>
           </div>
-        </header>
 
         <div className="flex-1 overflow-y-auto p-4 md:p-10 scroll-smooth no-scrollbar">
           <div className="max-w-7xl mx-auto space-y-3">
@@ -378,37 +376,40 @@ const Inventory = () => {
             )}
 
             <div className="relative space-y-2.5">
-            <div className="sticky top-[-40px] z-30 bg-white dark:bg-[#1a1c2c] p-2 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm transition-colors">
-              <SearchFilterComponent
-                data={products}
-                onFilterChange={setFilteredProducts}
-                stores={stores}
-                selectedStore={selectedStore}
-                setSelectedStore={setSelectedStore}
-                showStoreFilter={roleConfig.isAdmin}
-              />
-            </div>
-            {loading && page === 1 ? (
-              <div className="flex flex-col items-center justify-center py-20">
-                <Loader2 className="w-10 h-10 text-brand-red animate-spin mb-4" />
-                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                  Syncing Catalog...
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8">
-                {filteredProducts.map((item) => (
-                  <ProductCard
-                    key={item._id}
-                    product={item}
-                    formatCurrency={formatCurrency}
-                    onAddToCart={addToCart}
-                    onDeleteSuccess={() => fetchProducts(1, false)}
-                    onEdit={handleEdit}
+              <div className="sticky top-[68px] lg:top-[76px] z-50 bg-[#f8fafc] dark:bg-[#0b0f1a] py-4 -mx-2 transition-colors">
+                <div className="bg-white dark:bg-[#1e293b] p-2 rounded-2xl border border-slate-200 dark:border-white/5 shadow-xl mx-2">
+                  <SearchFilterComponent
+                    data={products}
+                    onFilterChange={setFilteredProducts}
+                    stores={stores}
+                    selectedStore={selectedStore}
+                    setSelectedStore={setSelectedStore}
+                    showStoreFilter={roleConfig.isAdmin}
                   />
-                ))}
+                </div>
               </div>
-            )}</div>
+              {loading && page === 1 ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                  <Loader2 className="w-10 h-10 text-brand-red animate-spin mb-4" />
+                  <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                    Syncing Catalog...
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8">
+                  {filteredProducts.map((item) => (
+                    <ProductCard
+                      key={item._id}
+                      product={item}
+                      formatCurrency={formatCurrency}
+                      onAddToCart={addToCart}
+                      onDeleteSuccess={() => fetchProducts(1, false)}
+                      onEdit={handleEdit}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
 
             {page < totalPages && (
               <div className="flex justify-center pt-6 pb-12">
