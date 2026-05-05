@@ -218,15 +218,23 @@ const Inventory = () => {
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-transparent transition-colors duration-300">
-        <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-8 z-20 transition-colors">
+        <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-4 lg:p-8 z-20 transition-colors">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                Supply Chain Catalog
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">
-                Global inventory oversight and advanced catalog management.
-              </p>
+            <div className="flex items-center gap-4 w-full md:w-auto">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-brand-red transition-colors"
+              >
+                <Menu size={24} />
+              </button>
+              <div>
+                <h1 className="text-xl lg:text-2xl font-bold text-slate-900 dark:text-white tracking-tight leading-none mb-1">
+                  Supply Chain Catalog
+                </h1>
+                <p className="text-slate-500 dark:text-slate-400 text-[10px] lg:text-xs font-medium">
+                  Global inventory oversight and advanced catalog management.
+                </p>
+              </div>
             </div>
 
             <div className="flex items-center gap-3 w-full md:w-auto">

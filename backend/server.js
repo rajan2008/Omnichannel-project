@@ -17,6 +17,7 @@ import { notFound, errorHandler } from "./src/middleware/errorMiddleware.js";
 import { setupSwagger } from "./src/config/swagger.js";
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(cors({
   origin: process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(",") : true,
   credentials: true,

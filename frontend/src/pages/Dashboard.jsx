@@ -458,8 +458,14 @@ export default function Dashboard() {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-auto bg-[#f8fafc] dark:bg-[#0b0f1a]">
         {/* COMPACT TOP BAR */}
-        <header className="bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-white/5 px-8 py-3 z-20">
-          <div className="max-w-7xl mx-auto flex justify-between items-center gap-6">
+        <header className="bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-white/5 px-4 lg:px-8 py-3 z-20">
+          <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-brand-red transition-colors"
+            >
+              <Menu size={24} />
+            </button>
             <div className="space-y-0.5">
               <div className="flex items-center gap-2 mb-1">
                 <div className="flex items-center gap-1.5 px-2 py-0.5 bg-brand-red/10 rounded-full border border-brand-red/10">

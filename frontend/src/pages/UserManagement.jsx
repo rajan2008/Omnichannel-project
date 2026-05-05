@@ -142,9 +142,16 @@ const UserManagement = () => {
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
-        <header className="bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-white/5 px-8 py-6 z-20">
+        <header className="bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-white/5 px-4 lg:px-8 py-6 z-20">
           <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
-            <div>
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-brand-red transition-colors"
+              >
+                <Menu size={24} />
+              </button>
+              <div>
               <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">User Management</h1>
               <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Manage staff accounts and access</p>
             </div>
