@@ -35,18 +35,14 @@ export const sendRegistrationOTP = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    try {
-      await sendEmail({
-        email,
-        subject: "Your Registration OTP",
-        message: `Your OTP for registration is: ${otp}. It expires in 10 minutes.`,
-      });
-      res.status(200).json({ message: "OTP sent to email." });
-    } catch (_emailError) {
-      // If email fails, still return 200 so user can check logs
-      console.warn("Email service failed, user must check server logs for OTP.");
-      res.status(200).json({ message: "OTP generated. Check server logs for the code." });
-    }
+    // FIRE AND FORGET: Background email to keep UI fast
+    sendEmail({
+      email,
+      subject: "Your Registration OTP",
+      message: `Your OTP for registration is: ${otp}. It expires in 10 minutes.`,
+    }).catch(err => console.error("Background Email Error:", err));
+
+    res.status(200).json({ message: "OTP processed. Check email or server logs." });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -325,13 +321,11 @@ export const forgotPassword = async (req, res) => {
     console.log(`Link: ${resetUrl}`);
     console.log("=".repeat(30) + "\n");
 
-    try {
-      await sendEmail({ email: user.email, subject: "Password Reset Token", message: `Reset Link: ${resetUrl}` });
-      return res.status(200).json({ message: "Reset link generated. Check email or server logs." });
-    } catch (_emailError) {
-      console.warn("Email service failed, but reset link is logged above.");
-      return res.status(200).json({ message: "Reset link generated. PLEASE CHECK SERVER LOGS." });
-    }
+    // FIRE AND FORGET: Background email to keep UI fast
+    sendEmail({ email: user.email, subject: "Password Reset Token", message: `Reset Link: ${resetUrl}` })
+      .catch(err => console.error("Background Email Error:", err));
+
+    return res.status(200).json({ message: "Request processed. Check email or server logs." });
   } catch (error) {
     console.error("Forgot Password Error:", error);
     res.status(500).json({ message: "Internal server error. Check logs." });
