@@ -8,7 +8,8 @@ jest.unstable_mockModule("../src/models/orderSchema.js", () => ({
   default: { create: jest.fn() }
 }));
 jest.unstable_mockModule("../src/config/redis.js", () => ({
-  default: { del: jest.fn() }
+  default: { del: jest.fn() },
+  isRedisConnected: true
 }));
 
 const mockSession = {
@@ -33,7 +34,7 @@ describe("Order Transaction Logic", () => {
         paymentMethod: "cash",
         storeId: "s1"
       },
-      user: { id: "u1" }
+      user: { id: "u1", role: "cashier", store: "s1" }
     };
     mockRes = {
       status: jest.fn().mockReturnThis(),

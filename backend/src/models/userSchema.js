@@ -52,14 +52,4 @@ userSchema.methods.getResetPasswordToken = function () {
   return resetToken;
 };
 
-userSchema.methods.generateVerificationOTP = function () {
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  // We use resetPasswordToken field temporarily or a new field? 
-  // Let's use resetPasswordToken to avoid too many fields, 
-  // but wait, I already have otpSchema. 
-  // Actually, I'll store it in the user's resetPasswordToken for simplicity if I want to keep it in User, 
-  // but I'll add emailUpdateOTP back just for registration.
-  return otp;
-};
-
 export default mongoose.model("User", userSchema);

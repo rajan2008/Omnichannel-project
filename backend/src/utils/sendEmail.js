@@ -32,7 +32,7 @@ const sendEmail = async (options) => {
     console.log(`Email sent successfully: ${info.messageId}`);
   } catch (error) {
     console.error("Error sending email:", error);
-    throw new Error("Email could not be sent. Please check your credentials.");
+    throw new Error("Email could not be sent. Please check your credentials.", { cause: error });
   }
 };
 
