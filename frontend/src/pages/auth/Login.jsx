@@ -134,7 +134,7 @@ const Login = () => {
               <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300 text-brand-red focus:ring-brand-red" />
               <span className="text-[10px] font-bold text-slate-500 group-hover:text-brand-red uppercase tracking-wider transition-colors">Keep Session</span>
             </label>
-            <button type="button" className="text-[10px] font-bold text-brand-red uppercase tracking-wider hover:underline">Reset Passcode</button>
+            <button onClick={() => navigate("/forgot-password")} type="button" className="text-[10px] font-bold text-brand-red uppercase tracking-wider hover:underline">Reset Password</button>
           </div>
 
           <button
@@ -143,12 +143,12 @@ const Login = () => {
             className="w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-2.5 font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-slate-900/10 active:scale-[0.98] disabled:opacity-50"
           >
             {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <ShieldCheck size={16} />}
-            {loading ? "Authenticating..." : "Authorize Access"}
+            {loading ? "Processing..." : "Authorize Access"}
           </button>
         </form>
 
-        <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">New to the platform?</p>
+        <div className="mt-5 pt-5 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">New to the platform?</p>
           <button onClick={() => navigate("/register")} className="text-xs font-bold text-slate-900 dark:text-white hover:text-brand-red transition-all underline underline-offset-4 decoration-brand-red/30">Create your workspace account</button>
         </div>
       </div>

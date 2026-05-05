@@ -26,3 +26,12 @@ export const cancelOrder = async (id) => {
     throw error.response?.data?.message || "Failed to cancel order";
   }
 };
+
+export const bulkSyncOrders = async (ordersData) => {
+  try {
+    const res = await api.post("/orders/bulk-sync", { orders: ordersData });
+    return res.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to sync offline orders";
+  }
+};

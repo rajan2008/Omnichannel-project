@@ -11,7 +11,12 @@ export const getDashboardStats = async (req, res) => {
 
     if (req.user.role !== "admin") {
       if (!req.user.store) {
-        return res.status(403).json({ message: "No store assigned to this user" });
+        // New user without store — return empty stats instead of blocking
+        return res.status(200).json({
+          today: { revenue: 0, count: 0 },
+          total: { revenue: 0, count: 0 },
+          lowStockCount: 0,
+        });
       }
       matchQuery.store = req.user.store;
       productQuery.store = req.user.store;
