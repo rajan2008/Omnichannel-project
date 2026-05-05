@@ -7,6 +7,7 @@ const SearchFilterComponent = ({
   stores = [],
   selectedStore,
   setSelectedStore,
+  showStoreFilter = true,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("All");
@@ -24,7 +25,10 @@ const SearchFilterComponent = ({
 
     // ✅ STORE FILTER
     if (selectedStore && selectedStore !== "all") {
-      result = result.filter((p) => p.store === selectedStore);
+      result = result.filter((p) => {
+        const pStoreId = p.store?._id || p.store;
+        return String(pStoreId) === String(selectedStore);
+      });
     }
 
     // ✅ CATEGORY
@@ -86,24 +90,26 @@ const SearchFilterComponent = ({
             />
           </div>
 
-          <div className="hidden md:flex items-center gap-2">
-            <select
-              value={selectedStore}
-              onChange={(e) => setSelectedStore(e.target.value)}
-              className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 
-    rounded-xl px-3 py-2 text-sm font-bold text-slate-900 dark:text-white 
-    focus:ring-2 focus:ring-brand-red outline-none cursor-pointer 
-    hover:opacity-100 opacity-80 transition-all"
-            >
-              <option value="all">All Stores</option>
+          {showStoreFilter && (
+            <div className="hidden md:flex items-center gap-2">
+              <select
+                value={selectedStore}
+                onChange={(e) => setSelectedStore(e.target.value)}
+                className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 
+      rounded-xl px-3 py-2 text-sm font-bold text-slate-900 dark:text-white 
+      focus:ring-2 focus:ring-brand-red outline-none cursor-pointer 
+      hover:opacity-100 opacity-80 transition-all"
+              >
+                <option value="all">All Stores</option>
 
-              {stores.map((s) => (
-                <option key={s._id} value={s._id} className="dark:bg-[#1a1c2c]">
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
+                {stores.map((s) => (
+                  <option key={s._id} value={s._id} className="dark:bg-[#1a1c2c]">
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         {/* MOBILE SORT/FILTER */}

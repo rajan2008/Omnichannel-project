@@ -5,13 +5,17 @@ import {
   getPredictions,
   bulkPriceUpdate,
 } from "../api/productApi.js";
+import api from "../api/axiosInstance.js";
+import { getStores as getStoresApi } from "../api/storeApi.js";
 import useDebounce from "../Utils/hooks/useDebounce.js";
-import Sidebar from "../Components/Sidebar.jsx";
+import Sidebar from "../Components/SidebarComponent";
 import RoleWrapper from "../Components/RoleWrapper.jsx";
 import AddProductModal from "../Components/modal/AddProductModal.jsx";
+import EditProductModal from "../Components/modal/EditProductModal.jsx";
 import BulkUploadModal from "../Components/modal/BulkUploadModal.jsx";
 import ProductCard from "../Components/ProductCard.jsx";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { addToCart as addToCartAction } from "../redux/slices/cartSlice.js";
 import {
   Package,
   AlertTriangle,
@@ -25,6 +29,7 @@ import {
   Sparkles,
   DollarSign,
   X,
+  ArrowRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import SearchFilterComponent from "../Components/SearchFilterComponent.jsx";
@@ -35,6 +40,7 @@ const formatCurrency = (value) =>
   );
 
 const Inventory = () => {
+  const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const cart = useSelector((state) => state.cart.items);
   const [products, setProducts] = useState([]);
@@ -51,22 +57,68 @@ const Inventory = () => {
   const [predictions, setPredictions] = useState(null);
   const [isPredicting, setIsPredicting] = useState(false);
   const [isPriceModalOpen, setIsPriceModalOpen] = useState(false);
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const [priceForm, setPriceForm] = useState({ category: "", percentage: "" });
+  const [transferForm, setTransferForm] = useState({ fromProductId: "", toStoreId: "", quantity: 0 });
+  const [stores, setStores] = useState([]);
+  const [selectedStore, setSelectedStore] = useState("all");
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+
+  const addToCart = (product) => {
+    if (product.stock <= 0) {
+      toast.error("Out of stock");
+      return;
+    }
+    dispatch(addToCartAction(product));
+    toast.success(`${product.name} added to cart`, {
+      icon: "🛒",
+      style: {
+        borderRadius: "12px",
+        background: "#333",
+        color: "#fff",
+        fontSize: "10px",
+        fontWeight: "bold",
+        textTransform: "uppercase",
+        letterSpacing: "0.1em",
+      },
+    });
+  };
+
+  const handleTransfer = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      await api.post("/inventory/transfer", transferForm);
+      toast.success("Stock transferred successfully");
+      setIsTransferModalOpen(false);
+      fetchProducts(1, false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Transfer failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchProducts = async (pageNumber = 1, isLoadMore = false) => {
     try {
       if (isLoadMore) setIsFetchingMore(true);
       else setLoading(true);
 
-      const data = await getProducts("", pageNumber);
+      const [productsData, storesData] = await Promise.all([
+        getProducts(pageNumber, 50, ""),
+        getStoresApi().catch((e) => { console.log("Store fetch error:", e); return []; })
+      ]);
+
+      setStores(storesData);
       setProducts((prev) =>
-        isLoadMore ? [...prev, ...data.products] : data.products,
+        isLoadMore ? [...prev, ...productsData.products] : productsData.products,
       );
       setFilteredProducts((prev) =>
-        isLoadMore ? [...prev, ...data.products] : data.products,
+        isLoadMore ? [...prev, ...productsData.products] : productsData.products,
       );
-      setPage(data.currentPage);
-      setTotalPages(data.totalPages);
+      setPage(productsData.currentPage);
+      setTotalPages(productsData.totalPages);
     } catch (err) {
       console.log(err);
     } finally {
@@ -80,13 +132,28 @@ const Inventory = () => {
     fetchProducts(1, false);
   }, []);
 
+  useEffect(() => {
+    if (user?.role !== "admin" && user?.store?._id && selectedStore === "all") {
+      setSelectedStore(user.store._id);
+    }
+  }, [user]);
+
+  const roleConfig = useMemo(() => {
+    const role = user?.role?.toLowerCase() || "cashier";
+    return {
+      isAdmin: role === "admin",
+      isManager: role === "manager",
+      isCashier: role === "cashier",
+    };
+  }, [user]);
+
   const stats = useMemo(() => {
     return {
-      total: products.length,
-      lowStock: products.filter((p) => p.stock > 0 && p.stock <= 5).length,
-      outOfStock: products.filter((p) => p.stock <= 0).length,
+      total: filteredProducts.length,
+      lowStock: filteredProducts.filter((p) => p.stock > 0 && p.stock <= (p.lowStockThreshold || 10)).length,
+      outOfStock: filteredProducts.filter((p) => p.stock <= 0).length,
     };
-  }, [products]);
+  }, [filteredProducts]);
 
   const handleSelfHeal = async () => {
     try {
@@ -127,6 +194,11 @@ const Inventory = () => {
     } catch (error) {
       toast.error("Price adjustment failed");
     }
+  };
+
+  const handleEdit = (product) => {
+    setEditingProduct(product);
+    setIsEditModalOpen(true);
   };
 
   return (
@@ -248,6 +320,13 @@ const Inventory = () => {
                   >
                     <DollarSign size={16} className="text-emerald-400" />
                   </button>
+                  <button
+                    onClick={() => setIsTransferModalOpen(true)}
+                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+                    title="Transfer Stock"
+                  >
+                    <ArrowRight size={16} className="text-brand-red" />
+                  </button>
                 </div>
               </div>
             </RoleWrapper>
@@ -295,6 +374,10 @@ const Inventory = () => {
               <SearchFilterComponent
                 data={products}
                 onFilterChange={setFilteredProducts}
+                stores={stores}
+                selectedStore={selectedStore}
+                setSelectedStore={setSelectedStore}
+                showStoreFilter={roleConfig.isAdmin}
               />
             </div>
             {loading && page === 1 ? (
@@ -311,8 +394,9 @@ const Inventory = () => {
                     key={item._id}
                     product={item}
                     formatCurrency={formatCurrency}
-                    onAddToCart={null}
+                    onAddToCart={addToCart}
                     onDeleteSuccess={() => fetchProducts(1, false)}
+                    onEdit={handleEdit}
                   />
                 ))}
               </div>
@@ -345,6 +429,12 @@ const Inventory = () => {
       <BulkUploadModal
         isOpen={openBulk}
         onClose={() => setOpenBulk(false)}
+        refreshProducts={() => fetchProducts(1, false)}
+      />
+      <EditProductModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        product={editingProduct}
         refreshProducts={() => fetchProducts(1, false)}
       />
 
@@ -405,6 +495,87 @@ const Inventory = () => {
                 className="w-full py-4 bg-brand-red text-white rounded-xl font-bold uppercase tracking-widest text-xs"
               >
                 Execute Adjustment
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+      {isTransferModalOpen && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
+            onClick={() => setIsTransferModalOpen(false)}
+          />
+          <form
+            onSubmit={handleTransfer}
+            className="bg-white dark:bg-[#1a1c2c] w-full max-w-md rounded-3xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300"
+          >
+            <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                Stock Distribution
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsTransferModalOpen(false)}
+                className="text-slate-400"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-8 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                  Source Product
+                </label>
+                <select
+                  required
+                  className="w-full p-4 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold text-slate-900 dark:text-white appearance-none"
+                  onChange={(e) =>
+                    setTransferForm({ ...transferForm, fromProductId: e.target.value })
+                  }
+                >
+                  <option value="" className="bg-white dark:bg-[#1a1c2c] text-slate-900 dark:text-white">Select Product</option>
+                  {products.map(p => (
+                    <option key={p._id} value={p._id} className="bg-white dark:bg-[#1a1c2c] text-slate-900 dark:text-white">{p.name} (Stock: {p.stock})</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                  Target Store
+                </label>
+                <select
+                  required
+                  className="w-full p-4 bg-slate-50 dark:bg-[#0f172a] border border-slate-200 dark:border-white/10 rounded-xl text-sm font-semibold text-slate-900 dark:text-white appearance-none"
+                  onChange={(e) =>
+                    setTransferForm({ ...transferForm, toStoreId: e.target.value })
+                  }
+                >
+                  <option value="" className="bg-white dark:bg-[#1a1c2c] text-slate-900 dark:text-white">Select Store</option>
+                  {stores.map(s => (
+                    <option key={s._id} value={s._id} className="bg-white dark:bg-[#1a1c2c] text-slate-900 dark:text-white">{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                  Quantity to Move
+                </label>
+                <input
+                  required
+                  type="number"
+                  placeholder="0"
+                  className="w-full p-4 bg-slate-50 dark:bg-white/5 border dark:border-white/10 rounded-xl text-sm font-semibold dark:text-white"
+                  onChange={(e) =>
+                    setTransferForm({ ...transferForm, quantity: e.target.value })
+                  }
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-4 bg-brand-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-red/20"
+              >
+                Execute Transfer
               </button>
             </div>
           </form>

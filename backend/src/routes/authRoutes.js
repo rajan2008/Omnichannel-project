@@ -7,10 +7,14 @@ import {
   getProfile, 
   updateProfile, 
   forgotPassword, 
-  resetPassword 
+  resetPassword,
+  updateProfilePhoto
 } from "../controllers/authController.js";
 import { protect, isAdmin } from "../middleware/authMiddleware.js";
 import { registerLimiter } from "../middleware/rateLimiter.js";
+import multer from "multer";
+
+const upload = multer({ dest: "uploads/" });
 
 const router = express.Router();
 
@@ -23,5 +27,6 @@ router.post("/create-user", protect, isAdmin, createUserByAdmin);
 
 router.get("/profile", protect, getProfile);
 router.put("/profile", protect, updateProfile);
+router.put("/profile/photo", protect, upload.single("avatar"), updateProfilePhoto);
 
 export default router;

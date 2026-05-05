@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import axios from "../../api/axiosInstance";
-import { X, Package, DollarSign, BarChart3, Upload, Loader2, Plus, CheckCircle2, Tag, Hash, Zap, Store } from "lucide-react";
+import { X, Package, DollarSign, Upload, Loader2, Zap, Store, Edit3 } from "lucide-react";
 import toast from "react-hot-toast";
 
-const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
+const EditProductModal = ({ isOpen, onClose, product, refreshProducts }) => {
   const user = useSelector((state) => state.auth.user);
   const [form, setForm] = useState({
     name: "",
@@ -42,18 +42,21 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
   };
 
   useEffect(() => {
-    if (isOpen) {
+    if (product) {
       setImage(null);
       setForm({
-        name: "",
-        sku: "",
-        category: "",
-        basePrice: "",
-        costPrice: "",
-        stock: "",
-        store: ""
+        name: product.name || "",
+        sku: product.sku || "",
+        category: product.category || "",
+        basePrice: product.basePrice || "",
+        costPrice: product.costPrice || "",
+        stock: product.stock || "",
+        store: product.store?._id || product.store || ""
       });
     }
+  }, [product]);
+
+  useEffect(() => {
     if (isOpen && user?.role === "admin") {
       const fetchStores = async () => {
         try {
@@ -88,36 +91,24 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
 
       Object.keys(form).forEach((key) => {
         const value = form[key];
-        if (!value && key !== "store") return;
+        if (value === undefined || value === null) return;
         formData.append(
           key,
           ["basePrice", "stock"].includes(key) ? Number(value) : value
         );
       });
 
-      // Handle Store Assignment
-      const finalStoreId = user.role === "admin" ? form.store : (user?.store?._id || user?.storeId);
-      
-      if (!finalStoreId) {
-        toast.error("Please select or assign a store");
-        setLoading(false);
-        return;
-      }
-      
-      formData.delete("store"); // Remove empty or old store from iteration
-      formData.append("store", finalStoreId);
-      
       if (image) formData.append("image", image);
 
-      await axios.post("/inventory", formData, {
+      await axios.patch(`/inventory/${product._id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toast.success("Product added successfully");
+      toast.success("Product updated successfully");
       refreshProducts();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to add product");
+      toast.error(err.response?.data?.message || "Failed to update product");
     } finally {
       setLoading(false);
     }
@@ -133,9 +124,9 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
         <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-brand-red text-white rounded-xl flex items-center justify-center">
-              <Plus size={18} />
+              <Edit3 size={18} />
             </div>
-            <h2 className="text-base font-black text-slate-900 dark:text-white tracking-tight">Add Product</h2>
+            <h2 className="text-base font-black text-slate-900 dark:text-white tracking-tight">Edit Product</h2>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-brand-red">
             <X size={18} />
@@ -146,7 +137,7 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
         <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
           {user?.role === "admin" && (
             <div className="space-y-1">
-              <label className="text-[9px] font-black text-brand-red uppercase tracking-widest px-1">Assign to Branch / Store *</label>
+              <label className="text-[9px] font-black text-brand-red uppercase tracking-widest px-1">Branch / Store Assignment</label>
               <div className="relative">
                 <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-red" size={14} />
                 <select
@@ -187,10 +178,10 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">SKU / Barcode (Optional)</label>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">SKU / Barcode</label>
               <input
                 name="sku"
-                placeholder="Leave blank if none"
+                placeholder="SKU-12345"
                 value={form.sku}
                 onChange={handleChange}
                 className="w-full p-2.5 bg-slate-50 dark:bg-[#11121d] border border-slate-200 dark:border-white/10 rounded-xl outline-none focus:border-brand-red transition-all font-bold text-xs dark:text-white"
@@ -235,7 +226,7 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Image Asset</label>
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Update Image Asset</label>
             <div 
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -244,7 +235,7 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
             >
               <input type="file" onChange={(e) => setImage(e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer" />
               <Upload className={`mx-auto mb-2 ${isDragging ? 'text-brand-red animate-bounce' : 'text-slate-300'}`} size={20} />
-              <p className="text-[10px] font-bold text-slate-500 truncate">{image ? image.name : "Drag & Drop or Click to upload"}</p>
+              <p className="text-[10px] font-bold text-slate-500 truncate">{image ? image.name : "Drag & Drop or Click to replace"}</p>
             </div>
           </div>
         </div>
@@ -257,7 +248,7 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
             className="w-full py-3 bg-brand-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-red/20 hover:bg-brand-darkred active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="animate-spin" size={14} /> : <Zap size={14} />}
-            {loading ? "Adding Asset..." : "Confirm & Create Product"}
+            {loading ? "Updating Asset..." : "Save Product Changes"}
           </button>
         </div>
       </div>
@@ -265,4 +256,4 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
   );
 };
 
-export default AddProductModal;
+export default EditProductModal;

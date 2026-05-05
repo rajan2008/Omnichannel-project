@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser, logout } from "../redux/slices/authSlice";
-import Sidebar from "../Components/Sidebar";
+import Sidebar from "../Components/SidebarComponent";
 import { 
   User, 
   Mail, 
@@ -98,6 +98,28 @@ const Profile = () => {
     }
   };
 
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("avatar", file);
+
+    try {
+      setLoading(true);
+      const res = await api.put("/auth/profile/photo", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      dispatch(setUser(res.data));
+      localStorage.setItem("user", JSON.stringify(res.data));
+      toast.success("Profile photo updated");
+    } catch (error) {
+      toast.error("Photo upload failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.clear();
     dispatch(logout());
@@ -141,10 +163,24 @@ const Profile = () => {
                   <div className="relative group">
                     <div className="w-36 h-36 rounded-[2.5rem] bg-white dark:bg-[#11121d] p-1 border-4 border-white dark:border-[#1a1c2c] shadow-2xl transition-colors">
                       <div className="w-full h-full rounded-[2.2rem] bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-300 relative overflow-hidden group">
-                        <User size={72} className="group-hover:scale-110 transition-transform" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
+                        {user.avatar ? (
+                          <img 
+                            src={`http://localhost:5000/${user.avatar}`} 
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform" 
+                            alt="" 
+                          />
+                        ) : (
+                          <User size={72} className="group-hover:scale-110 transition-transform" />
+                        )}
+                        <label className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer">
                           <Camera size={24} className="text-white" />
-                        </div>
+                          <input 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*" 
+                            onChange={handlePhotoChange} 
+                          />
+                        </label>
                       </div>
                     </div>
                   </div>

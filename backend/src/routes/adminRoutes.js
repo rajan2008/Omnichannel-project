@@ -10,26 +10,28 @@ import {
   deleteStore 
 } from "../controllers/storeController.js";
 import { createUserByAdmin, getAllUsers, updateUser, deleteUser } from "../controllers/authController.js";
-import { protect, isAdmin } from "../middleware/authMiddleware.js";
+import { protect, isAdmin, isManager } from "../middleware/authMiddleware.js";
 import multer from "multer";
 
 const upload = multer({ dest: "uploads/" });
 
 const router = express.Router();
 
-router.use(protect, isAdmin);
+router.use(protect);
 
-router.post("/inventory/bulk-upload", upload.single("file"), bulkUploadProducts);
-router.patch("/inventory/bulk-price-update", bulkPriceUpdate);
-router.post("/inventory/self-heal", healInventory);
+// Admin-only infrastructure routes
+router.post("/inventory/bulk-upload", isAdmin, upload.single("file"), bulkUploadProducts);
+router.patch("/inventory/bulk-price-update", isAdmin, bulkPriceUpdate);
+router.post("/inventory/self-heal", isAdmin, healInventory);
 
-router.post("/stores", addStore);
-router.put("/stores/:id", updateStore);
-router.delete("/stores/:id", deleteStore);
+router.post("/stores", isAdmin, addStore);
+router.put("/stores/:id", isAdmin, updateStore);
+router.delete("/stores/:id", isAdmin, deleteStore);
 
-router.get("/users", getAllUsers);
-router.post("/users/create", createUserByAdmin);
-router.put("/users/:id", updateUser);
-router.delete("/users/:id", deleteUser);
+// Manager-accessible user management
+router.get("/users", isManager, getAllUsers);
+router.post("/users/create", isManager, createUserByAdmin);
+router.put("/users/:id", isManager, updateUser);
+router.delete("/users/:id", isManager, deleteUser);
 
 export default router;

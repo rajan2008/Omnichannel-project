@@ -5,15 +5,18 @@ import {
   addToCart as addToCartAction,
   updateQuantity as updateQuantityAction,
   removeFromCart as removeFromCartAction,
+  clearCart as clearCartAction,
 } from "../redux/slices/cartSlice";
 import { getProducts } from "../api/productApi";
 import { getDashboardStats } from "../api/dashboardApi";
 import { getStores } from "../api/storeApi";
+import { getOrders, checkoutOrder } from "../api/orderApi";
 import Orders from "../Components/Orders";
-import Sidebar from "../Components/Sidebar";
+import Sidebar from "../Components/SidebarComponent";
 import SearchFilterComponent from "../Components/SearchFilterComponent";
 import ProductList from "../Components/ProductList";
 import RoleWrapper from "../Components/RoleWrapper";
+import EditProductModal from "../Components/modal/EditProductModal";
 
 import {
   LayoutDashboard,
@@ -97,6 +100,11 @@ export default function Dashboard() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -107,16 +115,24 @@ export default function Dashboard() {
 
     const loadData = async () => {
       try {
-        const [productsData, statsData, storesData] = await Promise.all([
+        setLoading(true);
+
+        const [productsData, statsData, storesData, ordersData] = await Promise.all([
           getProducts(),
-          getDashboardStats(),
+          getDashboardStats(selectedStore || "all"),
           getStores(),
+          getOrders().catch(() => []),
         ]);
 
         setProducts(productsData.products || []);
         setFilteredProducts(productsData.products || []);
         setStats(statsData);
         setStores(storesData);
+        setRecentOrders(Array.isArray(ordersData) ? ordersData.slice(0, 5) : []);
+
+        // Caching for offline use
+        localStorage.setItem("cached_stats", JSON.stringify(statsData));
+        localStorage.setItem("cached_stores", JSON.stringify(storesData));
 
         if (user?.store?._id) {
           setSelectedStore(user.store._id);
@@ -130,18 +146,123 @@ export default function Dashboard() {
 
         if (params.get("openCart") === "true") {
           setIsCartModalOpen(true);
-          navigate("/dashboard", { replace: true });
         }
       } catch (error) {
         console.error("Dashboard load error:", error);
-        toast.error("Failed to load dashboard");
+        
+        // Offline Fallback
+        if (!navigator.onLine) {
+          const cachedStats = localStorage.getItem("cached_stats");
+          const cachedStores = localStorage.getItem("cached_stores");
+          
+          if (cachedStats) setStats(JSON.parse(cachedStats));
+          if (cachedStores) {
+            const s = JSON.parse(cachedStores);
+            setStores(s);
+            if (s.length > 0 && !selectedStore) setSelectedStore(s[0]._id);
+          }
+          toast.success("Operational in Offline Mode", { icon: "🔌" });
+        } else {
+          toast.error("Failed to load dashboard. Check connection.");
+        }
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [navigate, location.search, user?.store?._id]);
+  }, [navigate, location.search, user?.store?._id, selectedStore]);
+
+  const refreshData = async () => {
+    const productsData = await getProducts();
+    setProducts(productsData.products || []);
+    setFilteredProducts(productsData.products || []);
+    const statsData = await getDashboardStats(selectedStore || "all");
+    setStats(statsData);
+  };
+
+  const handleEdit = (product) => {
+    setEditingProduct(product);
+    setIsEditModalOpen(true);
+  };
+
+  // Handle Online/Offline Status and Sync
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success("Back online! Syncing data...", { icon: "🌐" });
+      syncOfflineOrders();
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.error("You are offline. Working in local mode.", { icon: "🔌" });
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    // Initial sync check
+    if (navigator.onLine) syncOfflineOrders();
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  const syncOfflineOrders = async () => {
+    const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
+    if (offlineOrders.length === 0) return;
+
+    setIsSyncing(true);
+    const remaining = [];
+    let successCount = 0;
+
+    for (const order of offlineOrders) {
+      try {
+        await checkoutOrder(order);
+        successCount++;
+      } catch (err) {
+        remaining.push(order);
+      }
+    }
+
+    localStorage.setItem("offline_orders", JSON.stringify(remaining));
+    if (successCount > 0) {
+      toast.success(`Synced ${successCount} offline orders!`, { icon: "📤" });
+      refreshData();
+    }
+    setIsSyncing(false);
+  };
+
+  // Sync Tab and Modal with URL
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const currentTab = params.get("tab") || "stats";
+    const isCartOpen = params.get("openCart") === "true";
+
+    if (currentTab !== activeTab) setActiveTab(currentTab);
+    if (isCartOpen !== isCartModalOpen) setIsCartModalOpen(isCartOpen);
+  }, [location.search]);
+
+  const updateUrl = (tab, openCart) => {
+    const params = new URLSearchParams();
+    if (tab && tab !== "stats") params.set("tab", tab);
+    if (openCart) params.set("openCart", "true");
+    
+    const queryString = params.toString();
+    navigate(`/dashboard${queryString ? '?' + queryString : ''}`, { replace: true });
+  };
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    updateUrl(tab, isCartModalOpen);
+  };
+
+  const handleToggleCart = (isOpen) => {
+    setIsCartModalOpen(isOpen);
+    updateUrl(activeTab, isOpen);
+  };
 
   const addToCart = (product) => {
     if (product.stock <= 0) {
@@ -159,10 +280,131 @@ export default function Dashboard() {
     dispatch(removeFromCartAction(id));
   };
 
-  const handleCheckout = () => {
-    if (cart.length === 0) return;
-    setIsCartModalOpen(false);
-    setShowCheckoutSummary(true);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [lastOrder, setLastOrder] = useState(null);
+
+  // Dynamic Notification Engine
+  useEffect(() => {
+    const alerts = [];
+    
+    // 1. Low Stock Notifications
+    const lowStockItems = products.filter(p => p.stock > 0 && p.stock <= (p.lowStockThreshold || 10));
+    lowStockItems.slice(0, 3).forEach(p => {
+      alerts.push({
+        id: `low-${p._id}`,
+        text: `Critical Stock: ${p.name} (${p.stock} left)`,
+        type: "warning",
+        time: "Active Alert"
+      });
+    });
+
+    // 2. Out of Stock Notifications
+    const outOfStockItems = products.filter(p => p.stock <= 0);
+    outOfStockItems.slice(0, 2).forEach(p => {
+      alerts.push({
+        id: `out-${p._id}`,
+        text: `Out of Stock: ${p.name}`,
+        type: "error",
+        time: "Immediate Action"
+      });
+    });
+
+    // 3. Recent Sales
+    recentOrders.slice(0, 2).forEach(o => {
+      alerts.push({
+        id: `sale-${o._id}`,
+        text: `New Sale: ${formatCurrency(o.totalAmount || o.total)}`,
+        type: "success",
+        time: new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+    });
+
+    // 4. Offline Queue
+    const offlineCount = JSON.parse(localStorage.getItem("offline_orders") || "[]").length;
+    if (offlineCount > 0) {
+      alerts.unshift({
+        id: "offline-sync",
+        text: `${offlineCount} orders waiting for sync`,
+        type: "warning",
+        time: "Queueing"
+      });
+    }
+
+    setNotifications(alerts);
+  }, [products, recentOrders, isOnline]);
+
+  const handleCheckout = async () => {
+    if (cart.length === 0 || total <= 0) {
+      toast.error("Cart is empty or invalid");
+      return;
+    }
+
+    const orderData = {
+      items: cart.map((item) => ({
+        productId: item._id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.basePrice,
+      })),
+      totalAmount: total,
+      paymentMethod,
+      storeId: selectedStore || user?.store?._id,
+    };
+
+    if (!orderData.storeId) {
+      toast.error("Please select a store first");
+      return;
+    }
+
+    // Keep a copy for the success screen
+    const orderSummary = {
+      items: [...cart],
+      total: total,
+      orderId: `ORD-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 1000)}`
+    };
+
+    if (!navigator.onLine) {
+      // OFFLINE LOGIC
+      const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
+      offlineOrders.push({ ...orderData, createdAt: new Date().toISOString(), isOffline: true });
+      localStorage.setItem("offline_orders", JSON.stringify(offlineOrders));
+      
+      toast.success("Order saved offline! Will sync when online.", { icon: "📡" });
+      setLastOrder({ ...orderSummary, isOffline: true });
+      setIsCartModalOpen(false);
+      setShowCheckoutSummary(true);
+      dispatch(clearCartAction());
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await checkoutOrder(orderData);
+      toast.success("Order processed successfully!", { icon: "🚀" });
+
+      setLastOrder({
+        ...orderSummary,
+        orderId: response.order?._id ? `ORD-${response.order._id.slice(-6).toUpperCase()}` : orderSummary.orderId
+      });
+
+      setIsCartModalOpen(false);
+      setShowCheckoutSummary(true);
+      dispatch(clearCartAction());
+    } catch (error) {
+      // IF SERVER IS DOWN BUT INTERNET IS ON
+      const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
+      offlineOrders.push({ ...orderData, createdAt: new Date().toISOString(), isOffline: true });
+      localStorage.setItem("offline_orders", JSON.stringify(offlineOrders));
+      
+      toast.error("Server unreachable. Order saved locally.");
+      setLastOrder({ ...orderSummary, isOffline: true });
+      setIsCartModalOpen(false);
+      setShowCheckoutSummary(true);
+      dispatch(clearCartAction());
+    } finally {
+      setLoading(false);
+    }
   };
 
   const subtotal = cart.reduce(
@@ -202,7 +444,7 @@ export default function Dashboard() {
     <div className="flex h-screen bg-white dark:bg-[#0f172a] font-sans transition-colors duration-300 overflow-hidden relative">
       <Sidebar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
         user={user}
@@ -210,7 +452,7 @@ export default function Dashboard() {
           localStorage.clear();
           navigate("/login");
         }}
-        onOpenCart={() => setIsCartModalOpen(true)}
+        onOpenCart={() => handleToggleCart(true)}
         cartCount={cart.reduce((a, b) => a + b.quantity, 0)}
       />
 
@@ -262,11 +504,34 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button className="w-10 h-10 bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center text-slate-500 hover:text-brand-red transition-all shadow-sm relative">
+              <div className="flex items-center gap-2 relative">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="w-10 h-10 bg-white dark:bg-[#1f2937] border border-slate-200 dark:border-white/10 rounded-xl flex items-center justify-center text-slate-500 hover:text-brand-red transition-all shadow-sm relative"
+                >
                   <Bell size={18} />
-                  <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-brand-red rounded-full border-2 border-white dark:border-[#1f2937]" />
+                  {notifications.length > 0 && (
+                    <div className="absolute top-3 right-3 w-1.5 h-1.5 bg-brand-red rounded-full border-2 border-white dark:border-[#1f2937]" />
+                  )}
                 </button>
+
+                {showNotifications && (
+                  <div className="absolute top-12 right-0 w-64 bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-white/5 rounded-2xl shadow-2xl p-4 z-50 animate-in fade-in slide-in-from-top-2">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3 px-1">Recent Activity</h4>
+                    <div className="space-y-3">
+                      {notifications.map(n => (
+                        <div key={n.id} className="flex gap-3 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${n.type === 'success' ? 'bg-emerald-500' : 'bg-brand-red'}`} />
+                          <div>
+                            <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight">{n.text}</p>
+                            <p className="text-[8px] text-slate-400 font-bold mt-0.5">{n.time}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <button
                   onClick={() => navigate("/profile")}
                   className="w-10 h-10 bg-brand-red text-white rounded-xl flex items-center justify-center font-black text-sm shadow-md hover:scale-105 active:scale-95 transition-all"
@@ -291,54 +556,120 @@ export default function Dashboard() {
                   Dashboard
                 </button>
                 <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-lg">
-                  <div className="p-6 border-b border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-500 text-white rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                        <CheckCircle2 size={20} />
-                      </div>  
-                      <div>
-                        <h2 className="text-sm font-bold text-slate-900 dark:text-white">
-                          Order Success
-                        </h2>
-                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">
-                          TRX-
-                          {Math.random()
-                            .toString(36)
-                            .substr(2, 6)
-                            .toUpperCase()}
-                        </p>
+                  <div className="p-10 space-y-8 bg-white dark:bg-[#1e293b]">
+                    <div className="flex flex-col items-center text-center space-y-2">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Official Transaction Receipt</p>
+                      <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">Enterprise POS Network</h3>
+                    </div>
+
+                    <div className="space-y-4 border-y border-slate-100 dark:border-white/5 py-8">
+                      {lastOrder?.items?.map((item) => (
+                        <div
+                          key={item._id}
+                          className="flex justify-between items-center text-xs group"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="w-6 h-6 rounded bg-slate-50 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-brand-red border border-slate-100 dark:border-white/10">{item.quantity}</span>
+                            <span className="text-slate-800 dark:text-slate-200 font-bold capitalize">
+                              {item.name}
+                            </span>
+                          </div>
+                          <span className="font-black text-slate-900 dark:text-white">
+                            {formatCurrency(item.basePrice * item.quantity)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-3 pt-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Subtotal</span>
+                        <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(lastOrder?.total * 0.92)}</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tax (8%)</span>
+                        <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(lastOrder?.total * 0.08)}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-white/5">
+                        <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tighter">Total Amount Paid</span>
+                        <span className="text-2xl font-black text-brand-red tracking-tighter">
+                          {formatCurrency(lastOrder?.total)}
+                        </span>
                       </div>
                     </div>
-                    <button className="px-4 py-2 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-lg font-bold uppercase text-[9px] tracking-widest flex items-center gap-2 hover:bg-brand-red hover:text-white transition-all shadow-md">
-                      <Download size={12} /> Receipt
+                  </div>
+
+                  <div className="p-8 bg-slate-50/50 dark:bg-black/20 text-center">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Thank you for choosing our enterprise network</p>
+                    <button 
+                      onClick={() => window.print()}
+                      className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-brand-red hover:text-white transition-all shadow-xl"
+                    >
+                      Initialize Thermal Print
                     </button>
                   </div>
-                  <div className="p-6 space-y-4">
-                    {cart.map((item) => (
-                      <div
-                        key={item._id}
-                        className="flex justify-between items-center text-xs"
-                      >
-                        <span className="text-slate-500 font-bold">
-                          x{item.quantity}{" "}
-                          <span className="text-slate-800 dark:text-slate-200 ml-1">
-                            {item.name}
-                          </span>
-                        </span>
-                        <span className="font-bold text-slate-900 dark:text-white">
-                          {formatCurrency(item.basePrice * item.quantity)}
-                        </span>
+                </div>
+
+                {/* HIDDEN PRINTABLE INVOICE */}
+                <div className="hidden printable-invoice p-10 bg-white text-black font-sans">
+                  <div className="text-center mb-10">
+                    <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Vendora Enterprise</h1>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Official Transaction Record</p>
+                  </div>
+                  
+                  <div className="flex justify-between border-b-2 border-black pb-6 mb-8">
+                    <div>
+                      <p className="text-[10px] font-black uppercase text-gray-400 mb-1">Order Identifier</p>
+                      <p className="text-sm font-black">{lastOrder?.orderId}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-black uppercase text-gray-400 mb-1">Timestamp</p>
+                      <p className="text-sm font-black">{new Date().toLocaleString()}</p>
+                    </div>
+                  </div>
+
+                  <table className="w-full mb-10">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 text-[10px] font-black uppercase">Item Description</th>
+                        <th className="text-center py-3 text-[10px] font-black uppercase">Qty</th>
+                        <th className="text-right py-3 text-[10px] font-black uppercase">Price</th>
+                        <th className="text-right py-3 text-[10px] font-black uppercase">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lastOrder?.items?.map((item) => (
+                        <tr key={item._id} className="border-b border-gray-100">
+                          <td className="py-4 text-xs font-bold">{item.name}</td>
+                          <td className="py-4 text-center text-xs font-bold">{item.quantity}</td>
+                          <td className="py-4 text-right text-xs font-bold">{formatCurrency(item.basePrice)}</td>
+                          <td className="py-4 text-right text-xs font-black">{formatCurrency(item.basePrice * item.quantity)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  <div className="flex justify-end">
+                    <div className="w-64 space-y-3">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-bold text-gray-400 uppercase">Subtotal</span>
+                        <span className="font-bold">{formatCurrency(lastOrder?.total * 0.92)}</span>
                       </div>
-                    ))}
-                    <div className="pt-4 border-t border-slate-100 dark:border-white/5 space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-bold text-slate-900 dark:text-white">
-                          Amount Paid
-                        </span>
-                        <span className="text-lg font-black text-brand-red">
-                          {formatCurrency(total)}
-                        </span>
+                      <div className="flex justify-between text-xs">
+                        <span className="font-bold text-gray-400 uppercase">Tax (8%)</span>
+                        <span className="font-bold">{formatCurrency(lastOrder?.total * 0.08)}</span>
                       </div>
+                      <div className="flex justify-between pt-3 border-t-2 border-black">
+                        <span className="font-black uppercase">Total Due</span>
+                        <span className="text-xl font-black">{formatCurrency(lastOrder?.total)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-20 text-center border-t border-gray-100 pt-10">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Authored by Vendora Cloud Systems</p>
+                    <div className="w-32 h-32 mx-auto bg-gray-100 rounded-xl flex items-center justify-center mb-4">
+                      <CheckCircle2 size={48} className="text-gray-300" />
                     </div>
                   </div>
                 </div>
@@ -421,6 +752,68 @@ export default function Dashboard() {
                       </div>
                     </div>
 
+                    {/* ADMIN ANALYTICS SECTION */}
+                    {roleConfig.isAdmin && (
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 px-3">
+                        <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden group border border-white/5">
+                          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-red opacity-10 blur-[80px] -mr-32 -mt-32 group-hover:opacity-20 transition-opacity" />
+                          <div className="relative z-10">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-red mb-6">Performance Matrix</h3>
+                            <div className="grid grid-cols-2 gap-8">
+                              <div>
+                                <p className="text-3xl font-black tracking-tighter mb-1">94%</p>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Target Efficiency</p>
+                              </div>
+                              <div>
+                                <p className="text-3xl font-black tracking-tighter mb-1">+12k</p>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Inventory Velocity</p>
+                              </div>
+                            </div>
+                            <div className="mt-8 pt-8 border-t border-white/10 flex items-center gap-4">
+                              <div className="flex -space-x-3">
+                                {[1,2,3,4].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-bold">{i}</div>)}
+                              </div>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase">Top Store Terminals Active</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-[#1e293b] rounded-[2rem] border border-slate-200 dark:border-white/5 p-8 shadow-sm">
+                          <div className="flex justify-between items-center mb-8">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900 dark:text-white">Product Velocity</h3>
+                            <div className="flex gap-2">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                              <span className="w-2 h-2 rounded-full bg-brand-red" />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-8">
+                            <div>
+                              <p className="text-[8px] font-black text-emerald-500 uppercase tracking-widest mb-4">High Performance</p>
+                              <div className="space-y-4">
+                                {stats.topProducts?.map(p => (
+                                  <div key={p._id} className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold dark:text-white truncate max-w-[80px]">{p.name}</span>
+                                    <span className="text-[10px] font-black text-emerald-500">+{p.totalQty}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                            <div>
+                              <p className="text-[8px] font-black text-brand-red uppercase tracking-widest mb-4">Low Velocity</p>
+                              <div className="space-y-4">
+                                {stats.slowProducts?.map(p => (
+                                  <div key={p._id} className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold dark:text-white truncate max-w-[80px]">{p.name}</span>
+                                    <span className="text-[10px] font-black text-brand-red">{p.totalQty}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                       <div className="lg:col-span-8 flex flex-col h-full">
                         <div className="flex items-center justify-between">
@@ -440,6 +833,7 @@ export default function Dashboard() {
                             selectedStore={selectedStore}
                             setSelectedStore={setSelectedStore}
                             compact={true}
+                            showStoreFilter={roleConfig.isAdmin}
                           />
                         </div>
 
@@ -449,6 +843,7 @@ export default function Dashboard() {
                             formatCurrency={formatCurrency}
                             onAddToCart={addToCart}
                             compact={true}
+                            onEdit={handleEdit}
                           />
                         </div>
                       </div>
@@ -483,9 +878,9 @@ export default function Dashboard() {
                             Audit Log
                           </h3>
                           <div className="space-y-4">
-                            {[1, 2, 3].map((i) => (
+                            {recentOrders.length > 0 ? recentOrders.map((order) => (
                               <div
-                                key={i}
+                                key={order._id}
                                 className="flex items-center justify-between group cursor-pointer"
                               >
                                 <div className="flex items-center gap-3">
@@ -494,18 +889,20 @@ export default function Dashboard() {
                                   </div>
                                   <div>
                                     <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200">
-                                      TRX-00{i}
+                                      ORD-{order._id?.slice(-6).toUpperCase()}
                                     </p>
-                                    <p className="text-[8px] font-black text-slate-400 uppercase">
-                                      Success
+                                    <p className={`text-[8px] font-black uppercase ${order.orderStatus === 'CANCELLED' ? 'text-red-400' : order.orderStatus === 'PENDING' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                      {order.orderStatus || 'Success'}
                                     </p>
                                   </div>
                                 </div>
                                 <span className="text-xs font-black text-slate-900 dark:text-white">
-                                  ₹{1200 + i * 250}
+                                  {formatCurrency(order.totalAmount || order.total)}
                                 </span>
                               </div>
-                            ))}
+                            )) : (
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest text-center py-4">No transactions yet</p>
+                            )}
                           </div>
                           <button
                             onClick={() => {
@@ -534,7 +931,7 @@ export default function Dashboard() {
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
           <div
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
-            onClick={() => setIsCartModalOpen(false)}
+            onClick={() => handleToggleCart(false)}
           />
           <div className="bg-white dark:bg-[#1e293b] w-full max-w-lg rounded-2xl shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[85vh]">
             <div className="p-6 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
@@ -547,7 +944,7 @@ export default function Dashboard() {
                 </p>
               </div>
               <button
-                onClick={() => setIsCartModalOpen(false)}
+                onClick={() => handleToggleCart(false)}
                 className="w-8 h-8 bg-slate-100 dark:bg-white/5 text-slate-400 rounded-lg flex items-center justify-center hover:bg-brand-red hover:text-white transition-all"
               >
                 <X size={16} />
@@ -658,6 +1055,13 @@ export default function Dashboard() {
           </div>
         </div>
       )}
+
+      <EditProductModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        product={editingProduct}
+        refreshProducts={refreshData}
+      />
     </div>
   );
 }

@@ -170,7 +170,7 @@ const Sidebar = ({
             >
               <div className="flex items-center gap-3.5">
                 <ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />
-                <span className="font-bold text-xs tracking-wide opacity-80 group-hover:opacity-100">POS Terminal</span>
+                <span className="font-bold text-xs tracking-wide opacity-80 group-hover:opacity-100">Sales Terminal</span>
               </div>
               {cartCount > 0 && (
                 <span className="bg-brand-red text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(239,35,60,0.3)] animate-pulse">
@@ -212,8 +212,12 @@ const Sidebar = ({
         
         <div className="p-4 rounded-2xl bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 group hover:border-brand-red/20 transition-all cursor-pointer shadow-sm" onClick={() => navigate('/profile')}>
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-red flex items-center justify-center text-white font-black uppercase text-base shadow-lg group-hover:scale-105 transition-transform">
-              {user?.name?.charAt(0)}
+            <div className="w-10 h-10 rounded-xl bg-brand-red flex items-center justify-center text-white font-black uppercase text-base shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
+              {user?.avatar ? (
+                <img src={`http://localhost:5000/${user.avatar}`} className="w-full h-full object-cover" alt="" />
+              ) : (
+                user?.name?.charAt(0)
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-black text-slate-900 dark:text-white truncate leading-none mb-1">{user?.name}</p>

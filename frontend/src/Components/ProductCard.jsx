@@ -1,5 +1,5 @@
 import React from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Edit3 } from "lucide-react";
 import RoleWrapper from "./RoleWrapper";
 import { useSelector } from "react-redux";
 import axios from "../api/axiosInstance";
@@ -51,6 +51,7 @@ const ProductCard = ({
   onAddToCart,
   formatCurrency,
   onDeleteSuccess,
+  onEdit,
 }) => {
   const user = useSelector((state) => state.auth.user);
 
@@ -69,7 +70,7 @@ const ProductCard = ({
 
   const canManage =
     user?.role === "admin" ||
-    (user?.role === "manager" && user?.store?._id === product.store);
+    (user?.role === "manager" && (user?.store?._id === (product.store?._id || product.store)));
 
   return (
     <div
@@ -105,14 +106,24 @@ const ProductCard = ({
         </div>
         <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-brand-red/10 transition-colors" />
 
-        {/* DELETE BUTTON FOR AUTHORIZED USERS */}
+        {/* ACTION BUTTONS FOR AUTHORIZED USERS */}
         {canManage && (
-          <button
-            onClick={handleDelete}
-            className="absolute top-2 right-2 w-8 h-8 bg-white/90 dark:bg-slate-900/90 text-slate-400 hover:text-brand-red rounded-lg flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all z-20 backdrop-blur-sm"
-          >
-            <Trash2 size={16} />
-          </button>
+          <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all z-20">
+            <button
+              onClick={(e) => { e.stopPropagation(); onEdit && onEdit(product); }}
+              className="w-8 h-8 bg-white/90 dark:bg-slate-900/90 text-slate-400 hover:text-brand-red rounded-lg flex items-center justify-center shadow-lg backdrop-blur-sm transition-colors"
+              title="Edit Product"
+            >
+              <Edit3 size={14} />
+            </button>
+            <button
+              onClick={handleDelete}
+              className="w-8 h-8 bg-white/90 dark:bg-slate-900/90 text-slate-400 hover:text-brand-red rounded-lg flex items-center justify-center shadow-lg backdrop-blur-sm transition-colors"
+              title="Delete Product"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
         )}
 
         {product.stock <= 5 && product.stock > 0 && (
@@ -136,6 +147,23 @@ const ProductCard = ({
         <p className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-widest">
           {product.category}
         </p>
+
+        {(user?.role === "admin" || user?.role === "manager") && (
+          <div className="flex flex-col gap-0.5 mt-1 border-t border-slate-100 dark:border-white/5 pt-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Stock Level</span>
+              <span className={`text-[9px] font-black ${product.stock <= 5 ? 'text-brand-red animate-pulse' : 'text-slate-900 dark:text-white'}`}>
+                {product.stock} Units
+              </span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Location</span>
+              <span className="text-[9px] font-black text-brand-red truncate max-w-[80px]">
+                {product.store?.name || "General"}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-between mt-3">

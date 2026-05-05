@@ -107,7 +107,8 @@ export const loginUser = async (req, res) => {
         email: user.email, 
         role: user.role, 
         phone: user.phone, 
-        store: user.store // Now fully populated
+        store: user.store,
+        avatar: user.avatar
       },
     });
   } catch (error) {
@@ -180,6 +181,7 @@ export const updateProfile = async (req, res) => {
       role: populatedUser.role,
       phone: populatedUser.phone,
       store: populatedUser.store,
+      avatar: populatedUser.avatar,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -226,10 +228,37 @@ export const deleteUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ message: "User not found" });
-    if (user.role === "admin") return res.status(400).json({ message: "Cannot delete admin" });
 
-    await user.deleteOne();
-    res.status(200).json({ message: "User deleted successfully" });
+    // 1. Admin Logic: Can delete anyone (even other admins)
+    if (req.user.role === "admin") {
+      // Prevent deleting self to avoid lockouts
+      if (req.user.id.toString() === req.params.id.toString()) {
+        return res.status(400).json({ message: "You cannot delete your own account" });
+      }
+      await user.deleteOne();
+      return res.status(200).json({ message: "User deleted successfully" });
+    }
+
+    // 2. Manager Logic: Can only delete their own store's staff (Cashiers)
+    if (req.user.role === "manager") {
+      // Managers cannot delete Admins or other Managers
+      if (user.role === "admin" || user.role === "manager") {
+        return res.status(403).json({ message: "Managers can only manage Cashier accounts" });
+      }
+
+      // Check store matching
+      const managerStore = req.user.store?.toString();
+      const userStore = user.store?.toString();
+
+      if (!managerStore || managerStore !== userStore) {
+        return res.status(403).json({ message: "Unauthorized: Staff belongs to a different location" });
+      }
+
+      await user.deleteOne();
+      return res.status(200).json({ message: "User deleted successfully" });
+    }
+
+    return res.status(403).json({ message: "Permission denied" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -276,6 +305,31 @@ export const resetPassword = async (req, res) => {
     await user.save();
 
     res.status(200).json({ message: "Password reset successful" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const updateProfilePhoto = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+    
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.avatar = req.file.path.replace(/\\/g, "/");
+    await user.save();
+    
+    const populatedUser = await User.findById(user._id).populate("store");
+    res.status(200).json({
+      id: populatedUser._id,
+      name: populatedUser.name,
+      email: populatedUser.email,
+      role: populatedUser.role,
+      phone: populatedUser.phone,
+      store: populatedUser.store,
+      avatar: populatedUser.avatar
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -7,6 +7,7 @@ const ProductList = ({
   onAddToCart,
   formatCurrency,
   onClearFilters,
+  onEdit,
 }) => {
   const navigate = useNavigate();
   
@@ -48,6 +49,7 @@ const ProductList = ({
               product={product}
               onAddToCart={onAddToCart}
               formatCurrency={formatCurrency}
+              onEdit={onEdit}
             />
           </div>
         </div>

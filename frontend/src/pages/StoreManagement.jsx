@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Sidebar from "../Components/Sidebar";
+import Sidebar from "../Components/SidebarComponent";
 import { useSelector } from "react-redux";
 import { getStores, createStore, updateStore, deleteStore } from "../api/managementApi";
 import { 
@@ -90,13 +90,14 @@ const StoreManagement = () => {
   };
 
   const handleDeleteStore = async (id) => {
-    if (!window.confirm("Delete this store?")) return;
+    if (!window.confirm("Delete this store? All related products will also be removed.")) return;
+    const loadingToast = toast.loading("Removing store...");
     try {
       await deleteStore(id);
-      toast.success("Store removed");
+      toast.success("Store removed", { id: loadingToast });
       fetchStores();
     } catch (error) {
-      toast.error("Failed to delete");
+      toast.error(error.response?.data?.message || error.message || "Failed to delete", { id: loadingToast });
     }
   };
 

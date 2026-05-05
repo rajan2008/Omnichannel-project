@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Sidebar from "../Components/Sidebar";
+import Sidebar from "../Components/SidebarComponent";
 import { useSelector } from "react-redux";
 import { getUsers, createUser, deleteUser, updateUser, getStores } from "../api/managementApi";
 import { 
@@ -76,7 +76,7 @@ const UserManagement = () => {
         password: "",
         role: "cashier",
         phone: "",
-        store: ""
+        store: currentUser.role === 'manager' ? (currentUser.store?._id || currentUser.store) : ""
       });
     }
     setIsModalOpen(true);
@@ -113,10 +113,20 @@ const UserManagement = () => {
     }
   };
 
-  const filteredUsers = (Array.isArray(users) ? users : []).filter(u => 
-    u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = (Array.isArray(users) ? users : []).filter(u => {
+    const matchesSearch = 
+      u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      u.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (currentUser.role === 'manager') {
+      const managerStoreId = currentUser.store?._id || currentUser.store;
+      const userStoreId = u.store?._id || u.store;
+      // Managers only see their own store's staff (excluding themselves if needed, but usually including)
+      return matchesSearch && userStoreId === managerStoreId;
+    }
+    
+    return matchesSearch;
+  });
 
   if (!currentUser) return null;
 
@@ -266,7 +276,7 @@ const UserManagement = () => {
                 <div className="space-y-1">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Store</label>
                   <select 
-                    disabled={form.role === 'admin'}
+                    disabled={form.role === 'admin' || currentUser.role === 'manager'}
                     value={form.store} 
                     onChange={e => setForm({...form, store: e.target.value})}
                     className="w-full p-2.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl text-xs font-bold dark:text-white outline-none focus:border-brand-red appearance-none cursor-pointer disabled:opacity-50"

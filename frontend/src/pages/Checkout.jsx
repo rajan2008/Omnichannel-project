@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { clearCart } from "../redux/slices/cartSlice";
 import axios from "../api/axiosInstance";
-import Sidebar from "../Components/Sidebar";
+import Sidebar from "../Components/SidebarComponent";
 import { 
   ShoppingBag, 
   CreditCard, 

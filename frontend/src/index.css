@@ -77,3 +77,27 @@ body {
   color: var(--color-brand-dark);
   font-family: var(--font-sans);
 }
+
+/* Dark mode dropdown fix — native select/option elements */
+.dark select {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-color: rgba(255,255,255,0.1);
+}
+
+.dark select option {
+  background-color: #1a1c2c;
+  color: #f8fafc;
+}
+
+select option {
+  background-color: #ffffff;
+  color: #1e293b;
+  padding: 8px;
+}
+
+/* Prevent white flash on select focus in dark mode */
+.dark select:focus {
+  background-color: #0f172a;
+  outline-color: #EF233C;
+}

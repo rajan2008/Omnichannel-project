@@ -20,7 +20,7 @@ export const getOrders = async () => {
 
 export const cancelOrder = async (id) => {
   try {
-    const res = await api.patch(`/cashier/orders/${id}/cancel`);
+    const res = await api.patch(`/orders/${id}/cancel`);
     return res.data;
   } catch (error) {
     throw error.response?.data?.message || "Failed to cancel order";

@@ -97,7 +97,19 @@ export const bulkSyncOrders = async (req, res) => {
 
 export const getOrders = async (req, res) => {
   try {
-    const query = req.user.role === "admin" ? {} : { store: req.user.store };
+    let query = {};
+    
+    if (req.user.role === "admin") {
+      // Admin sees everything
+      query = {};
+    } else if (req.user.role === "manager") {
+      // Manager sees all orders in their store
+      query = { store: req.user.store };
+    } else {
+      // Cashier sees only their own orders
+      query = { cashier: req.user.id };
+    }
+
     const orders = await Order.find(query)
       .populate("cashier", "name")
       .populate("store", "name")

@@ -43,7 +43,7 @@ export const getProducts = async (req, res) => {
       };
     }
 
-    const products = await Product.find(query).limit(limit * 1).skip((page - 1) * limit);
+    const products = await Product.find(query).populate("store", "name").limit(limit * 1).skip((page - 1) * limit);
     const total = await Product.countDocuments(query);
 
     res.status(200).json({ products, total, currentPage: Number(page), totalPages: Math.ceil(total / limit) });
@@ -56,12 +56,15 @@ export const addProduct = async (req, res) => {
   try {
     const productData = { ...req.body };
     
-    // Automatically assign store if not admin
     if (req.user.role !== "admin") {
       if (!req.user.store) {
         return res.status(403).json({ message: "No store assigned to this user. Cannot add products." });
       }
       productData.store = req.user.store;
+    }
+
+    if (!productData.costPrice && productData.basePrice) {
+      productData.costPrice = Math.round(Number(productData.basePrice) * 0.8);
     }
 
     if (req.file) productData.image = req.file.path.replace(/\\/g, "/");
@@ -79,7 +82,6 @@ export const updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    // Store-based access control
     if (req.user.role !== "admin" && product.store.toString() !== req.user.store.toString()) {
       return res.status(403).json({ message: "Access denied: Product belongs to another store" });
     }
@@ -104,7 +106,6 @@ export const deleteProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    // Store-based access control
     if (req.user.role !== "admin" && product.store.toString() !== req.user.store.toString()) {
       return res.status(403).json({ message: "Access denied: Product belongs to another store" });
     }
@@ -138,7 +139,7 @@ export const bulkUploadProducts = async (req, res) => {
     fs.createReadStream(req.file.path)
       .pipe(csv({ mapHeaders: ({ header }) => header.trim() }))
       .on("data", (data) => {
-        let storeId = defaultStoreId; // Fallback to first store
+        let storeId = defaultStoreId;
         if (data.store) {
           const matchedId = storeMap[data.store.toLowerCase().trim()];
           if (matchedId) storeId = matchedId;
@@ -157,13 +158,8 @@ export const bulkUploadProducts = async (req, res) => {
       })
       .on("end", async () => {
         try {
-          if (fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
-          }
-          
-          if (results.length === 0) {
-             return res.status(400).json({ message: "No valid data found in CSV" });
-          }
+          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+          if (results.length === 0) return res.status(400).json({ message: "No valid data found in CSV" });
 
           const result = await Product.insertMany(results);
           await clearProductCache();
@@ -204,7 +200,7 @@ export const getStockPredictions = async (req, res) => {
 
 export const bulkPriceUpdate = async (req, res) => {
   try {
-    const { category, percentageChange } = req.query; // Changed from body for easier GET/PUT handling
+    const { category, percentageChange } = req.query;
     const factor = 1 + (percentageChange / 100);
     
     let query = { category, isActive: true };
@@ -238,6 +234,54 @@ export const getLowStock = async (req, res) => {
     }
     const products = await Product.find(query).populate("store", "name");
     res.status(200).json({ products, count: products.length });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const transferStock = async (req, res) => {
+  try {
+    const { fromProductId, toStoreId, quantity } = req.body;
+    if (req.user.role !== "admin") return res.status(403).json({ message: "Admin access required" });
+
+    const source = await Product.findById(fromProductId);
+    if (!source) return res.status(404).json({ message: "Source product not found" });
+    if (source.stock < Number(quantity)) return res.status(400).json({ message: `Insufficient stock. Available: ${source.stock}` });
+
+    // Find existing product with same SKU in target store
+    let target = await Product.findOne({ sku: source.sku, store: toStoreId });
+    
+    if (!target) {
+      // Product doesn't exist in target store — create with store-specific SKU
+      const newSku = `${source.sku}-S${toStoreId.toString().slice(-4)}`;
+      // Check if this derived SKU already exists
+      const existingDerived = await Product.findOne({ sku: newSku, store: toStoreId });
+      if (existingDerived) {
+        target = existingDerived;
+      } else {
+        target = await Product.create({
+          name: source.name,
+          sku: newSku,
+          category: source.category,
+          costPrice: source.costPrice,
+          basePrice: source.basePrice,
+          image: source.image,
+          stock: 0,
+          lowStockThreshold: source.lowStockThreshold,
+          store: toStoreId,
+          isActive: true
+        });
+      }
+    }
+
+    source.stock -= Number(quantity);
+    target.stock += Number(quantity);
+
+    await source.save();
+    await target.save();
+
+    await logActivity(req.user.id, "STOCK_TRANSFER", `Transferred ${quantity} ${source.name} to store ${toStoreId}`, source._id);
+    res.status(200).json({ message: `Transferred ${quantity} units of ${source.name} successfully` });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
