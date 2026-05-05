@@ -152,8 +152,9 @@ const UserManagement = () => {
                 <Menu size={24} />
               </button>
               <div>
-              <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">User Management</h1>
-              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Manage staff accounts and access</p>
+                <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">User Management</h1>
+                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Manage staff accounts and access</p>
+              </div>
             </div>
             
             <div className="flex items-center gap-3">
