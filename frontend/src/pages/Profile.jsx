@@ -141,8 +141,8 @@ const Profile = () => {
         cartCount={(cart || []).reduce((a, b) => a + (b.quantity || 0), 0)}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300 lg:ml-72">
-        <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-10 z-20 transition-colors">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
+        <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-6 lg:p-10 z-20 transition-colors">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
             <div className="flex items-center gap-4">
               <button
@@ -162,13 +162,13 @@ const Profile = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-10 no-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-10 no-scrollbar">
           <div className="max-w-5xl mx-auto space-y-10 pb-20">
             {/* HERO PROFILE SECTION */}
             <div className="bg-white dark:bg-[#1a1c2c] rounded-[3rem] border border-slate-200 dark:border-white/5 shadow-sm overflow-hidden transition-colors">
               <div className="h-48 bg-slate-900 dark:bg-black/40 relative">
                 <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-                <div className="absolute bottom-0 left-12 translate-y-1/2 flex items-end gap-8">
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 md:left-12 md:translate-x-0 translate-y-1/2 flex flex-col md:flex-row items-center md:items-end gap-4 md:gap-8">
                   <div className="relative group">
                     <div className="w-36 h-36 rounded-[2.5rem] bg-white dark:bg-[#11121d] p-1 border-4 border-white dark:border-[#1a1c2c] shadow-2xl transition-colors">
                       <div className="w-full h-full rounded-[2.2rem] bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-300 relative overflow-hidden group">
@@ -193,9 +193,9 @@ const Profile = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="pb-6">
-                    <h2 className="text-3xl font-black text-white tracking-tighter leading-none mb-2">{user.name}</h2>
-                    <div className="flex items-center gap-3">
+                  <div className="pb-6 text-center md:text-left">
+                    <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter leading-none mb-2">{user.name}</h2>
+                    <div className="flex items-center justify-center md:justify-start gap-3">
                       <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
                         <Zap size={12} className="text-amber-400" /> {user.role} Identity
                       </p>
@@ -203,7 +203,7 @@ const Profile = () => {
                   </div>
                 </div>
               </div>
-              <div className="pt-28 pb-12 px-12 grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="pt-32 md:pt-28 pb-8 md:pb-12 px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                 <div className="bg-slate-50 dark:bg-black/20 p-6 rounded-3xl border border-slate-100 dark:border-white/5">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Email Link</p>
                   <p className="text-sm font-black text-slate-900 dark:text-white truncate">{user.email}</p>
@@ -224,8 +224,8 @@ const Profile = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
               {/* EDIT FORM */}
-              <div className="lg:col-span-7 space-y-8">
-                <div className="bg-white dark:bg-[#1a1c2c] rounded-[3rem] border border-slate-200 dark:border-white/5 p-12 shadow-sm transition-colors">
+              <div className="lg:col-span-7 space-y-6 md:space-y-8">
+                <div className="bg-white dark:bg-[#1a1c2c] rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-sm transition-colors">
                   <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter mb-10">Identity Configuration</h3>
                   <form onSubmit={handleUpdate} className="space-y-8">
                     <div className="space-y-2">
@@ -283,8 +283,8 @@ const Profile = () => {
               </div>
 
               {/* SECURITY & ADDITIONAL INFO */}
-              <div className="lg:col-span-5 space-y-8">
-                <div className="bg-white dark:bg-[#1a1c2c] rounded-[3rem] border border-slate-200 dark:border-white/5 p-12 shadow-sm transition-colors">
+              <div className="lg:col-span-5 space-y-6 md:space-y-8">
+                <div className="bg-white dark:bg-[#1a1c2c] rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-sm transition-colors">
                   <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter mb-10">Security Layer</h3>
                   <div className="space-y-4">
                     <button 

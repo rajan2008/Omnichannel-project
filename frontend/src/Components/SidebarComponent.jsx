@@ -137,7 +137,16 @@ const Sidebar = ({
   };
 
   return (
-    <aside className={`fixed inset-y-0 left-0 w-72 bg-white dark:bg-[#0f172a] border-r border-slate-200 dark:border-white/5 flex flex-col z-[100] transition-transform duration-500 lg:relative lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+    <>
+      {/* MOBILE BACKDROP */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] lg:hidden animate-in fade-in duration-300"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      <aside className={`fixed inset-y-0 left-0 w-72 bg-white dark:bg-[#0f172a] border-r border-slate-200 dark:border-white/5 flex flex-col z-[100] transition-transform duration-500 lg:relative lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
       {/* BRANDING */}
       <div className="p-8 pb-10 flex items-center justify-between">
         <div className="flex items-center gap-3">

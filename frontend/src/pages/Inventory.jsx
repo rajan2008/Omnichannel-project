@@ -218,8 +218,8 @@ const Inventory = () => {
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-transparent transition-colors duration-300">
-        <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-4 lg:p-8 z-20 transition-colors">
-          <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-6 lg:p-8 z-20 transition-colors">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="flex items-center gap-4 w-full md:w-auto">
               <button 
                 onClick={() => setIsSidebarOpen(true)}
@@ -257,7 +257,7 @@ const Inventory = () => {
             </div>
           </div>
 
-          <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-4 gap-6 mt-10">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8 md:mt-10">
             <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 transition-colors">
               <div className="w-10 h-10 bg-slate-50 dark:bg-[#1a1c2c] rounded-xl flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 dark:border-white/5">
                 <Package size={18} />
@@ -341,7 +341,7 @@ const Inventory = () => {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-8 md:p-10 scroll-smooth no-scrollbar">
+        <div className="flex-1 overflow-y-auto p-4 md:p-10 scroll-smooth no-scrollbar">
           <div className="max-w-7xl mx-auto space-y-3">
             {predictions && (
               <div className="bg-purple-500/10 border border-purple-500/20 p-6 rounded-3xl animate-in slide-in-from-top-4">
@@ -396,7 +396,7 @@ const Inventory = () => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-8">
                 {filteredProducts.map((item) => (
                   <ProductCard
                     key={item._id}

@@ -456,10 +456,10 @@ export default function Dashboard() {
         cartCount={cart.reduce((a, b) => a + b.quantity, 0)}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-auto bg-[#f8fafc] dark:bg-[#0b0f1a]">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
         {/* COMPACT TOP BAR */}
-        <header className="bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-white/5 px-4 lg:px-8 py-3 z-20">
-          <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
+        <header className="bg-white dark:bg-[#1a1c2c] border-b border-slate-200 dark:border-white/5 p-6 lg:p-8 z-20 transition-colors">
+          <div className="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <button 
               onClick={() => setIsSidebarOpen(true)}
               className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-brand-red transition-colors"
@@ -549,7 +549,7 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-6 lg:p-2">
+        <div className="flex-1 overflow-y-auto p-4 lg:p-8">
           <div className="max-w-7xl mx-auto space-y-8">
             {showCheckoutSummary ? (
               /* CHECKOUT SUCCESS */
@@ -685,7 +685,7 @@ export default function Dashboard() {
                 {activeTab === "stats" ? (
                   <>
                     {/* STATS GRID */}
-                    <div className="grid grid-cols-1 p-3 sm:grid-cols-2 lg:grid-cols-4 gap-5 items-stretch">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 items-stretch">
                       <div className="bg-white dark:bg-[#1e293b] p-5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-sm">
                         <div className="flex justify-between items-start mb-3">
                           <div className="w-9 h-9 bg-brand-red/10 rounded-lg flex items-center justify-center text-brand-red">
@@ -957,7 +957,7 @@ export default function Dashboard() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-3 no-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 md:p-10 scroll-smooth no-scrollbar">
               {cart.length === 0 ? (
                 <div className="py-20 text-center space-y-4">
                   <div className="w-12 h-12 bg-slate-50 dark:bg-white/5 rounded-xl flex items-center justify-center mx-auto text-slate-400 shadow-inner">
