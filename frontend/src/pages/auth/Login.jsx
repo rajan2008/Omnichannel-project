@@ -1,9 +1,19 @@
 import { useNavigate } from "react-router-dom";
 import { loginUser } from "../../api/authApi.js";
 import { useEffect, useState } from "react";
-import login from "../../assets/login.jpg";
 import { useDispatch } from "react-redux";
-import { Eye, EyeOff, ShieldCheck, Sun, Moon } from "lucide-react";
+import { 
+  Eye, 
+  EyeOff, 
+  ShieldCheck, 
+  Sun, 
+  Moon, 
+  ArrowRight,
+  Sparkles,
+  Lock,
+  Mail,
+  Zap
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { setUser } from "../../redux/slices/authSlice.js";
 
@@ -80,85 +90,153 @@ const Login = () => {
   const isDark = themeMode === 'dark';
 
   return (
-    <div className="w-full h-screen flex bg-white dark:bg-[#11121d] font-sans text-slate-900 dark:text-white transition-colors duration-300 overflow-hidden relative">
-      <button 
-        onClick={toggleTheme}
-        className="fixed top-8 right-8 z-50 p-3 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10 hover:border-brand-red transition-all shadow-sm cursor-pointer"
-      >
-        {isDark ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} className="text-slate-400" />}
-      </button>
-
-      <div className="w-full lg:w-[450px] flex flex-col justify-center px-10 sm:px-16 lg:px-12 z-10 bg-white dark:bg-[#11121d] transition-colors">
-        <div className="mb-10 flex flex-col items-center lg:items-start">
-          <div className="w-12 h-12 mb-6">
-            <img src="/logo.svg" className="w-full h-full object-contain" alt="Logo" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">Workspace Login</h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Enter your credentials to access Vendora.</p>
-        </div>
-
-        <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-5">
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Work Email</label>
-            <input
-              type="email"
-              name="email"
-              placeholder="name@company.com"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full text-slate-900 dark:text-white py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg outline-none focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-semibold text-sm"
-            />
-            {errors.email && <p className="text-[10px] text-brand-red font-bold uppercase mt-1 ml-1">{errors.email}</p>}
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Security Key</label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                name="password"
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full text-slate-900 dark:text-white py-3 px-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg outline-none pr-12 focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-semibold text-sm"
-              />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-brand-red transition-colors">
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-            {errors.password && <p className="text-[10px] text-brand-red font-bold uppercase mt-1 ml-1">{errors.password}</p>}
-          </div>
-
-          <div className="flex items-center justify-between pb-2">
-            <label className="flex items-center gap-2 cursor-pointer group">
-              <input type="checkbox" className="w-3.5 h-3.5 rounded border-slate-300 text-brand-red focus:ring-brand-red" />
-              <span className="text-[10px] font-bold text-slate-500 group-hover:text-brand-red uppercase tracking-wider transition-colors">Keep Session</span>
-            </label>
-            <button onClick={() => navigate("/forgot-password")} type="button" className="text-[10px] font-bold text-brand-red uppercase tracking-wider hover:underline">Reset Passcode</button>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full h-12 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-2.5 font-bold uppercase text-[10px] tracking-widest shadow-lg shadow-slate-900/10 active:scale-[0.98] disabled:opacity-50"
-          >
-            {loading ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <ShieldCheck size={16} />}
-            {loading ? "Processing..." : "Authorize Access"}
-          </button>
-        </form>
-
-        <div className="mt-5 pt-5 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">New to the platform?</p>
-          <button onClick={() => navigate("/register")} className="text-xs font-bold text-slate-900 dark:text-white hover:text-brand-red transition-all underline underline-offset-4 decoration-brand-red/30">Create your workspace account</button>
-        </div>
+    <div className="w-full min-h-screen flex items-center justify-center bg-white dark:bg-[#0f172a] font-sans text-slate-900 dark:text-white transition-all duration-500 overflow-hidden relative">
+      {/* PREMIUM BACKGROUND ANIMATION */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-red/10 dark:bg-brand-red/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-500/10 dark:bg-blue-500/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-[20%] right-[10%] w-[20%] h-[20%] bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-[80px]" />
       </div>
 
-      <div className="hidden lg:block flex-1 relative bg-slate-50 dark:bg-[#1a1c2c] transition-colors">
-        <img src={login} alt="login visual" className="w-full h-full object-cover grayscale-[20%] brightness-[90%] dark:brightness-[60%]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-[#11121d] via-transparent to-transparent"></div>
-        <div className="absolute bottom-12 left-12 max-w-sm">
-          <h2 className="text-4xl font-bold text-white tracking-tight mb-4 drop-shadow-lg">Professional Retail Management</h2>
-          <p className="text-white/90 font-medium leading-relaxed drop-shadow-md">Streamline your omnichannel operations with our enterprise-grade POS and inventory ecosystem.</p>
+      {/* THEME TOGGLE */}
+      <button 
+        onClick={toggleTheme}
+        className="fixed top-8 right-8 z-50 p-3 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-white/10 hover:border-brand-red transition-all shadow-xl shadow-slate-200/20 dark:shadow-none cursor-pointer group"
+      >
+        {isDark ? <Sun size={20} className="text-amber-400 group-hover:rotate-45 transition-transform" /> : <Moon size={20} className="text-slate-400 group-hover:-rotate-12 transition-transform" />}
+      </button>
+
+      {/* MAIN CONTAINER */}
+      <div className="w-full max-w-[1100px] h-[700px] flex rounded-[2.5rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-white dark:border-white/5 relative z-10 m-4">
+        
+        {/* LEFT FORM SECTION */}
+        <div className="w-full lg:w-[480px] flex flex-col justify-center px-10 sm:px-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl relative">
+          <div className="mb-10 flex flex-col items-center lg:items-start animate-in fade-in slide-in-from-top-4 duration-700">
+            <div className="w-14 h-14 mb-6 bg-brand-red p-3 rounded-2xl shadow-lg shadow-brand-red/20 transform -rotate-6 hover:rotate-0 transition-transform">
+              <img src="/logo.svg" className="w-full h-full object-contain brightness-0 invert" alt="Logo" />
+            </div>
+            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">Workspace Login</h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Enter your credentials to access the terminal.</p>
+          </div>
+
+          <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }} className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Work Identity</label>
+              <div className="relative group">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="name@enterprise.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-bold text-sm dark:text-white shadow-sm"
+                />
+              </div>
+              {errors.email && <p className="text-[10px] text-brand-red font-black uppercase mt-1 ml-4 animate-pulse">{errors.email}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Security Key</label>
+              <div className="relative group">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="w-full pl-12 pr-14 py-4 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red focus:bg-white dark:focus:bg-white/10 transition-all font-bold text-sm dark:text-white shadow-sm"
+                />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 hover:text-brand-red transition-colors">
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {errors.password && <p className="text-[10px] text-brand-red font-black uppercase mt-1 ml-4 animate-pulse">{errors.password}</p>}
+            </div>
+
+            <div className="flex items-center justify-between px-2">
+              <label className="flex items-center gap-2.5 cursor-pointer group">
+                <div className="relative">
+                  <input type="checkbox" className="peer sr-only" />
+                  <div className="w-4 h-4 bg-slate-100 dark:bg-white/10 border border-slate-300 dark:border-white/20 rounded-md peer-checked:bg-brand-red peer-checked:border-brand-red transition-all" />
+                  <div className="absolute inset-0 flex items-center justify-center text-white scale-0 peer-checked:scale-100 transition-transform">
+                    <ShieldCheck size={10} />
+                  </div>
+                </div>
+                <span className="text-[10px] font-black text-slate-500 group-hover:text-brand-red uppercase tracking-wider transition-colors">Trust device</span>
+              </label>
+              <button onClick={() => navigate("/forgot-password")} type="button" className="text-[10px] font-black text-brand-red uppercase tracking-wider hover:underline underline-offset-4">Lost Passcode?</button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-3 font-black uppercase text-xs tracking-[0.2em] shadow-xl shadow-slate-900/10 dark:shadow-none active:scale-[0.98] disabled:opacity-50 overflow-hidden relative group"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
+              {loading ? <Zap size={18} className="animate-bounce" /> : <ShieldCheck size={18} />}
+              {loading ? "Authenticating..." : "Establish Session"}
+            </button>
+          </form>
+
+          <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-1000 delay-300">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">No workspace access?</p>
+            <button 
+              onClick={() => navigate("/register")} 
+              className="group flex items-center gap-2 text-sm font-black text-slate-900 dark:text-white hover:text-brand-red transition-all"
+            >
+              Initialize New Account
+              <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+            </button>
+          </div>
+
+          {/* OTP FALLBACK HINT */}
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full px-10 text-center opacity-40 hover:opacity-100 transition-opacity">
+            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">
+              Having trouble with OTP? Check server logs or contact support.
+            </p>
+          </div>
+        </div>
+
+        {/* RIGHT VISUAL SECTION */}
+        <div className="hidden lg:flex flex-1 bg-slate-900 relative items-center justify-center overflow-hidden">
+          {/* Animated Mesh */}
+          <div className="absolute inset-0 opacity-40">
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(239,35,60,0.2),transparent_70%)]" />
+            <div className="absolute w-[200%] h-[200%] top-[-50%] left-[-50%] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] animate-slow-pan" />
+          </div>
+
+          <div className="relative z-10 p-20 text-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full mb-8 animate-bounce">
+              <Sparkles size={14} className="text-brand-red" />
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">v2.0 Enterprise Core</span>
+            </div>
+            <h2 className="text-5xl font-black text-white tracking-tighter mb-6 leading-[0.95]">
+              Scale Your <br />
+              <span className="text-brand-red">Omnichannel</span> <br />
+              Empire.
+            </h2>
+            <p className="text-slate-400 font-bold text-lg leading-relaxed max-w-sm mx-auto mb-10">
+              The next generation of retail intelligence starts here.
+            </p>
+            <div className="grid grid-cols-3 gap-6">
+              {[
+                { label: 'Latency', value: '14ms' },
+                { label: 'Uptime', value: '99.9%' },
+                { label: 'Nodes', value: '1.2k' }
+              ].map((stat, i) => (
+                <div key={i} className="text-left">
+                  <p className="text-[9px] font-black text-brand-red uppercase tracking-widest mb-1">{stat.label}</p>
+                  <p className="text-xl font-black text-white tracking-tighter">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Floating Blobs */}
+          <div className="absolute top-1/4 -right-12 w-64 h-64 bg-brand-red/20 rounded-full blur-[100px] animate-pulse" />
+          <div className="absolute bottom-1/4 -left-12 w-64 h-64 bg-blue-500/20 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: '3s' }} />
         </div>
       </div>
     </div>

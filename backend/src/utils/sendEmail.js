@@ -1,16 +1,19 @@
 import nodemailer from "nodemailer";
 
 const sendEmail = async (options) => {
+  // ALWAYS LOG THE MESSAGE CONTENT FIRST (In case SMTP fails)
+  console.log("\n" + "=".repeat(40));
+  console.log("OUTGOING EMAIL DISPATCH LOG");
+  console.log(`To: ${options.email}`);
+  console.log(`Subject: ${options.subject}`);
+  console.log(`Body: ${options.message}`);
+  console.log("=".repeat(40) + "\n");
+
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.log("--- DEVELOPMENT EMAIL LOG ---");
-    console.log(`To: ${options.email}`);
-    console.log(`Subject: ${options.subject}`);
-    console.log(`Message: ${options.message}`);
-    console.log("------------------------------");
     return;
   }
 
-  console.log(`Attempting to send real email to: ${options.email}...`);
+  console.log(`Attempting real SMTP delivery to: ${options.email}...`);
 
   try {
     const transporter = nodemailer.createTransport({

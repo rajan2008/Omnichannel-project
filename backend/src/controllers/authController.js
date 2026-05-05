@@ -26,8 +26,11 @@ export const sendRegistrationOTP = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
     
-    // Log OTP to console as fallback for production debugging/setup
-    console.log(`\n=== REGISTRATION OTP for ${email}: ${otp} ===\n`);
+    // CRITICAL: LOG OTP WITH HIGH VISIBILITY (Render Fallback)
+    console.log("\n" + "█".repeat(50));
+    console.log(`█  REGISTRATION OTP FOR: ${email}`);
+    console.log(`█  CODE: ${otp}`);
+    console.log("█" + "█".repeat(49) + "\n");
 
     await OTP.findOneAndUpdate(
       { email },
@@ -315,13 +318,19 @@ export const forgotPassword = async (req, res) => {
     const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:5173"}/reset-password/${resetToken}`;
     
     // CRITICAL: Always log this to console so user can recover account
-    console.log("\n" + "=".repeat(30));
-    console.log("PASSWORD RESET LINK GENERATED");
-    console.log(`User: ${user.email}`);
-    console.log(`Link: ${resetUrl}`);
-    console.log("=".repeat(30) + "\n");
+    // ALWAYS LOG THE MESSAGE CONTENT FIRST (In case SMTP fails)
+    console.log("\n" + "=".repeat(40));
+    console.log("OUTGOING EMAIL SIMULATION/LOG");
+    console.log(`To: ${user.email}`);
+    console.log(`Subject: Password Reset Token`);
+    console.log(`Body: Reset Link: ${resetUrl}`);
+    console.log("=".repeat(40) + "\n");
 
-    // FIRE AND FORGET: Background email to keep UI fast
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      return;
+    }
+
+    console.log(`Attempting real SMTP dispatch to: ${user.email}...`);
     sendEmail({ email: user.email, subject: "Password Reset Token", message: `Reset Link: ${resetUrl}` })
       .catch(err => console.error("Background Email Error:", err));
 
