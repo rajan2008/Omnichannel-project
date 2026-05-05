@@ -264,6 +264,7 @@ const Sidebar = ({
         </button>
       </div>
     </aside>
+    </>
   );
 };
 

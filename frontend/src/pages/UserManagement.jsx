@@ -156,7 +156,6 @@ const UserManagement = () => {
                 <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Manage staff accounts and access</p>
               </div>
             </div>
-            </div>
             
             <div className="flex items-center gap-3 w-full lg:w-auto">
               <div className="relative flex-1 lg:flex-none">
