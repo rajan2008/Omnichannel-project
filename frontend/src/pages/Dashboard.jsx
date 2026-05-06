@@ -350,49 +350,56 @@ export default function Dashboard() {
 
     // Keep a copy for the success screen
     const orderSummary = {
-      items: [...cart],
-      total: total,
-      orderId: `ORD-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 1000)}`
+      items: cart ? [...cart] : [],
+      total: total || 0,
+      orderId: `ORD-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 1000)}`,
+      createdAt: new Date().toISOString()
     };
 
     if (!navigator.onLine) {
       // OFFLINE LOGIC
-      const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
-      offlineOrders.push({ ...orderData, createdAt: new Date().toISOString(), isOffline: true });
-      localStorage.setItem("offline_orders", JSON.stringify(offlineOrders));
-      
-      toast.success("Order saved offline! Will sync when online.", { icon: "📡" });
-      setLastOrder({ ...orderSummary, isOffline: true });
-      setIsCartModalOpen(false);
-      setShowCheckoutSummary(true);
-      dispatch(clearCartAction());
+      try {
+        const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
+        offlineOrders.push({ ...orderData, ...orderSummary, isOffline: true });
+        localStorage.setItem("offline_orders", JSON.stringify(offlineOrders));
+        
+        setLastOrder({ ...orderSummary, isOffline: true });
+        setIsCartModalOpen(false);
+        setTimeout(() => setShowCheckoutSummary(true), 100);
+        dispatch(clearCartAction());
+        toast.success("Saved Offline!", { icon: "📡" });
+      } catch (err) {
+        console.error("Offline save error:", err);
+        toast.error("Failed to save offline.");
+      }
       return;
     }
 
     try {
       setLoading(true);
       const response = await checkoutOrder(orderData);
-      toast.success("Order processed successfully!", { icon: "🚀" });
-
+      
       setLastOrder({
         ...orderSummary,
-        orderId: response.order?._id ? `ORD-${response.order._id.slice(-6).toUpperCase()}` : orderSummary.orderId
+        orderId: response?.order?._id ? `ORD-${response.order._id.slice(-6).toUpperCase()}` : orderSummary.orderId,
+        _id: response?.order?._id
       });
 
       setIsCartModalOpen(false);
-      setShowCheckoutSummary(true);
+      setTimeout(() => setShowCheckoutSummary(true), 100);
       dispatch(clearCartAction());
+      toast.success("Order Successful!", { icon: "🚀" });
     } catch (error) {
       // IF SERVER IS DOWN BUT INTERNET IS ON
       const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
-      offlineOrders.push({ ...orderData, createdAt: new Date().toISOString(), isOffline: true });
+      offlineOrders.push({ ...orderData, ...orderSummary, isOffline: true });
       localStorage.setItem("offline_orders", JSON.stringify(offlineOrders));
       
-      toast.error("Server unreachable. Order saved locally.");
       setLastOrder({ ...orderSummary, isOffline: true });
       setIsCartModalOpen(false);
-      setShowCheckoutSummary(true);
+      setTimeout(() => setShowCheckoutSummary(true), 100);
       dispatch(clearCartAction());
+      toast.error("Offline Mode Activated");
     } finally {
       setLoading(false);
     }
@@ -1086,12 +1093,22 @@ export default function Dashboard() {
                 <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Verified Transaction • Secure Network Hub</p>
               </div>
             </div>
-            <div className="p-6 bg-slate-50 border-t flex gap-4">
+            <div className="p-6 bg-slate-50 border-t flex flex-col sm:flex-row gap-4">
               <button 
-                onClick={() => window.print()}
+                onClick={() => {
+                  if (navigator.share) {
+                    navigator.share({
+                      title: 'Order Invoice',
+                      text: `Invoice for Order ${lastOrder?.orderId}`,
+                      url: window.location.href
+                    }).catch(() => window.print());
+                  } else {
+                    window.print();
+                  }
+                }}
                 className="flex-1 py-4 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-red transition-all flex items-center justify-center gap-2"
               >
-                <Zap size={14} /> Print Hardcopy
+                <Download size={14} /> Download / Share PDF
               </button>
               <button 
                 onClick={() => setShowDigitalInvoice(false)}
