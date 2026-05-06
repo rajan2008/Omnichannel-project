@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { registerUser, sendRegistrationOTP } from "../../api/authApi.js";
+import { registerUser, sendRegistrationOTP, directRegister } from "../../api/authApi.js";
 import { useEffect, useState } from "react";
 import { 
   ShieldPlus, 
@@ -72,12 +72,24 @@ const Register = () => {
     }
     try {
       setLoading(true);
-      await sendRegistrationOTP({ email: formData.email });
-      toast.success("OTP dispatch initiated. Check inbox.");
-      setStep(2);
-      setCountdown(60);
+      // Attempt Direct Registration First to skip OTP latency
+      const data = await directRegister(formData);
+      toast.success("Account established successfully!");
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("user", JSON.stringify(data.user));
+        setTimeout(() => navigate("/dashboard"), 800);
+      }
     } catch (err) {
-      toast.error(err?.message || "OTP dispatch failed");
+      // If direct registration fails (e.g., endpoint removed or other error), fallback to OTP
+      try {
+        await sendRegistrationOTP({ email: formData.email });
+        toast.success("OTP sent to your email.");
+        setStep(2);
+        setCountdown(60);
+      } catch (otpErr) {
+        toast.error(otpErr?.message || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -135,10 +147,10 @@ const Register = () => {
       </button>
 
       {/* MAIN CONTAINER */}
-      <div className="w-full max-w-[1100px] min-h-[700px] flex rounded-[2.5rem] overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] border border-white dark:border-white/5 relative z-10 m-4">
+      <div className="w-full max-w-[1100px] min-h-[700px] lg:h-[700px] flex flex-col lg:flex-row rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white dark:border-white/5 relative z-10 m-4">
         
         {/* LEFT VISUAL SECTION (Desktop) */}
-        <div className="hidden lg:flex flex-1 bg-slate-900 relative items-center justify-center overflow-hidden">
+        <div className="hidden lg:flex flex-1 bg-slate-900 relative items-center justify-center overflow-hidden order-1 lg:order-2">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute w-[200%] h-[200%] top-[-50%] left-[-50%] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] animate-slow-pan" />
           </div>
@@ -173,7 +185,7 @@ const Register = () => {
         </div>
 
         {/* RIGHT FORM SECTION */}
-        <div className="w-full lg:w-[480px] flex flex-col justify-center px-10 sm:px-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl relative py-12">
+        <div className="w-full lg:w-[480px] flex flex-col justify-center px-8 sm:px-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl relative py-12 order-2 lg:order-1">
           
           {/* Progress Indicator */}
           <div className="flex gap-2 mb-10">
@@ -183,23 +195,23 @@ const Register = () => {
 
           <div className="mb-8 flex flex-col items-center lg:items-start animate-in fade-in slide-in-from-top-4 duration-700">
             <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
-              {step === 1 ? "Create Workspace" : "Verify Identity"}
+              {step === 1 ? "Register" : "Verify Email"}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-              {step === 1 ? "Set up your professional retail profile." : "Enter the security code sent to your email."}
+              {step === 1 ? "Set up your business profile." : "Enter the code sent to your email."}
             </p>
           </div>
 
           {step === 1 ? (
             <form onSubmit={(e) => { e.preventDefault(); handleSendOTP(); }} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Business Identity</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Business Name</label>
                 <div className="relative group">
                   <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
                   <input
                     required
                     name="name"
-                    placeholder="Enterprise or Store Name"
+                    placeholder="Business or Store Name"
                     value={formData.name}
                     onChange={handleChange}
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
@@ -208,14 +220,14 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Primary Email</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Email Address</label>
                 <div className="relative group">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
                   <input
                     required
                     type="email"
                     name="email"
-                    placeholder="contact@enterprise.com"
+                    placeholder="email@example.com"
                     value={formData.email}
                     onChange={handleChange}
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
@@ -224,7 +236,7 @@ const Register = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Secret Passcode</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Password</label>
                 <div className="relative group">
                   <ShieldPlus className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
                   <input
@@ -244,8 +256,8 @@ const Register = () => {
                 disabled={loading}
                 className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-[0.98] disabled:opacity-50"
               >
-                {loading ? <Loader2 size={18} className="animate-spin" /> : <ArrowRight size={18} />}
-                {loading ? "Processing..." : "Generate Verification Key"}
+                {loading ? <Zap size={18} className="animate-spin" /> : <ArrowRight size={18} />}
+                {loading ? "Registering..." : "Create Account"}
               </button>
             </form>
           ) : (
@@ -255,13 +267,13 @@ const Register = () => {
                   <Mail size={20} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">OTP Dispatched</p>
+                  <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">OTP Sent</p>
                   <p className="text-xs font-bold text-slate-600 dark:text-slate-300 truncate max-w-[200px]">{formData.email}</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 text-center block">Enter 6-Digit Key</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 text-center block">Enter OTP</label>
                 <input
                   autoFocus
                   maxLength={6}
@@ -278,7 +290,7 @@ const Register = () => {
                 className="w-full h-14 bg-brand-red text-white rounded-2xl hover:bg-brand-darkred transition-all flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-brand-red/20 active:scale-[0.98] disabled:opacity-50"
               >
                 {loading ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
-                {loading ? "Authenticating..." : "Complete Registration"}
+                {loading ? "Verifying..." : "Register Now"}
               </button>
 
               <div className="flex items-center justify-between px-2">
@@ -290,15 +302,15 @@ const Register = () => {
                   disabled={countdown > 0 || loading}
                   className="text-[10px] font-black text-brand-red uppercase hover:underline disabled:opacity-30 disabled:no-underline"
                 >
-                  {countdown > 0 ? `Resend Key in ${countdown}s` : "Redispatch Key"}
+                  {countdown > 0 ? `Resend OTP in ${countdown}s` : "Resend OTP"}
                 </button>
               </div>
             </div>
           )}
 
           <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Already associated?</p>
-            <button onClick={() => navigate("/login")} className="text-sm font-black text-slate-900 dark:text-white hover:text-brand-red transition-all">Sign In to Workspace</button>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Already have an account?</p>
+            <button onClick={() => navigate("/login")} className="text-sm font-black text-slate-900 dark:text-white hover:text-brand-red transition-all">Login</button>
           </div>
 
           {/* OTP HINT */}

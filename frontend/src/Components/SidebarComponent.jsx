@@ -82,12 +82,12 @@ const Sidebar = ({
 
   const managementItems = [
     { id: "inventory", label: "Inventory", icon: Package, roles: ["admin", "manager", "cashier"], path: "/inventory" },
-    { id: "orders", label: "Transactions", icon: Layers, roles: ["admin", "manager", "cashier"], path: "/dashboard?tab=orders" },
+    { id: "orders", label: "Orders", icon: Layers, roles: ["admin", "manager", "cashier"], path: "/dashboard?tab=orders" },
   ];
 
   const adminItems = [
-    { id: "users", label: "Identities", icon: Users, roles: ["admin", "manager"], path: "/users" },
-    { id: "stores", label: "Infrastructure", icon: Building2, roles: ["admin"], path: "/stores" },
+    { id: "users", label: "Staff", icon: Users, roles: ["admin", "manager"], path: "/users" },
+    { id: "stores", label: "Stores", icon: Building2, roles: ["admin"], path: "/stores" },
   ];
 
   const footerItems = [
@@ -129,10 +129,10 @@ const Sidebar = ({
 
   // Determine store display name
   const getStoreDisplayName = () => {
-    if (user?.role === 'admin') return "Enterprise Root";
+    if (user?.role === 'admin') return "All Stores";
     if (user?.store?.name) return user.store.name;
-    if (typeof user?.store === 'string') return "Linked Node"; 
-    if (user?.store && typeof user.store === 'object') return user.store.name || "Station Node";
+    if (typeof user?.store === 'string') return "Store Staff"; 
+    if (user?.store && typeof user.store === 'object') return user.store.name || "Store Staff";
     return "No Store Assigned";
   };
 
@@ -141,12 +141,12 @@ const Sidebar = ({
       {/* MOBILE BACKDROP */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[90] lg:hidden animate-in fade-in duration-300"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[140] lg:hidden animate-in fade-in duration-300"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 w-72 bg-white dark:bg-[#0f172a] border-r border-slate-200 dark:border-white/5 flex flex-col z-[100] transition-transform duration-500 lg:relative lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
+      <aside className={`fixed inset-y-0 left-0 w-72 bg-white dark:bg-[#0f172a] border-r border-slate-200 dark:border-white/5 flex flex-col z-[150] transition-transform duration-500 lg:relative lg:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
       {/* BRANDING */}
       <div className="p-8 pb-10 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -155,7 +155,7 @@ const Sidebar = ({
           </div>
           <div className="flex flex-col">
             <span className="text-slate-900 dark:text-white font-black text-lg tracking-tight leading-none">{title}</span>
-            <span className="text-[9px] font-bold text-brand-red uppercase tracking-[0.2em] mt-1 opacity-80">Workspace</span>
+            <span className="text-[9px] font-bold text-brand-red uppercase tracking-[0.2em] mt-1 opacity-80">POS</span>
           </div>
         </div>
         <button className="lg:hidden text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white" onClick={() => setIsSidebarOpen(false)}>
@@ -165,12 +165,12 @@ const Sidebar = ({
 
       <nav className="flex-1 px-6 space-y-2 overflow-y-auto no-scrollbar">
         <div className="pb-2">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400/60 dark:text-slate-500 px-3.5 mb-3">Core Hub</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400/60 dark:text-slate-500 px-3.5 mb-3">Dashboard</p>
           {menuItems.map(renderMenuItem)}
         </div>
 
         <div className="pt-4 pb-2">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400/60 dark:text-slate-500 px-3.5 mb-3">Supply & Sales</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400/60 dark:text-slate-500 px-3.5 mb-3">Inventory & Sales</p>
           <div className="space-y-1">
             {managementItems.map(renderMenuItem)}
             
@@ -181,7 +181,7 @@ const Sidebar = ({
             >
               <div className="flex items-center gap-3.5">
                 <ShoppingCart size={20} className="group-hover:scale-110 transition-transform" />
-                <span className="font-bold text-xs tracking-wide opacity-80 group-hover:opacity-100">Sales Terminal</span>
+                <span className="font-bold text-xs tracking-wide opacity-80 group-hover:opacity-100">POS Terminal</span>
               </div>
               {cartCount > 0 && (
                 <span className="bg-brand-red text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(239,35,60,0.3)] animate-pulse">
@@ -194,7 +194,7 @@ const Sidebar = ({
 
         {(user?.role === 'admin' || user?.role === 'manager') && (
           <div className="pt-4 pb-2">
-            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400/60 dark:text-slate-500 px-3.5 mb-3">Enterprise Control</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400/60 dark:text-slate-500 px-3.5 mb-3">Management</p>
             <div className="space-y-1">
               {adminItems.map(renderMenuItem)}
             </div>
@@ -202,14 +202,14 @@ const Sidebar = ({
         )}
 
         <div className="pt-4 pb-2">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400/60 dark:text-slate-500 px-3.5 mb-3">System Settings</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400/60 dark:text-slate-500 px-3.5 mb-3">Appearance</p>
           <button 
             onClick={toggleTheme}
             className="w-full flex items-center gap-3.5 p-3.5 rounded-xl text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white transition-all group cursor-pointer"
           >
             {isDark ? <Sun size={20} className="text-amber-400" /> : <Moon size={20} />}
             <span className="font-bold text-xs tracking-wide opacity-80 group-hover:opacity-100">
-              {isDark ? "Luminous Mode" : "Nocturnal Mode"}
+              {isDark ? "Light Mode" : "Dark Mode"}
             </span>
           </button>
         </div>
@@ -225,7 +225,7 @@ const Sidebar = ({
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 rounded-xl bg-brand-red flex items-center justify-center text-white font-black uppercase text-base shadow-lg group-hover:scale-105 transition-transform overflow-hidden">
               {user?.avatar ? (
-                <img src={`http://localhost:5000/${user.avatar}`} className="w-full h-full object-cover" alt="" />
+                <img src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:5000"}/${user.avatar}`} className="w-full h-full object-cover" alt="" />
               ) : (
                 user?.name?.charAt(0)
               )}
@@ -246,7 +246,7 @@ const Sidebar = ({
             </div>
             <div className="flex-1 min-w-0">
               <p className={`text-[8px] font-black uppercase tracking-tighter leading-none mb-0.5 ${user?.role === 'admin' ? 'text-white/60' : 'text-slate-400 dark:text-slate-500'}`}>
-                {user?.role === 'admin' ? "Access Level" : "Assigned Store"}
+                {user?.role === 'admin' ? "Access" : "Assigned Store"}
               </p>
               <p className={`text-[11px] font-black truncate leading-none ${user?.role === 'admin' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                 {getStoreDisplayName()}

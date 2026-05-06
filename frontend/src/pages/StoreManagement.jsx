@@ -13,7 +13,8 @@ import {
   CheckCircle2,
   Zap,
   Building2,
-  Mail
+  Mail,
+  Menu
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -112,19 +113,31 @@ const StoreManagement = () => {
         cartCount={(cart || []).reduce((a, b) => a + (b.quantity || 0), 0)}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
-        <header className="bg-white dark:bg-[#111827] border-b border-slate-200 dark:border-white/5 px-8 py-6 z-20">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
+        <header className="h-[64px] lg:h-[80px] bg-white/80 dark:bg-[#111827]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 p-4 lg:p-6 z-[100] transition-colors">
           <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
-            <div>
-              <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">Store Infrastructure</h1>
-              <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Manage retail outlets</p>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setIsSidebarOpen(true)}
+                className="lg:hidden p-2 -ml-2 text-slate-500 hover:text-brand-red transition-colors"
+              >
+                <Menu size={22} />
+              </button>
+              <div className="flex flex-col">
+                <h1 className="text-sm lg:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                  Stores
+                </h1>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                  Manage your store locations
+                </p>
+              </div>
             </div>
-            
+
             <button 
               onClick={() => handleOpenModal()} 
-              className="flex items-center gap-2 px-4 py-2.5 bg-brand-red text-white rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-brand-darkred transition-all shadow-md active:scale-95"
+              className="flex items-center justify-center gap-2 px-3 py-2 bg-brand-red text-white rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-brand-darkred transition-all shadow-lg shadow-brand-red/20 active:scale-95"
             >
-              <Plus size={14} /> New Store
+              <Plus size={14} /> <span className="hidden sm:inline">New Store</span>
             </button>
           </div>
         </header>
@@ -134,10 +147,10 @@ const StoreManagement = () => {
             {loading ? (
               <div className="py-20 flex flex-col items-center">
                 <Loader2 className="w-10 h-10 text-brand-red animate-spin" />
-                <p className="mt-4 text-slate-500 font-bold uppercase text-[9px] tracking-widest">Mapping locations...</p>
+                <p className="mt-4 text-slate-500 font-bold uppercase text-[9px] tracking-widest">Loading stores...</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
                 {stores.map(store => (
                   <div key={store._id} className="bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-white/5 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
                     <div className="flex items-start justify-between mb-6">
@@ -152,7 +165,7 @@ const StoreManagement = () => {
 
                     <div className="space-y-1 mb-6">
                       <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-tight">{store.name}</h3>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Physical Outlet</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Physical Store</p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
@@ -171,7 +184,7 @@ const StoreManagement = () => {
                         onClick={() => handleOpenModal(store)}
                         className="flex-1 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-brand-red hover:text-white transition-all shadow-sm"
                       >
-                        Settings
+                        Edit
                       </button>
                       <button 
                         onClick={() => handleDeleteStore(store._id)}

@@ -12,7 +12,8 @@ import {
   Plus, 
   Search, 
   CheckCircle2,
-  Users
+  Users,
+  Menu
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -142,7 +143,7 @@ const UserManagement = () => {
       />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
-        <header className="bg-white/80 dark:bg-[#111827]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 p-4 lg:p-6 sticky top-0 z-[100] transition-colors">
+        <header className="h-[64px] lg:h-[80px] bg-white/80 dark:bg-[#111827]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 p-4 lg:p-6 z-[100] transition-colors">
           <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <button 
@@ -153,10 +154,10 @@ const UserManagement = () => {
               </button>
               <div className="flex flex-col">
                 <h1 className="text-sm lg:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                  User Directory
+                  Users
                 </h1>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                  Manage staff and access nodes
+                  Manage staff and permissions
                 </p>
               </div>
             </div>
@@ -197,10 +198,13 @@ const UserManagement = () => {
 
         <div className="flex-1 overflow-y-auto p-4 lg:p-6 no-scrollbar">
           <div className="max-w-7xl mx-auto">
-            {loading ? (
+            {loading && users.length === 0 ? (
               <div className="py-20 flex flex-col items-center">
-                <Loader2 className="w-10 h-10 text-brand-red animate-spin" />
-                <p className="mt-4 text-slate-500 font-bold uppercase text-[9px] tracking-widest">Loading directory...</p>
+                <div className="relative">
+                  <div className="w-12 h-12 border-4 border-slate-100 dark:border-white/5 rounded-full animate-spin border-t-brand-red" />
+                  <Users className="absolute inset-0 m-auto text-brand-red animate-pulse" size={16} />
+                </div>
+                <p className="mt-6 text-slate-500 font-bold uppercase text-[9px] tracking-widest">Loading users...</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
@@ -226,7 +230,7 @@ const UserManagement = () => {
                     <div className="p-3 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5 mb-4">
                       <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Store</p>
                       <p className="text-[11px] font-bold text-slate-800 dark:text-slate-200 truncate">
-                         {user.role === 'admin' ? "Global Root" : (user.store?.name || "Unassigned")}
+                         {user.role === 'admin' ? "All Stores" : (user.store?.name || "Unassigned")}
                       </p>
                     </div>
 
@@ -259,7 +263,7 @@ const UserManagement = () => {
           <form onSubmit={handleSubmit} className="bg-white dark:bg-[#1e293b] w-full max-w-md rounded-2xl shadow-2xl relative z-[210] overflow-hidden animate-in zoom-in-95 duration-300">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
               <h2 className="text-base font-black text-slate-900 dark:text-white tracking-tight">
-                {editingUser ? "Edit User" : "New User Account"}
+                {editingUser ? "Edit User" : "Add User"}
               </h2>
               <button type="button" onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-brand-red transition-colors">
                 <X size={18} />

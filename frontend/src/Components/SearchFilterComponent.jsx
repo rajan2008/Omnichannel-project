@@ -68,42 +68,41 @@ const SearchFilterComponent = ({
 
   return (
     <div className="w-full">
-      <div className="bg-white dark:bg-transparent p-4 md:px-8 md:py-5 flex flex-col gap-2">
+      <div className="p-3 lg:p-4 flex flex-col gap-3">
         {/* SEARCH + STORE */}
-        <div className="flex  items-center gap-4">
+        <div className="flex items-center gap-3">
           <div className="flex-1 relative group">
             <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors"
-              size={20}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors"
+              size={18}
             />
             <input
               type="text"
-              placeholder="Search products, SKU or category..."
+              placeholder="Search products, SKU..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 
-  focus:border-brand-red focus:bg-white dark:focus:bg-white/10 
-  rounded-2xl py-1 pl-10 pr-4 outline-none font-semibold 
+              className="w-full bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 
+  focus:border-brand-red focus:bg-white dark:focus:bg-slate-900 
+  rounded-xl py-2.5 pl-10 pr-4 outline-none font-bold 
   text-slate-900 dark:text-white 
-  placeholder:text-xs 
-  transition-all shadow-sm"
+  text-xs
+  transition-all shadow-inner"
             />
           </div>
 
           {showStoreFilter && (
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2">
               <select
                 value={selectedStore}
                 onChange={(e) => setSelectedStore(e.target.value)}
-                className="bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 
-      rounded-xl px-3 py-2 text-sm font-bold text-slate-900 dark:text-white 
+                className="bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 
+      rounded-xl px-3 py-2.5 text-[10px] font-black uppercase tracking-widest text-slate-900 dark:text-white 
       focus:ring-2 focus:ring-brand-red outline-none cursor-pointer 
       hover:opacity-100 opacity-80 transition-all"
               >
-                <option value="all">All Stores</option>
-
+                <option value="all">All Channels</option>
                 {stores.map((s) => (
-                  <option key={s._id} value={s._id} className="dark:bg-[#1a1c2c]">
+                  <option key={s._id} value={s._id} className="dark:bg-[#111827]">
                     {s.name}
                   </option>
                 ))}
@@ -112,69 +111,41 @@ const SearchFilterComponent = ({
           )}
         </div>
 
-        {/* MOBILE SORT/FILTER */}
-        <div className="flex md:hidden border-t border-slate-100 dark:border-white/5 ">
+        {/* MOBILE CATEGORIES & SORT */}
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
+          {/* SORT BUTTON MOBILE */}
           <button
             onClick={() => setIsSortModalOpen(true)}
-            className="flex-1 py-3 flex items-center justify-center gap-2 text-sm font-bold text-slate-400 border-r border-slate-100 dark:border-white/5"
+            className="flex sm:hidden items-center gap-2 px-3 py-2 bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 shrink-0"
           >
-            <ArrowRight size={16} className="rotate-90" /> Sort
+            <ArrowRight size={14} className="rotate-90" /> Sort
           </button>
-          <button
-            onClick={() => setIsFilterModalOpen(true)}
-            className="flex-1 py-3 flex items-center justify-center gap-2 text-sm font-bold text-slate-400"
-          >
-            <Layers size={16} /> Filter
-          </button>
-        </div>
-      </div>
 
-      {/* 🔥 SORT + CATEGORY SAME ROW */}
-      <div className="px-4 md:px-8 py-3 flex items-center gap-4 bg-slate-50/50 dark:bg-black/10 border-t border-b border-slate-100 dark:border-white/5 overflow-x-auto no-scrollbar">
-        {/* SORT */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-            Sort:
-          </span>
+          <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0 mx-1" />
 
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 rounded-lg px-3 py-1 text-[12px] font-bold text-slate-900 dark:text-white outline-none"
-          >
-            <option value="newest">Newest</option>
-            <option value="price-low">Low → High</option>
-            <option value="price-high">High → Low</option>
-            <option value="name">A → Z</option>
-          </select>
-        </div>
-
-        {/* CATEGORY */}
-        <div className="flex items-center gap-2">
           {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-[10px] md:text-xs font-bold whitespace-nowrap transition-all ${
+              className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
                 category === cat
-                  ? "bg-brand-red text-white shadow-md shadow-brand-red/20"
-                  : "bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/5 hover:border-brand-red hover:text-brand-red"
+                  ? "bg-brand-red text-white shadow-lg shadow-brand-red/20"
+                  : "bg-slate-50/50 dark:bg-white/5 text-slate-500 border border-slate-200 dark:border-white/10 hover:border-brand-red hover:text-brand-red"
               }`}
             >
               {cat}
             </button>
           ))}
-        </div>
 
-        {/* CLEAR */}
-        {isFiltered && (
-          <button
-            onClick={clearFilters}
-            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black text-brand-red hover:bg-brand-red/10 rounded-lg whitespace-nowrap"
-          >
-            <X size={14} /> Clear
-          </button>
-        )}
+          {isFiltered && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1.5 px-3 py-2 text-[10px] font-black text-brand-red hover:bg-brand-red/10 rounded-lg whitespace-nowrap"
+            >
+              <X size={14} /> Reset
+            </button>
+          )}
+        </div>
       </div>
 
       {/* BACKDROP */}

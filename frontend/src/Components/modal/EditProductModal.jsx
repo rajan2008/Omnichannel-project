@@ -30,14 +30,26 @@ const EditProductModal = ({ isOpen, onClose, product, refreshProducts }) => {
     setIsDragging(false);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     setIsDragging(false);
+    
+    // Check for files
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith("image/")) {
       setImage(file);
+      setForm(prev => ({ ...prev, imageUrl: "" }));
+      return;
+    }
+
+    // Check for dropped URL
+    const url = e.dataTransfer.getData("URL") || e.dataTransfer.getData("text/plain");
+    if (url && (url.startsWith("http") || url.startsWith("data:image"))) {
+      setForm(prev => ({ ...prev, imageUrl: url }));
+      setImage(null);
+      toast.success("Image link captured");
     } else {
-      toast.error("Please drop an image file");
+      toast.error("Please drop an image file or valid image link");
     }
   };
 
@@ -98,7 +110,11 @@ const EditProductModal = ({ isOpen, onClose, product, refreshProducts }) => {
         );
       });
 
-      if (image) formData.append("image", image);
+      if (image) {
+        formData.append("image", image);
+      } else if (form.imageUrl) {
+        formData.append("image", form.imageUrl);
+      }
 
       await axios.patch(`/inventory/${product._id}`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -137,7 +153,7 @@ const EditProductModal = ({ isOpen, onClose, product, refreshProducts }) => {
         <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
           {user?.role === "admin" && (
             <div className="space-y-1">
-              <label className="text-[9px] font-black text-brand-red uppercase tracking-widest px-1">Branch / Store Assignment</label>
+              <label className="text-[9px] font-black text-brand-red uppercase tracking-widest px-1">Select Store</label>
               <div className="relative">
                 <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-red" size={14} />
                 <select
@@ -226,7 +242,7 @@ const EditProductModal = ({ isOpen, onClose, product, refreshProducts }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Update Image Asset</label>
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Update Product Image</label>
             <div 
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -248,7 +264,7 @@ const EditProductModal = ({ isOpen, onClose, product, refreshProducts }) => {
             className="w-full py-3 bg-brand-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-red/20 hover:bg-brand-darkred active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="animate-spin" size={14} /> : <Zap size={14} />}
-            {loading ? "Updating Asset..." : "Save Product Changes"}
+            {loading ? "Saving..." : "Save Product Changes"}
           </button>
         </div>
       </div>

@@ -33,7 +33,7 @@ const Orders = ({ compact = false }) => {
       const res = await axios.get("/orders");
       setOrders(res.data || []);
     } catch (error) {
-      toast.error("Failed to sync order history");
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
     }
@@ -74,7 +74,7 @@ const Orders = ({ compact = false }) => {
     const rows = orders.map(order => [
       order._id,
       new Date(order.createdAt).toLocaleDateString(),
-      order.customerName || "Walk-in Customer",
+      order.customerName || "Customer",
       order.items?.map(i => `${i.name} (x${i.quantity})`).join("; "),
       order.total,
       order.orderStatus,
@@ -105,7 +105,7 @@ const Orders = ({ compact = false }) => {
     return (
       <div className="py-20 flex flex-col items-center justify-center">
         <Loader2 className="w-8 h-8 text-brand-red animate-spin mb-4" />
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Syncing Orders...</p>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading Orders...</p>
       </div>
     );
   }
@@ -251,7 +251,7 @@ const Orders = ({ compact = false }) => {
                       </style></head><body>
                       <div class="header">
                         <h1>VENDORA</h1>
-                        <p>Tax Invoice / Receipt</p>
+                        <p>Receipt</p>
                         <p>Order #${selectedOrder._id?.slice(-6).toUpperCase()}</p>
                       </div>
                       <div class="meta">
@@ -267,7 +267,7 @@ const Orders = ({ compact = false }) => {
                           <tr class="total-row"><td colspan="3">Grand Total</td><td style="text-align:right">₹${selectedOrder.total?.toLocaleString('en-IN')}</td></tr>
                         </tbody>
                       </table>
-                      <div class="footer">Thank you for shopping with Vendora<br/>This is a computer generated invoice</div>
+                      <div class="footer">Thank you for shopping<br/>This is a generated invoice</div>
                       </body></html>
                     `);
                     printWin.document.close();
@@ -363,7 +363,7 @@ const Orders = ({ compact = false }) => {
                       </style></head><body>
                       <div class="header">
                         <h1>VENDORA</h1>
-                        <p>Tax Invoice / Receipt</p>
+                        <p>Receipt</p>
                         <p>Order #${selectedOrder._id?.slice(-6).toUpperCase()}</p>
                       </div>
                       <div class="meta">
@@ -379,7 +379,7 @@ const Orders = ({ compact = false }) => {
                           <tr class="total-row"><td colspan="3">Grand Total</td><td style="text-align:right">₹${selectedOrder.total?.toLocaleString('en-IN')}</td></tr>
                         </tbody>
                       </table>
-                      <div class="footer">Thank you for shopping with Vendora<br/>This is a computer generated invoice</div>
+                      <div class="footer">Thank you for shopping<br/>This is a generated invoice</div>
                       </body></html>
                     `);
                     printWin.document.close();

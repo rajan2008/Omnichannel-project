@@ -24,11 +24,11 @@ const BulkUploadModal = ({ isOpen, onClose, refreshProducts }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toast.success("Batch synchronization complete");
+      toast.success("Bulk upload complete");
       refreshProducts();
       onClose();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Data synchronization failed");
+      toast.error(err.response?.data?.message || "Upload failed");
     } finally {
       setLoading(false);
     }
@@ -44,8 +44,8 @@ const BulkUploadModal = ({ isOpen, onClose, refreshProducts }) => {
               <FileUp size={20} />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Batch Synchronization</h2>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Upload catalog via CSV/Excel</p>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Bulk Upload</h2>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Upload CSV/Excel file</p>
             </div>
           </div>
           <button onClick={onClose} className="w-10 h-10 bg-slate-100 dark:bg-white/5 text-slate-500 rounded-lg flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
@@ -64,9 +64,9 @@ const BulkUploadModal = ({ isOpen, onClose, refreshProducts }) => {
             <div className="w-16 h-16 bg-white dark:bg-[#1a1c2c] rounded-2xl flex items-center justify-center text-slate-400 group-hover:text-brand-red shadow-lg shadow-slate-200/50 dark:shadow-none mb-4 group-hover:scale-110 transition-transform">
               <Download size={24} />
             </div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{file ? file.name : "Select Spreadsheet"}</h3>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-1">{file ? file.name : "Select File"}</h3>
             <p className="text-[10px] text-slate-400 font-medium max-w-[200px] leading-relaxed">
-              Drag and drop your file here or click to browse system files.
+              Drag and drop your file here or click to browse your files.
             </p>
           </div>
 
@@ -74,13 +74,13 @@ const BulkUploadModal = ({ isOpen, onClose, refreshProducts }) => {
             <AlertCircle className="text-amber-500 shrink-0 mt-1" size={18} />
             <div className="space-y-2">
               <div>
-                <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">Schema Details</p>
+                <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">File Format</p>
                 <p className="text-[10px] text-amber-700 dark:text-amber-400/80 leading-relaxed font-medium">
                   Columns: <span className="font-bold">name, sku, category, basePrice, stock, store, image</span>
                 </p>
               </div>
               <div className="pt-2 border-t border-amber-500/10">
-                <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">Images & Photos</p>
+                <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">Product Images</p>
                 <p className="text-[10px] text-amber-700 dark:text-amber-400/80 leading-relaxed font-medium">
                   Provide an image URL in the <span className="font-bold">image</span> column. If left blank, the system will automatically assign a professional image based on the <span className="font-bold">category</span>.
                 </p>
@@ -91,15 +91,14 @@ const BulkUploadModal = ({ isOpen, onClose, refreshProducts }) => {
 
         <div className="p-8 bg-slate-50 dark:bg-black/20 border-t border-slate-100 dark:border-white/5 flex gap-4">
           <button onClick={onClose} className="flex-1 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest hover:text-slate-600 dark:hover:text-white transition-colors">
-            Abort Upload
+            Cancel
           </button>
           <button
             onClick={handleUpload}
             disabled={loading}
             className="flex-[2] py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold uppercase tracking-widest text-[11px] shadow-lg shadow-slate-900/10 hover:bg-brand-red hover:text-white active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
-            {loading ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
-            {loading ? "Processing Data..." : "Authorize Batch Sync"}
+            {loading ? "Uploading..." : "Start Upload"}
           </button>
         </div>
       </div>

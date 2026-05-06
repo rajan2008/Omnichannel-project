@@ -10,6 +10,15 @@ export const loginUser = async (data) => {
 };
 
 
+export const directRegister = async (data) => {
+  try {
+    const res = await api.post("/auth/direct-register", data);
+    return res.data;
+  } catch (error) {
+    throw error.response?.data || { message: "Direct registration failed" };
+  }
+};
+
 export const registerUser = async (data) => {
   try {
     const res = await api.post("/auth/register", data);

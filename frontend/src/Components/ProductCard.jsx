@@ -42,7 +42,7 @@ const categoryImages = {
 
 const getProductImage = (product) => {
   if (product.image && product.image.startsWith("http")) return product.image;
-  if (product.image) return `http://localhost:5000/${product.image}`;
+  if (product.image) return `${import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:5000"}/${product.image}`;
   return categoryImages[product.category] || categoryImages.Default;
 };
 

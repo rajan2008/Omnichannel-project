@@ -72,9 +72,9 @@ const Profile = () => {
       const res = await api.put("/auth/profile", form);
       dispatch(setUser(res.data));
       localStorage.setItem("user", JSON.stringify(res.data));
-      toast.success("Identity updated successfully");
+      toast.success("Profile updated");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Identity update failed");
+      toast.error(error.response?.data?.message || "Update failed");
     } finally {
       setLoading(false);
     }
@@ -89,7 +89,7 @@ const Profile = () => {
     try {
       setPasswordLoading(true);
       await api.put("/auth/profile", { password: passwordForm.newPassword });
-      toast.success("Security key updated successfully");
+      toast.success("Password updated");
       setIsPasswordModalOpen(false);
       setPasswordForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
     } catch (error) {
@@ -125,7 +125,7 @@ const Profile = () => {
     localStorage.clear();
     dispatch(logout());
     navigate("/login");
-    toast.success("Session terminated securely");
+    toast.success("Logged out");
   };
 
   if (!user) return null;
@@ -153,10 +153,10 @@ const Profile = () => {
               </button>
               <div className="flex flex-col">
                 <h1 className="text-sm lg:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                  Personal Identity
+                  My Profile
                 </h1>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                  Manage your credentials
+                  Manage your account
                 </p>
               </div>
             </div>
@@ -178,7 +178,7 @@ const Profile = () => {
                       <div className="w-full h-full rounded-[2.2rem] bg-slate-100 dark:bg-white/5 flex items-center justify-center text-slate-300 relative overflow-hidden group">
                         {user.avatar ? (
                           <img 
-                            src={`http://localhost:5000/${user.avatar}`} 
+                            src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:5000"}/${user.avatar}`} 
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform" 
                             alt="" 
                           />
@@ -201,7 +201,7 @@ const Profile = () => {
                     <h2 className="text-2xl md:text-3xl font-black text-white tracking-tighter leading-none mb-2">{user.name}</h2>
                     <div className="flex items-center justify-center md:justify-start gap-3">
                       <p className="text-white/70 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
-                        <Zap size={12} className="text-amber-400" /> {user.role} Identity
+                        <Zap size={12} className="text-amber-400" /> {user.role} Account
                       </p>
                     </div>
                   </div>
@@ -209,15 +209,15 @@ const Profile = () => {
               </div>
               <div className="pt-32 md:pt-28 pb-8 md:pb-12 px-6 md:px-12 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                 <div className="bg-slate-50 dark:bg-black/20 p-6 rounded-3xl border border-slate-100 dark:border-white/5">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Email Link</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Email Address</p>
                   <p className="text-sm font-black text-slate-900 dark:text-white truncate">{user.email}</p>
                 </div>
                 <div className="bg-slate-50 dark:bg-black/20 p-6 rounded-3xl border border-slate-100 dark:border-white/5">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Assigned Node</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Assigned Store</p>
                   <p className="text-sm font-black text-slate-900 dark:text-white truncate">{user.store?.name || "Global Root"}</p>
                 </div>
                 <div className="bg-slate-50 dark:bg-black/20 p-6 rounded-3xl border border-slate-100 dark:border-white/5">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Network Status</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">Account Status</p>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 size={16} className="text-emerald-500" />
                     <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tighter">Verified Online</span>
@@ -230,10 +230,10 @@ const Profile = () => {
               {/* EDIT FORM */}
               <div className="lg:col-span-7 space-y-6 md:space-y-8">
                 <div className="bg-white dark:bg-[#1a1c2c] rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-sm transition-colors">
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter mb-10">Identity Configuration</h3>
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter mb-10">Profile Settings</h3>
                   <form onSubmit={handleUpdate} className="space-y-8">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Full Legal Name</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Full Name</label>
                       <div className="relative group">
                         <User className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
                         <input
@@ -247,7 +247,7 @@ const Profile = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Verified Email (Locked)</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Email Address</label>
                       <div className="relative">
                         <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                         <input
@@ -260,7 +260,7 @@ const Profile = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Primary Comms Link</label>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Phone Number</label>
                       <div className="relative group">
                         <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
                         <input
@@ -280,7 +280,7 @@ const Profile = () => {
                       className="w-full mt-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-slate-900/10 hover:bg-brand-red hover:text-white transition-all flex items-center justify-center gap-3"
                     >
                       {loading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                      {loading ? "Synchronizing..." : "Finalize Changes"}
+                      {loading ? "Saving..." : "Save Changes"}
                     </button>
                   </form>
                 </div>
@@ -289,7 +289,7 @@ const Profile = () => {
               {/* SECURITY & ADDITIONAL INFO */}
               <div className="lg:col-span-5 space-y-6 md:space-y-8">
                 <div className="bg-white dark:bg-[#1a1c2c] rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 shadow-sm transition-colors">
-                  <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter mb-10">Security Layer</h3>
+                  <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tighter mb-10">Security</h3>
                   <div className="space-y-4">
                     <button 
                       onClick={() => setIsPasswordModalOpen(true)}
@@ -300,8 +300,8 @@ const Profile = () => {
                           <Key size={20} />
                         </div>
                         <div className="text-left">
-                          <p className="text-sm font-black text-slate-900 dark:text-white">Security Key</p>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Update credentials</p>
+                          <p className="text-sm font-black text-slate-900 dark:text-white">Password</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Change password</p>
                         </div>
                       </div>
                       <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
@@ -313,8 +313,8 @@ const Profile = () => {
                           <Globe size={20} />
                         </div>
                         <div className="text-left">
-                          <p className="text-sm font-black text-slate-900 dark:text-white">Device History</p>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Manage nodes</p>
+                          <p className="text-sm font-black text-slate-900 dark:text-white">Login History</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">View logins</p>
                         </div>
                       </div>
                       <ChevronRight size={18} className="text-slate-300" />
@@ -333,7 +333,7 @@ const Profile = () => {
                       onClick={handleLogout}
                       className="w-full mt-4 bg-white dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/10 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] text-[11px] hover:bg-brand-red hover:text-white hover:border-brand-red transition-all flex items-center justify-center gap-3"
                     >
-                      <LogOut size={18} /> Terminate Access
+                      <LogOut size={18} /> Logout
                     </button>
                   </div>
                 </div>
@@ -344,7 +344,7 @@ const Profile = () => {
                     <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 border border-white/20">
                       <Shield size={32} className="text-white" />
                     </div>
-                    <h4 className="text-lg font-black mb-2 tracking-tighter">Enterprise Standard</h4>
+                    <h4 className="text-lg font-black mb-2 tracking-tighter">Account Status</h4>
                     <p className="text-[10px] font-black text-white/70 uppercase tracking-[0.3em] mb-6">Verified: {user.role}</p>
                     <p className="text-xs font-bold leading-relaxed opacity-90 uppercase tracking-tighter">
                       Your identity is secured with multi-layer encryption. Always log out from public kiosks.
@@ -364,7 +364,7 @@ const Profile = () => {
           <form onSubmit={handlePasswordUpdate} className="bg-white dark:bg-[#1a1c2c] w-full max-w-lg rounded-[3.5rem] shadow-2xl relative z-[160] overflow-hidden animate-in zoom-in-95 duration-300 my-auto border border-slate-200 dark:border-white/10">
             <div className="p-12 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
               <div>
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-none mb-2">Update Security Key</h2>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter leading-none mb-2">Change Password</h2>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Protocol: RSA Encryption</p>
               </div>
               <button type="button" onClick={() => setIsPasswordModalOpen(false)} className="w-12 h-12 bg-slate-50 dark:bg-white/5 text-slate-400 rounded-2xl flex items-center justify-center hover:bg-brand-red hover:text-white transition-all">
@@ -374,7 +374,7 @@ const Profile = () => {
             
             <div className="p-12 space-y-8 bg-white dark:bg-[#1a1c2c]">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3">New Security Code</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3">New Password</label>
                 <div className="relative group">
                   <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
                   <input 
@@ -389,7 +389,7 @@ const Profile = () => {
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3">Confirm Security Code</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-3">Confirm Password</label>
                 <div className="relative group">
                   <CheckCircle2 className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
                   <input 
@@ -411,7 +411,7 @@ const Profile = () => {
                 className="w-full py-6 bg-brand-red text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-[11px] shadow-2xl shadow-brand-red/30 hover:bg-brand-darkred active:scale-[0.98] transition-all flex items-center justify-center gap-3"
               >
                 {passwordLoading ? <Loader2 className="animate-spin" size={18} /> : <Lock size={18} />}
-                {passwordLoading ? "Applying Encryption..." : "Confirm Security Update"}
+                {passwordLoading ? "Updating..." : "Update Password"}
               </button>
             </div>
           </form>

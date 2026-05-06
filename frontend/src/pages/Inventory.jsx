@@ -159,7 +159,7 @@ const Inventory = () => {
     try {
       setIsHealing(true);
       await selfHealInventory();
-      toast.success("Inventory integrity restored");
+      toast.success("Inventory Fixed");
       fetchProducts(1, false);
     } catch (error) {
       toast.error("Heal process failed");
@@ -173,9 +173,9 @@ const Inventory = () => {
       setIsPredicting(true);
       const data = await getPredictions();
       setPredictions(data);
-      toast.success("Intelligence report generated");
+      toast.success("Report Generated");
     } catch (error) {
-      toast.error("Prediction engine offline");
+      toast.error("System Offline");
     } finally {
       setIsPredicting(false);
     }
@@ -217,7 +217,7 @@ const Inventory = () => {
         cartCount={cart.reduce((a, b) => a + b.quantity, 0)}
       />
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
-        <header className="bg-white/80 dark:bg-[#111827]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 p-4 lg:p-6 sticky top-0 z-[100] transition-colors">
+        <header className="h-[64px] lg:h-[80px] bg-white/80 dark:bg-[#111827]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 p-4 lg:p-6 z-[120] transition-colors">
           <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <button 
@@ -228,10 +228,10 @@ const Inventory = () => {
               </button>
               <div className="flex flex-col">
                 <h1 className="text-sm lg:text-xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                  Global Catalog
+                  Product Inventory
                 </h1>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                  Manage inventory across all nodes
+                  Manage stock across all stores
                 </p>
               </div>
             </div>
@@ -241,7 +241,7 @@ const Inventory = () => {
                 <button
                   onClick={() => setOpenBulk(true)}
                   className="p-2 bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-white/10 transition-all"
-                  title="Batch Sync"
+                  title="Bulk Upload"
                 >
                   <FileUp size={18} />
                 </button>
@@ -249,105 +249,119 @@ const Inventory = () => {
                   onClick={() => setOpenSingle(true)}
                   className="flex items-center gap-2 px-3 py-2 bg-brand-red text-white rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-brand-darkred transition-all shadow-lg shadow-brand-red/20"
                 >
-                  <Plus size={14} /> <span className="hidden sm:inline">New SKU</span>
+                  <Plus size={14} /> <span className="hidden sm:inline">Add Product</span>
                 </button>
               </RoleWrapper>
             </div>
           </div>
         </header>
 
-          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-8 md:mt-10">
-            <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 transition-colors">
-              <div className="w-10 h-10 bg-slate-50 dark:bg-[#1a1c2c] rounded-xl flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 dark:border-white/5">
-                <Package size={18} />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                  Active SKUs
-                </p>
-                <p className="text-lg font-bold text-slate-900 dark:text-white">
-                  {stats.total}
-                </p>
-              </div>
-            </div>
-            <div className="bg-amber-50/50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 p-5 rounded-2xl flex items-center gap-4">
-              <div className="w-10 h-10 bg-white dark:bg-[#1a1c2c] rounded-xl flex items-center justify-center text-amber-500 shadow-sm border border-amber-100 dark:border-amber-500/10">
-                <AlertTriangle size={18} />
-              </div>
-              <div>
-                <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">
-                  Critical Stock
-                </p>
-                <p className="text-lg font-bold text-amber-700 dark:text-amber-500">
-                  {stats.lowStock}
-                </p>
-              </div>
-            </div>
-
-            <RoleWrapper allowedRoles={["admin", "manager"]}>
-              <div className="sm:col-span-2 bg-slate-900 dark:bg-[#1a1c2c] rounded-2xl p-5 flex items-center justify-between text-white relative overflow-hidden group border border-white/5 transition-colors">
-                <div className="absolute inset-0 bg-brand-red/5 group-hover:bg-brand-red/10 transition-colors" />
-                <div className="relative z-10">
-                  <p className="text-[10px] font-bold text-brand-red uppercase tracking-widest mb-1">
-                    Intelligence Tools
+        <div className="flex-1 overflow-y-auto scroll-smooth no-scrollbar relative">
+          <div className="max-w-7xl mx-auto p-4 md:p-10 space-y-8">
+            {/* STATS SECTION - Now inside scroll for better mobile space */}
+            <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/5 p-5 rounded-2xl flex items-center gap-4 transition-colors shadow-sm">
+                <div className="w-10 h-10 bg-slate-50 dark:bg-[#1a1c2c] rounded-xl flex items-center justify-center text-slate-400 shadow-sm border border-slate-100 dark:border-white/5">
+                  <Package size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                    Active SKUs
                   </p>
-                  <p className="text-xs font-semibold text-slate-400">
-                    Run predictions or heal inventory
+                  <p className="text-lg font-bold text-slate-900 dark:text-white">
+                    {stats.total}
                   </p>
                 </div>
-                <div className="flex gap-2 relative z-10">
-                  <button
-                    onClick={handleSelfHeal}
-                    disabled={isHealing}
-                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
-                    title="Self Heal"
-                  >
-                    {isHealing ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <Zap size={16} className="text-amber-400" />
-                    )}
-                  </button>
-                  <button
-                    onClick={handlePredict}
-                    disabled={isPredicting}
-                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
-                    title="Predict Stock"
-                  >
-                    {isPredicting ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <Sparkles size={16} className="text-purple-400" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => setIsPriceModalOpen(true)}
-                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
-                    title="Bulk Price"
-                  >
-                    <DollarSign size={16} className="text-emerald-400" />
-                  </button>
-                  <button
-                    onClick={() => setIsTransferModalOpen(true)}
-                    className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
-                    title="Transfer Stock"
-                  >
-                    <ArrowRight size={16} className="text-brand-red" />
-                  </button>
+              </div>
+              <div className="bg-amber-50/50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 p-5 rounded-2xl flex items-center gap-4 shadow-sm">
+                <div className="w-10 h-10 bg-white dark:bg-[#1a1c2c] rounded-xl flex items-center justify-center text-amber-500 shadow-sm border border-amber-100 dark:border-amber-500/10">
+                  <AlertTriangle size={18} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold text-amber-600 uppercase tracking-widest mb-1">
+                    Critical Stock
+                  </p>
+                  <p className="text-lg font-bold text-amber-700 dark:text-amber-500">
+                    {stats.lowStock}
+                  </p>
                 </div>
               </div>
-            </RoleWrapper>
-          </div>
 
-        <div className="flex-1 overflow-y-auto p-4 md:p-10 scroll-smooth no-scrollbar">
-          <div className="max-w-7xl mx-auto space-y-3">
+              <RoleWrapper allowedRoles={["admin", "manager"]}>
+                <div className="sm:col-span-2 bg-slate-900 dark:bg-[#1a1c2c] rounded-2xl p-5 flex items-center justify-between text-white relative overflow-hidden group border border-white/5 transition-colors shadow-lg">
+                  <div className="absolute inset-0 bg-brand-red/5 group-hover:bg-brand-red/10 transition-colors" />
+                  <div className="relative z-10">
+                    <p className="text-[10px] font-bold text-brand-red uppercase tracking-widest mb-1">
+                      Stock Tools
+                    </p>
+                    <p className="text-xs font-semibold text-slate-400">
+                      Analyze or Fix stock
+                    </p>
+                  </div>
+                  <div className="flex gap-2 relative z-10">
+                    <button
+                      onClick={handleSelfHeal}
+                      disabled={isHealing}
+                      className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+                      title="Fix Stock"
+                    >
+                      {isHealing ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Zap size={16} className="text-amber-400" />
+                      )}
+                    </button>
+                    <button
+                      onClick={handlePredict}
+                      disabled={isPredicting}
+                      className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+                      title="Predict"
+                    >
+                      {isPredicting ? (
+                        <Loader2 size={16} className="animate-spin" />
+                      ) : (
+                        <Sparkles size={16} className="text-purple-400" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => setIsPriceModalOpen(true)}
+                      className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+                      title="Update Prices"
+                    >
+                      <DollarSign size={16} className="text-emerald-400" />
+                    </button>
+                    <button
+                      onClick={() => setIsTransferModalOpen(true)}
+                      className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+                      title="Move Stock"
+                    >
+                      <ArrowRight size={16} className="text-brand-red" />
+                    </button>
+                  </div>
+                </div>
+              </RoleWrapper>
+            </div>
+
+            {/* STICKY FILTER BAR */}
+            <div className="sticky top-0 z-[110] bg-[#f8fafc] dark:bg-[#0b0f1a] pt-2 pb-4 -mx-4 px-4 md:mx-0 md:px-0 transition-all duration-300">
+              <div className="bg-white dark:bg-[#1e293b] p-1 rounded-2xl border border-slate-200 dark:border-white/5 shadow-xl">
+                <SearchFilterComponent
+                  data={products}
+                  onFilterChange={setFilteredProducts}
+                  stores={stores}
+                  selectedStore={selectedStore}
+                  setSelectedStore={setSelectedStore}
+                  showStoreFilter={roleConfig.isAdmin}
+                />
+              </div>
+            </div>
             {predictions && (
               <div className="bg-purple-500/10 border border-purple-500/20 p-6 rounded-3xl animate-in slide-in-from-top-4">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <Sparkles className="text-purple-500" size={20} />
                     <h3 className="text-sm font-bold text-purple-900 dark:text-purple-300 uppercase tracking-widest">
-                      Stock Depletion Forecast
+                      Stock Forecast
                     </h3>
                   </div>
                   <button
@@ -376,23 +390,11 @@ const Inventory = () => {
             )}
 
             <div className="relative space-y-2.5">
-              <div className="sticky top-[68px] lg:top-[76px] z-50 bg-[#f8fafc] dark:bg-[#0b0f1a] py-4 -mx-2 transition-colors">
-                <div className="bg-white dark:bg-[#1e293b] p-2 rounded-2xl border border-slate-200 dark:border-white/5 shadow-xl mx-2">
-                  <SearchFilterComponent
-                    data={products}
-                    onFilterChange={setFilteredProducts}
-                    stores={stores}
-                    selectedStore={selectedStore}
-                    setSelectedStore={setSelectedStore}
-                    showStoreFilter={roleConfig.isAdmin}
-                  />
-                </div>
-              </div>
               {loading && page === 1 ? (
                 <div className="flex flex-col items-center justify-center py-20">
                   <Loader2 className="w-10 h-10 text-brand-red animate-spin mb-4" />
                   <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
-                    Syncing Catalog...
+                    Loading Products...
                   </p>
                 </div>
               ) : (
@@ -421,7 +423,7 @@ const Inventory = () => {
                   {isFetchingMore ? (
                     <Loader2 className="animate-spin" size={14} />
                   ) : (
-                    "Load More Assets"
+                    "Load More"
                   )}
                 </button>
               </div>
@@ -459,7 +461,7 @@ const Inventory = () => {
           >
             <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                Price Regulation
+                Update Prices
               </h2>
               <button
                 type="button"
@@ -472,7 +474,7 @@ const Inventory = () => {
             <div className="p-8 space-y-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Category Target
+                  Select Category
                 </label>
                 <input
                   required
@@ -485,7 +487,7 @@ const Inventory = () => {
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Price Adjustment (%)
+                  Price Change (%)
                 </label>
                 <input
                   required
@@ -503,7 +505,7 @@ const Inventory = () => {
                 type="submit"
                 className="w-full py-4 bg-brand-red text-white rounded-xl font-bold uppercase tracking-widest text-xs"
               >
-                Execute Adjustment
+                Update All
               </button>
             </div>
           </form>
@@ -521,7 +523,7 @@ const Inventory = () => {
           >
             <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                Stock Distribution
+                Move Stock
               </h2>
               <button
                 type="button"
@@ -534,7 +536,7 @@ const Inventory = () => {
             <div className="p-8 space-y-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Source Product
+                  Select Product
                 </label>
                 <select
                   required
@@ -551,7 +553,7 @@ const Inventory = () => {
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Target Store
+                  Select Store
                 </label>
                 <select
                   required
@@ -568,7 +570,7 @@ const Inventory = () => {
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
-                  Quantity to Move
+                  Quantity
                 </label>
                 <input
                   required
@@ -584,7 +586,7 @@ const Inventory = () => {
                 type="submit"
                 className="w-full py-4 bg-brand-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-red/20"
               >
-                Execute Transfer
+                Move Now
               </button>
             </div>
           </form>

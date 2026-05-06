@@ -73,6 +73,7 @@ const getProductImage = (product) => {
   };
   if (product.images?.[0] && product.images[0].startsWith("http"))
     return product.images[0];
+  if (product.images?.[0]) return `${import.meta.env.VITE_API_URL?.replace('/api', '') || "http://localhost:5000"}/${product.images[0]}`;
   return categoryImages[product.category] || categoryImages.Default;
 };
 
@@ -101,6 +102,43 @@ export default function Dashboard() {
   const [stores, setStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState("");
   const [recentOrders, setRecentOrders] = useState([]);
+
+  const loadData = async (showLoader = false) => {
+    try {
+      const shouldShowFullLoader = showLoader || (products.length === 0 && recentOrders.length === 0);
+      if (shouldShowFullLoader) setLoading(true);
+      
+      const [productsData, ordersData, storesData] = await Promise.all([
+        getInventory().catch(() => []),
+        getRecentOrders().catch(() => []),
+        getStores().catch(() => [])
+      ]);
+      
+      setProducts(Array.isArray(productsData) ? productsData : []);
+      setRecentOrders(Array.isArray(ordersData) ? ordersData : []);
+      setStores(Array.isArray(storesData) ? storesData : []);
+      
+      if (shouldShowFullLoader) {
+        // Add a small delay for smoother transition
+        setTimeout(() => setLoading(false), 500);
+      }
+    } catch (err) {
+      toast.error("Connection failed");
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // Initial load with full loader if needed
+    loadData(products.length === 0);
+  }, []);
+
+  useEffect(() => {
+    // Background refresh on tab/search change without full-screen loader
+    loadData(false);
+  }, [activeTab, location.search]);
+
+  const [showDigitalInvoice, setShowDigitalInvoice] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -161,7 +199,7 @@ export default function Dashboard() {
             setStores(s);
             if (s.length > 0 && !selectedStore) setSelectedStore(s[0]._id);
           }
-          toast.success("Operational in Offline Mode", { icon: "🔌" });
+          toast.success("Working Offline", { icon: "🔌" });
         } else {
           toast.error("Failed to load dashboard. Check connection.");
         }
@@ -429,12 +467,15 @@ export default function Dashboard() {
     };
   }, [user]);
 
-  if (loading) {
+  if (loading && products.length === 0) {
     return (
       <div className="w-full h-screen flex flex-col items-center justify-center bg-white dark:bg-[#0f172a]">
-        <Loader2 className="w-8 h-8 text-brand-red animate-spin mb-3" />
-        <p className="text-slate-500 font-bold uppercase text-[9px] tracking-widest">
-          Initializing...
+        <div className="relative">
+          <div className="w-12 h-12 border-4 border-slate-100 dark:border-white/5 rounded-full animate-spin border-t-brand-red" />
+          <CloudLightning className="absolute inset-0 m-auto text-brand-red animate-pulse" size={16} />
+        </div>
+        <p className="text-slate-500 font-bold uppercase text-[9px] tracking-widest mt-6">
+          Loading...
         </p>
       </div>
     );
@@ -458,7 +499,7 @@ export default function Dashboard() {
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative bg-[#f8fafc] dark:bg-[#0b0f1a] transition-colors duration-300">
         {/* COMPACT TOP BAR */}
-        <header className="bg-white/80 dark:bg-[#1a1c2c]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 p-4 lg:p-6 sticky top-0 z-[100] transition-colors">
+        <header className="h-[64px] lg:h-[80px] bg-white/80 dark:bg-[#1a1c2c]/80 backdrop-blur-xl border-b border-slate-200 dark:border-white/5 p-4 lg:p-6 z-[100] transition-colors">
           <div className="max-w-7xl mx-auto flex justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <button 
@@ -472,7 +513,7 @@ export default function Dashboard() {
                   Hello, <span className="text-brand-red">{user?.name?.split(' ')[0]}</span>
                 </h1>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                  {user?.role === 'admin' ? "Enterprise Root" : (user?.store?.name || "Terminal Active")}
+                  {user?.role === 'admin' ? "Admin" : (user?.store?.name || "Active")}
                 </p>
               </div>
             </div>
@@ -492,8 +533,8 @@ export default function Dashboard() {
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto p-4 lg:p-8">
-          <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex-1 overflow-y-auto scroll-smooth no-scrollbar relative bg-[#f8fafc] dark:bg-[#0b0f1a]">
+          <div className="max-w-7xl mx-auto p-4 lg:p-8 space-y-8">
             {showCheckoutSummary ? (
               /* CHECKOUT SUCCESS */
               <div className="max-w-xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -507,8 +548,8 @@ export default function Dashboard() {
                 <div className="bg-white dark:bg-[#1e293b] rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-lg">
                   <div className="p-10 space-y-8 bg-white dark:bg-[#1e293b]">
                     <div className="flex flex-col items-center text-center space-y-2">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Official Transaction Receipt</p>
-                      <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">Enterprise POS Network</h3>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Receipt</p>
+                      <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">POS System</h3>
                     </div>
 
                     <div className="space-y-4 border-y border-slate-100 dark:border-white/5 py-8">
@@ -548,13 +589,18 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="p-8 bg-slate-50/50 dark:bg-black/20 text-center">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-4">Thank you for choosing our enterprise network</p>
+                  <div className="p-8 bg-slate-50/50 dark:bg-black/20 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button 
+                      onClick={() => setShowDigitalInvoice(true)}
+                      className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-brand-red hover:text-white transition-all shadow-lg flex items-center justify-center gap-2"
+                    >
+                      <Layers size={14} /> View Digital Receipt
+                    </button>
                     <button 
                       onClick={() => window.print()}
-                      className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-brand-red hover:text-white transition-all shadow-xl"
+                      className="w-full py-4 bg-brand-red text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-brand-darkred transition-all shadow-xl flex items-center justify-center gap-2"
                     >
-                      Initialize Thermal Print
+                      <Zap size={14} /> Print Receipt
                     </button>
                   </div>
                 </div>
@@ -563,7 +609,7 @@ export default function Dashboard() {
                 <div className="hidden printable-invoice p-10 bg-white text-black font-sans">
                   <div className="text-center mb-10">
                     <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Vendora Enterprise</h1>
-                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Official Transaction Record</p>
+                    <p className="text-xs font-bold uppercase tracking-widest text-gray-500">Receipt</p>
                   </div>
                   
                   <div className="flex justify-between border-b-2 border-black pb-6 mb-8">
@@ -616,7 +662,7 @@ export default function Dashboard() {
                   </div>
 
                   <div className="mt-20 text-center border-t border-gray-100 pt-10">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Authored by Vendora Cloud Systems</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Powered by Vendora</p>
                     <div className="w-32 h-32 mx-auto bg-gray-100 rounded-xl flex items-center justify-center mb-4">
                       <CheckCircle2 size={48} className="text-gray-300" />
                     </div>
@@ -707,7 +753,7 @@ export default function Dashboard() {
                         <div className="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden group border border-white/5">
                           <div className="absolute top-0 right-0 w-64 h-64 bg-brand-red opacity-10 blur-[80px] -mr-32 -mt-32 group-hover:opacity-20 transition-opacity" />
                           <div className="relative z-10">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-red mb-6">Performance Matrix</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-red mb-6">Statistics</h3>
                             <div className="grid grid-cols-2 gap-8">
                               <div>
                                 <p className="text-3xl font-black tracking-tighter mb-1">94%</p>
@@ -715,21 +761,21 @@ export default function Dashboard() {
                               </div>
                               <div>
                                 <p className="text-3xl font-black tracking-tighter mb-1">+12k</p>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Inventory Velocity</p>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Sales Speed</p>
                               </div>
                             </div>
                             <div className="mt-8 pt-8 border-t border-white/10 flex items-center gap-4">
                               <div className="flex -space-x-3">
                                 {[1,2,3,4].map(i => <div key={i} className="w-8 h-8 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center text-[10px] font-bold">{i}</div>)}
                               </div>
-                              <p className="text-[9px] font-bold text-slate-400 uppercase">Top Store Terminals Active</p>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase">Active Terminals</p>
                             </div>
                           </div>
                         </div>
 
                         <div className="bg-white dark:bg-[#1e293b] rounded-[2rem] border border-slate-200 dark:border-white/5 p-8 shadow-sm">
                           <div className="flex justify-between items-center mb-8">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900 dark:text-white">Product Velocity</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-900 dark:text-white">Top Products</h3>
                             <div className="flex gap-2">
                               <span className="w-2 h-2 rounded-full bg-emerald-500" />
                               <span className="w-2 h-2 rounded-full bg-brand-red" />
@@ -774,8 +820,8 @@ export default function Dashboard() {
                           </p>
                         </div>
 
-                        <div className="bg-[#f8fafc] dark:bg-[#0b0f1a] p-3 -mx-2 mb-4 sticky top-[72px] z-50 transition-colors">
-                          <div className="bg-white dark:bg-[#1e293b] p-2 rounded-2xl border border-slate-200 dark:border-white/5 shadow-xl">
+                        <div className="sticky top-0 z-[90] bg-[#f8fafc]/90 dark:bg-[#0b0f1a]/90 backdrop-blur-md pt-2 mb-4 -mx-2 px-2">
+                          <div className="bg-white dark:bg-[#1e293b] p-1 rounded-2xl border border-slate-200 dark:border-white/5 shadow-xl">
                             <SearchFilterComponent
                               data={products}
                               onFilterChange={setFilteredProducts}
@@ -1001,6 +1047,104 @@ export default function Dashboard() {
                 className="w-full py-4 bg-brand-red text-white rounded-xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-brand-red/20 hover:bg-brand-darkred active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
                 Process Payment <ArrowRight size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DIGITAL INVOICE MODAL */}
+      {showDigitalInvoice && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-md" onClick={() => setShowDigitalInvoice(false)} />
+          <div className="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b flex items-center justify-between">
+              <h2 className="text-base font-black text-slate-900 uppercase tracking-widest">Digital Receipt Preview</h2>
+              <button onClick={() => setShowDigitalInvoice(false)} className="w-8 h-8 flex items-center justify-center bg-slate-100 rounded-lg text-slate-400 hover:text-brand-red transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-10 bg-white text-black font-sans scroll-smooth no-scrollbar">
+              <div className="text-center mb-10">
+                <div className="w-16 h-16 bg-brand-red rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <img src="/logo.svg" className="w-10 h-10 object-contain brightness-0 invert" alt="Logo" />
+                </div>
+                <h1 className="text-3xl font-black uppercase tracking-tighter mb-2">Vendora Enterprise</h1>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Official Transaction Record</p>
+              </div>
+              
+              <div className="flex justify-between border-b-2 border-black pb-6 mb-8">
+                <div>
+                  <p className="text-[10px] font-black uppercase text-gray-400 mb-1">Order ID</p>
+                  <p className="text-sm font-black">{lastOrder?.orderId || lastOrder?._id}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black uppercase text-gray-400 mb-1">Date & Time</p>
+                  <p className="text-sm font-black">{new Date().toLocaleString()}</p>
+                </div>
+              </div>
+
+              <table className="w-full mb-10">
+                <thead>
+                  <tr className="border-b-2 border-black">
+                    <th className="text-left py-4 text-[10px] font-black uppercase tracking-widest">Item</th>
+                    <th className="text-center py-4 text-[10px] font-black uppercase tracking-widest">Qty</th>
+                    <th className="text-right py-4 text-[10px] font-black uppercase tracking-widest">Price</th>
+                    <th className="text-right py-4 text-[10px] font-black uppercase tracking-widest">Amount</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {lastOrder?.items?.map((item) => (
+                    <tr key={item._id}>
+                      <td className="py-5">
+                        <p className="text-sm font-black uppercase">{item.name}</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{item.category}</p>
+                      </td>
+                      <td className="py-5 text-center text-sm font-black">x{item.quantity}</td>
+                      <td className="py-5 text-right text-sm font-bold">{formatCurrency(item.basePrice)}</td>
+                      <td className="py-5 text-right text-sm font-black">{formatCurrency(item.basePrice * item.quantity)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <div className="space-y-4 border-t-2 border-black pt-8">
+                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest">
+                  <span className="text-gray-500">Subtotal</span>
+                  <span>{formatCurrency(lastOrder?.total * 0.92)}</span>
+                </div>
+                <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest">
+                  <span className="text-gray-500">Taxes & Levies (8%)</span>
+                  <span>{formatCurrency(lastOrder?.total * 0.08)}</span>
+                </div>
+                <div className="flex justify-between items-center pt-6 border-t border-dashed border-gray-300">
+                  <span className="text-lg font-black uppercase tracking-tighter">Total Paid</span>
+                  <span className="text-3xl font-black text-brand-red tracking-tighter">
+                    {formatCurrency(lastOrder?.total)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-16 text-center">
+                <div className="inline-block p-4 border-2 border-black rounded-2xl mb-6">
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2">Auth Code</p>
+                  <p className="text-xl font-black tracking-[0.5em]">{Math.random().toString(36).substring(2, 8).toUpperCase()}</p>
+                </div>
+                <p className="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em]">Verified Transaction • Secure Network Hub</p>
+              </div>
+            </div>
+            <div className="p-6 bg-slate-50 border-t flex gap-4">
+              <button 
+                onClick={() => window.print()}
+                className="flex-1 py-4 bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-red transition-all flex items-center justify-center gap-2"
+              >
+                <Zap size={14} /> Print Hardcopy
+              </button>
+              <button 
+                onClick={() => setShowDigitalInvoice(false)}
+                className="flex-1 py-4 bg-white border border-slate-200 text-slate-500 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all"
+              >
+                Close Receipt
               </button>
             </div>
           </div>

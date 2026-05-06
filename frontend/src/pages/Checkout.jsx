@@ -33,7 +33,7 @@ const Checkout = () => {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      toast.success("Connection restored. Syncing pending data...");
+      toast.success("Back online. Syncing data...");
       syncOfflineOrders();
     };
     const handleOffline = () => {
@@ -68,7 +68,7 @@ const Checkout = () => {
     }
 
     if (successCount > 0) {
-      toast.success(`${successCount} offline orders synced to live DB!`);
+      toast.success(`${successCount} offline orders synced!`);
       localStorage.removeItem("offline_orders");
     }
   };
@@ -86,7 +86,7 @@ const Checkout = () => {
       totalAmount: total,
       paymentMethod,
       storeId: user?.store?._id,
-      customerName: "Walk-in Customer"
+      customerName: "Customer"
     };
 
     if (!navigator.onLine) {
@@ -106,7 +106,7 @@ const Checkout = () => {
       await axios.post("/orders", orderData);
       setOrderSuccess(true);
       dispatch(clearCart());
-      toast.success("Order placed successfully on live DB!");
+      toast.success("Order placed successfully!");
     } catch (error) {
       // IF SERVER IS DOWN BUT INTERNET IS ON
       const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
@@ -130,7 +130,7 @@ const Checkout = () => {
           </div>
           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">Order Successfully Processed</h1>
           <p className="text-slate-500 dark:text-slate-400 font-bold uppercase text-[10px] tracking-widest leading-relaxed">
-            {isOnline ? "The transaction has been synchronized with the live enterprise database." : "The transaction has been cached locally and will sync once the server is reachable."}
+            {isOnline ? "The order has been synced with the server." : "The order has been saved locally and will sync later."}
           </p>
           <button onClick={() => navigate("/dashboard")} className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl hover:bg-brand-red hover:text-white transition-all">
             Return to Dashboard
@@ -159,19 +159,19 @@ const Checkout = () => {
                 <ArrowLeft size={20} />
               </button>
               <div>
-                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">Terminal Checkout</h1>
+                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">Checkout</h1>
                 <div className="flex items-center gap-2 mt-1">
                   {isOnline ? (
-                    <span className="flex items-center gap-1.5 text-[9px] font-black text-emerald-500 uppercase tracking-widest"><Wifi size={12} /> Live Sync Active</span>
+                    <span className="flex items-center gap-1.5 text-[9px] font-black text-emerald-500 uppercase tracking-widest"><Wifi size={12} /> Online</span>
                   ) : (
-                    <span className="flex items-center gap-1.5 text-[9px] font-black text-amber-500 uppercase tracking-widest"><WifiOff size={12} /> Local Offline Mode</span>
+                    <span className="flex items-center gap-1.5 text-[9px] font-black text-amber-500 uppercase tracking-widest"><WifiOff size={12} /> Offline Mode</span>
                   )}
                 </div>
               </div>
             </div>
             <div className="hidden md:flex items-center gap-2 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-full border border-slate-200 dark:border-white/5">
               <Zap size={14} className="text-brand-red" />
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Transaction Guard Active</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Secure Checkout</span>
             </div>
           </div>
         </header>
@@ -241,7 +241,7 @@ const Checkout = () => {
                   className="w-full mt-10 py-5 bg-brand-red text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] shadow-xl shadow-brand-red/20 hover:bg-brand-darkred active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                 >
                   {loading ? <Loader2 className="animate-spin" size={20} /> : <Zap size={20} />}
-                  {isOnline ? "Process Order" : "Store Offline Order"}
+                  {isOnline ? "Place Order" : "Save Offline"}
                 </button>
               </div>
 

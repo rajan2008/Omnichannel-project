@@ -30,14 +30,26 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
     setIsDragging(false);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     setIsDragging(false);
+    
+    // Check for files
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith("image/")) {
       setImage(file);
+      setForm(prev => ({ ...prev, imageUrl: "" })); // Clear URL if file is dropped
+      return;
+    }
+
+    // Check for dropped URL
+    const url = e.dataTransfer.getData("URL") || e.dataTransfer.getData("text/plain");
+    if (url && (url.startsWith("http") || url.startsWith("data:image"))) {
+      setForm(prev => ({ ...prev, imageUrl: url }));
+      setImage(null); // Clear file if URL is dropped
+      toast.success("Image link captured");
     } else {
-      toast.error("Please drop an image file");
+      toast.error("Please drop an image file or valid image link");
     }
   };
 
@@ -108,7 +120,11 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
       formData.delete("store"); // Remove empty or old store from iteration
       formData.append("store", finalStoreId);
       
-      if (image) formData.append("image", image);
+      if (image) {
+        formData.append("image", image);
+      } else if (form.imageUrl) {
+        formData.append("image", form.imageUrl); // Backend might need to handle this as a string if not a file
+      }
 
       await axios.post("/inventory", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -147,7 +163,7 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
         <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto no-scrollbar">
           {user?.role === "admin" && (
             <div className="space-y-1">
-              <label className="text-[9px] font-black text-brand-red uppercase tracking-widest px-1">Assign to Branch / Store *</label>
+              <label className="text-[9px] font-black text-brand-red uppercase tracking-widest px-1">Select Store *</label>
               <div className="relative">
                 <Store className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-red" size={14} />
                 <select
@@ -236,7 +252,7 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
           </div>
 
           <div className="space-y-1">
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Image Asset</label>
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest px-1">Product Image</label>
             <div 
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -258,7 +274,7 @@ const AddProductModal = ({ isOpen, onClose, refreshProducts }) => {
             className="w-full py-3 bg-brand-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-brand-red/20 hover:bg-brand-darkred active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="animate-spin" size={14} /> : <Zap size={14} />}
-            {loading ? "Adding Asset..." : "Confirm & Create Product"}
+            {loading ? "Adding..." : "Add Product"}
           </button>
         </div>
       </div>
