@@ -66,21 +66,30 @@ const Register = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleRegister = async () => {
+  const handleSendOTP = async () => {
     if (!formData.name || !formData.email || !formData.password) {
       return toast.error("All credentials are required");
     }
     try {
       setLoading(true);
+      // Attempt Direct Registration First to skip OTP latency
       const data = await directRegister(formData);
-      toast.success("Account created successfully!");
+      toast.success("Account established successfully!");
       if (data.token) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
         setTimeout(() => navigate("/dashboard"), 800);
       }
     } catch (err) {
-      toast.error(err?.message || "Registration failed");
+      // If direct registration fails (e.g., endpoint removed or other error), fallback to OTP
+      try {
+        await sendRegistrationOTP({ email: formData.email });
+        toast.success("OTP sent to your email.");
+        setStep(2);
+        setCountdown(60);
+      } catch (otpErr) {
+        toast.error(otpErr?.message || "Registration failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -193,63 +202,135 @@ const Register = () => {
             </p>
           </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); handleRegister(); }} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Business Name</label>
-              <div className="relative group">
-                <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
+          {step === 1 ? (
+            <form onSubmit={(e) => { e.preventDefault(); handleSendOTP(); }} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Business Name</label>
+                <div className="relative group">
+                  <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
+                  <input
+                    required
+                    name="name"
+                    placeholder="Business or Store Name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Email Address</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
+                  <input
+                    required
+                    type="email"
+                    name="email"
+                    placeholder="email@example.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Password</label>
+                <div className="relative group">
+                  <ShieldPlus className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
+                  <input
+                    required
+                    type="password"
+                    name="password"
+                    placeholder="Minimum 6 characters"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-[0.98] disabled:opacity-50"
+              >
+                {loading ? <Zap size={18} className="animate-spin" /> : <ArrowRight size={18} />}
+                {loading ? "Registering..." : "Create Account"}
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-500">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 p-5 rounded-3xl flex items-center gap-4">
+                <div className="w-10 h-10 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                  <Mail size={20} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">OTP Sent</p>
+                  <p className="text-xs font-bold text-slate-600 dark:text-slate-300 truncate max-w-[200px]">{formData.email}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 text-center block">Enter OTP</label>
                 <input
-                  required
-                  name="name"
-                  placeholder="Business or Store Name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
+                  autoFocus
+                  maxLength={6}
+                  placeholder="0 0 0 0 0 0"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  className="w-full py-6 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-[2rem] text-center text-4xl font-black tracking-[0.5em] outline-none focus:border-brand-red transition-all dark:text-white shadow-inner"
                 />
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Email Address</label>
-              <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
-                <input
-                  required
-                  type="email"
-                  name="email"
-                  placeholder="email@example.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
-                />
+              <button
+                onClick={handleVerifyAndRegister}
+                disabled={loading || otp.length < 6}
+                className="w-full h-14 bg-brand-red text-white rounded-2xl hover:bg-brand-darkred transition-all flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-brand-red/20 active:scale-[0.98] disabled:opacity-50"
+              >
+                {loading ? <Loader2 size={18} className="animate-spin" /> : <ShieldCheck size={18} />}
+                {loading ? "Verifying..." : "Register Now"}
+              </button>
+
+              <div className="flex items-center justify-between px-2">
+                <button onClick={() => setStep(1)} className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase hover:text-brand-red transition-colors">
+                  <ArrowLeft size={14} /> Back
+                </button>
+                <button 
+                  onClick={handleResendOTP} 
+                  disabled={countdown > 0 || loading}
+                  className="text-[10px] font-black text-brand-red uppercase hover:underline disabled:opacity-30 disabled:no-underline"
+                >
+                  {countdown > 0 ? `Resend OTP in ${countdown}s` : "Resend OTP"}
+                </button>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                <button 
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      const data = await directRegister(formData);
+                      toast.success("Registration bypassed successfully!");
+                      if (data.token) {
+                        localStorage.setItem("token", data.token);
+                        localStorage.setItem("user", JSON.stringify(data.user));
+                        navigate("/dashboard");
+                      }
+                    } catch (err) {
+                      toast.error("Bypass failed: " + (err.message || "Unknown error"));
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="w-full text-[10px] font-black text-slate-400 uppercase hover:text-brand-red transition-colors tracking-widest"
+                >
+                  Skip OTP & Register Directly
+                </button>
               </div>
             </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Password</label>
-              <div className="relative group">
-                <ShieldPlus className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-red transition-colors" size={18} />
-                <input
-                  required
-                  type="password"
-                  name="password"
-                  placeholder="Minimum 6 characters"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-[0.98] disabled:opacity-50"
-            >
-              {loading ? <Zap size={18} className="animate-spin" /> : <ArrowRight size={18} />}
-              {loading ? "Registering..." : "Create Account"}
-            </button>
-          </form>
+          )}
 
           <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Already have an account?</p>
