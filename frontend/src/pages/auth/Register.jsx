@@ -305,6 +305,30 @@ const Register = () => {
                   {countdown > 0 ? `Resend OTP in ${countdown}s` : "Resend OTP"}
                 </button>
               </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-white/5">
+                <button 
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      const data = await directRegister(formData);
+                      toast.success("Registration bypassed successfully!");
+                      if (data.token) {
+                        localStorage.setItem("token", data.token);
+                        localStorage.setItem("user", JSON.stringify(data.user));
+                        navigate("/dashboard");
+                      }
+                    } catch (err) {
+                      toast.error("Bypass failed: " + (err.message || "Unknown error"));
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  className="w-full text-[10px] font-black text-slate-400 uppercase hover:text-brand-red transition-colors tracking-widest"
+                >
+                  Skip OTP & Register Directly
+                </button>
+              </div>
             </div>
           )}
 
