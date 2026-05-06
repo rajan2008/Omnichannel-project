@@ -1,4 +1,8 @@
 import nodemailer from "nodemailer";
+import dns from "dns";
+
+// Force DNS to resolve IPv4 first to avoid Render IPv6 connectivity issues
+dns.setDefaultResultOrder("ipv4first");
 
 const sendEmail = async (options) => {
   // ALWAYS LOG THE MESSAGE CONTENT FIRST (In case SMTP fails)
