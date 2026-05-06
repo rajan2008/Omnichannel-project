@@ -156,26 +156,30 @@ export default function Dashboard() {
         setLoading(true);
 
         const [productsData, statsData, storesData, ordersData] = await Promise.all([
-          getProducts(),
-          getDashboardStats(selectedStore || "all"),
-          getStores(),
+          getProducts().catch(() => ({ products: [] })),
+          getDashboardStats(selectedStore || "all").catch(() => null),
+          getStores().catch(() => []),
           getOrders().catch(() => []),
         ]);
 
-        setProducts(productsData.products || []);
-        setFilteredProducts(productsData.products || []);
-        setStats(statsData);
-        setStores(storesData);
-        setRecentOrders(Array.isArray(ordersData) ? ordersData.slice(0, 5) : []);
-
-        // Caching for offline use
-        localStorage.setItem("cached_stats", JSON.stringify(statsData));
-        localStorage.setItem("cached_stores", JSON.stringify(storesData));
-
-        if (user?.store?._id) {
-          setSelectedStore(user.store._id);
-        } else if (storesData.length > 0) {
-          setSelectedStore(storesData[0]._id);
+        if (productsData) {
+          setProducts(productsData.products || []);
+          setFilteredProducts(productsData.products || []);
+        }
+        if (statsData) {
+          setStats(statsData);
+          localStorage.setItem("cached_stats", JSON.stringify(statsData));
+        }
+        if (storesData) {
+          setStores(storesData);
+          localStorage.setItem("cached_stores", JSON.stringify(storesData));
+          if (storesData.length > 0 && !selectedStore) {
+             if (user?.store?._id) setSelectedStore(user.store._id);
+             else setSelectedStore(storesData[0]._id);
+          }
+        }
+        if (ordersData) {
+          setRecentOrders(Array.isArray(ordersData) ? ordersData.slice(0, 5) : []);
         }
 
         const params = new URLSearchParams(location.search);
@@ -186,23 +190,7 @@ export default function Dashboard() {
           setIsCartModalOpen(true);
         }
       } catch (error) {
-        console.error("Dashboard load error:", error);
-        
-        // Offline Fallback
-        if (!navigator.onLine) {
-          const cachedStats = localStorage.getItem("cached_stats");
-          const cachedStores = localStorage.getItem("cached_stores");
-          
-          if (cachedStats) setStats(JSON.parse(cachedStats));
-          if (cachedStores) {
-            const s = JSON.parse(cachedStores);
-            setStores(s);
-            if (s.length > 0 && !selectedStore) setSelectedStore(s[0]._id);
-          }
-          toast.success("Working Offline", { icon: "🔌" });
-        } else {
-          toast.error("Failed to load dashboard. Check connection.");
-        }
+        console.error("Dashboard critical error:", error);
       } finally {
         setLoading(false);
       }

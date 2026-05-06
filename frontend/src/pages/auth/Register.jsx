@@ -72,24 +72,12 @@ const Register = () => {
     }
     try {
       setLoading(true);
-      // Attempt Direct Registration First to skip OTP latency
-      const data = await directRegister(formData);
-      toast.success("Account established successfully!");
-      if (data.token) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        setTimeout(() => navigate("/dashboard"), 800);
-      }
+      await sendRegistrationOTP({ email: formData.email });
+      toast.success("OTP sent to your email.");
+      setStep(2);
+      setCountdown(60);
     } catch (err) {
-      // If direct registration fails (e.g., endpoint removed or other error), fallback to OTP
-      try {
-        await sendRegistrationOTP({ email: formData.email });
-        toast.success("OTP sent to your email.");
-        setStep(2);
-        setCountdown(60);
-      } catch (otpErr) {
-        toast.error(otpErr?.message || "Registration failed");
-      }
+      toast.error(err?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
