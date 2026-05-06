@@ -100,7 +100,7 @@ const SearchFilterComponent = ({
       focus:ring-2 focus:ring-brand-red outline-none cursor-pointer 
       hover:opacity-100 opacity-80 transition-all"
               >
-                <option value="all">All Channels</option>
+                <option value="all">All Stores</option>
                 {stores.map((s) => (
                   <option key={s._id} value={s._id} className="dark:bg-[#111827]">
                     {s.name}

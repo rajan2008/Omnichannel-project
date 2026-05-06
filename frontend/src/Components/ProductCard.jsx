@@ -101,7 +101,7 @@ const ProductCard = ({
           {/* Fallback */}
           <div className="hidden absolute inset-0 items-center justify-center">
             <span className="text-xs font-bold text-slate-400">
-              No Image Found
+              No Image
             </span>
           </div>
         </div>
@@ -152,13 +152,13 @@ const ProductCard = ({
         {(user?.role === "admin" || user?.role === "manager") && (
           <div className="flex flex-col gap-0.5 mt-1 border-t border-slate-100 dark:border-white/5 pt-1.5">
             <div className="flex items-center justify-between">
-              <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Stock Level</span>
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Stock</span>
               <span className={`text-[9px] font-black ${product.stock <= 5 ? 'text-brand-red animate-pulse' : 'text-slate-900 dark:text-white'}`}>
-                {product.stock} Units
+                {product.stock} items
               </span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Location</span>
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter">Store</span>
               <span className="text-[9px] font-black text-brand-red truncate max-w-[80px]">
                 {product.store?.name || "General"}
               </span>
