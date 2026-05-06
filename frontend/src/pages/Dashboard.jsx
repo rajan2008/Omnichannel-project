@@ -51,7 +51,7 @@ import toast from "react-hot-toast";
 
 const formatCurrency = (value) =>
   new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(
-    value,
+    value || 0,
   );
 
 const getProductImage = (product) => {
@@ -365,7 +365,7 @@ export default function Dashboard() {
         
         setLastOrder({ ...orderSummary, isOffline: true });
         setIsCartModalOpen(false);
-        setTimeout(() => setShowCheckoutSummary(true), 100);
+        setTimeout(() => setShowCheckoutSummary(true), 300);
         dispatch(clearCartAction());
         toast.success("Saved Offline!", { icon: "📡" });
       } catch (err) {
@@ -386,7 +386,7 @@ export default function Dashboard() {
       });
 
       setIsCartModalOpen(false);
-      setTimeout(() => setShowCheckoutSummary(true), 100);
+      setTimeout(() => setShowCheckoutSummary(true), 300);
       dispatch(clearCartAction());
       toast.success("Order Successful!", { icon: "🚀" });
     } catch (error) {
@@ -397,7 +397,7 @@ export default function Dashboard() {
       
       setLastOrder({ ...orderSummary, isOffline: true });
       setIsCartModalOpen(false);
-      setTimeout(() => setShowCheckoutSummary(true), 100);
+      setTimeout(() => setShowCheckoutSummary(true), 300);
       dispatch(clearCartAction());
       toast.error("Offline Mode Activated");
     } finally {
@@ -405,8 +405,8 @@ export default function Dashboard() {
     }
   };
 
-  const subtotal = cart.reduce(
-    (acc, item) => acc + item.basePrice * item.quantity,
+  const subtotal = (cart || []).reduce(
+    (acc, item) => acc + (item.basePrice || 0) * (item.quantity || 0),
     0,
   );
   const tax = subtotal * 0.08;
