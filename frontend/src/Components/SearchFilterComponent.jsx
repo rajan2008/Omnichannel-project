@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Search, X, Layers, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Search, X, Layers, ArrowRight } from "lucide-react";
 
 const SearchFilterComponent = ({
   data,
@@ -12,8 +12,6 @@ const SearchFilterComponent = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("newest");
-  const [isSortModalOpen, setIsSortModalOpen] = useState(false);
-  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
 
   const categories = useMemo(() => {
     const cats = ["All", ...new Set(data.map((p) => p.category))];
@@ -111,15 +109,22 @@ const SearchFilterComponent = ({
           )}
         </div>
 
-        {/* MOBILE CATEGORIES & SORT */}
+        {/* CATEGORIES & SORT */}
         <div className="flex items-center gap-3 overflow-x-auto no-scrollbar py-1">
-          {/* SORT BUTTON MOBILE */}
-          <button
-            onClick={() => setIsSortModalOpen(true)}
-            className="flex sm:hidden items-center gap-2 px-3 py-2 bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 shrink-0"
-          >
-            <ArrowRight size={14} className="rotate-90" /> Sort
-          </button>
+          {/* COMPACT SORT DROPDOWN */}
+          <div className="relative shrink-0">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="appearance-none pl-8 pr-4 py-2 bg-slate-100/50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-500 outline-none focus:border-brand-red transition-all cursor-pointer"
+            >
+              <option value="newest">Newest</option>
+              <option value="price-low">Price ↑</option>
+              <option value="price-high">Price ↓</option>
+              <option value="name">Name A-Z</option>
+            </select>
+            <ArrowRight size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 rotate-90" />
+          </div>
 
           <div className="h-4 w-[1px] bg-slate-200 dark:bg-white/10 shrink-0 mx-1" />
 
@@ -145,52 +150,6 @@ const SearchFilterComponent = ({
               <X size={14} /> Reset
             </button>
           )}
-        </div>
-      </div>
-
-      {/* BACKDROP */}
-      {(isSortModalOpen || isFilterModalOpen) && (
-        <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100]"
-          onClick={() => {
-            setIsSortModalOpen(false);
-            setIsFilterModalOpen(false);
-          }}
-        />
-      )}
-
-      {/* SORT MODAL */}
-      <div
-        className={`fixed inset-x-0 bottom-0 bg-white dark:bg-[#1a1c2c] z-[110] transition-transform duration-300 rounded-t-[2rem] ${isSortModalOpen ? "translate-y-0" : "translate-y-full"}`}
-      >
-        <div className="p-8">
-          <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">
-            Sort By
-          </h3>
-          <div className="space-y-2">
-            {[
-              { id: "newest", label: "Newest First" },
-              { id: "price-low", label: "Price: Low to High" },
-              { id: "price-high", label: "Price: High to Low" },
-              { id: "name", label: "Name: A-Z" },
-            ].map((opt) => (
-              <button
-                key={opt.id}
-                onClick={() => {
-                  setSortBy(opt.id);
-                  setIsSortModalOpen(false);
-                }}
-                className={`w-full flex items-center justify-between p-4 rounded-2xl ${
-                  sortBy === opt.id
-                    ? "bg-brand-red/10 text-brand-red font-bold"
-                    : "text-slate-500 dark:text-slate-400"
-                }`}
-              >
-                {opt.label}
-                {sortBy === opt.id && <CheckCircle2 className="w-5 h-5" />}
-              </button>
-            ))}
-          </div>
         </div>
       </div>
     </div>
