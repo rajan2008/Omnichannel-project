@@ -103,41 +103,6 @@ export default function Dashboard() {
   const [selectedStore, setSelectedStore] = useState("");
   const [recentOrders, setRecentOrders] = useState([]);
 
-  const loadData = async (showLoader = false) => {
-    try {
-      const shouldShowFullLoader = showLoader || (products.length === 0 && recentOrders.length === 0);
-      if (shouldShowFullLoader) setLoading(true);
-      
-      const [productsData, ordersData, storesData] = await Promise.all([
-        getInventory().catch(() => []),
-        getRecentOrders().catch(() => []),
-        getStores().catch(() => [])
-      ]);
-      
-      setProducts(Array.isArray(productsData) ? productsData : []);
-      setRecentOrders(Array.isArray(ordersData) ? ordersData : []);
-      setStores(Array.isArray(storesData) ? storesData : []);
-      
-      if (shouldShowFullLoader) {
-        // Add a small delay for smoother transition
-        setTimeout(() => setLoading(false), 500);
-      }
-    } catch (err) {
-      toast.error("Connection failed");
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    // Initial load with full loader if needed
-    loadData(products.length === 0);
-  }, []);
-
-  useEffect(() => {
-    // Background refresh on tab/search change without full-screen loader
-    loadData(false);
-  }, [activeTab, location.search]);
-
   const [showDigitalInvoice, setShowDigitalInvoice] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
