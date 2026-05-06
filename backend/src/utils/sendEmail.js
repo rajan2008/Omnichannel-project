@@ -18,16 +18,17 @@ const sendEmail = async (options) => {
   try {
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      port: 587,
+      secure: false, // false for 587
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
       tls: {
-        minVersion: 'TLSv1.2',
         rejectUnauthorized: false
-      }
+      },
+      debug: true, // Enable debug logs
+      logger: true // Log SMTP traffic to console
     });
 
     const mailOptions = {
