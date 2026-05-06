@@ -105,42 +105,42 @@ function App() {
       <Toaster />
       
       {/* GLOBAL OFFLINE BANNER */}
+      {/* GLOBAL OFFLINE BANNER - MOVED TO BOTTOM TO AVOID COVERING HEADER */}
       {isOffline && (
-        <div className="fixed top-0 left-0 w-full z-[9998] bg-slate-900 text-white py-3 px-6 shadow-2xl flex items-center justify-between animate-in slide-in-from-top-full duration-500">
+        <div className="fixed bottom-0 left-0 w-full z-[9999] bg-slate-900/95 backdrop-blur-md text-white py-2.5 px-4 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] flex items-center justify-between animate-in slide-in-from-bottom-full duration-500 border-t border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-brand-red rounded-lg flex items-center justify-center animate-pulse">
-              <WifiOff size={16} />
+            <div className="w-7 h-7 bg-brand-red rounded-lg flex items-center justify-center animate-pulse">
+              <WifiOff size={14} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] leading-none">Offline Mode Active</p>
-              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Orders will be saved to local vault</p>
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] leading-none">Offline Mode Active</p>
+              <p className="hidden sm:block text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-1">Orders will be saved to local vault</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+          <div className="flex items-center gap-2 px-2.5 py-1 bg-white/5 rounded-full border border-white/10">
             <div className="w-1.5 h-1.5 bg-brand-red rounded-full animate-ping" />
-            <span className="text-[8px] font-black uppercase tracking-widest text-brand-red">Local Storage Syncing</span>
+            <span className="text-[8px] font-black uppercase tracking-widest text-brand-red">Syncing</span>
           </div>
         </div>
       )}
 
-      {/* GLOBAL ONLINE SYNC BANNER - MOVED TO TOP-0 BUT HIGHER Z-INDEX AND DIFFERENT STYLE */}
+      {/* GLOBAL ONLINE SYNC BANNER - MOVED TO BOTTOM */}
       {showSyncSuccess && (
-        <div className="fixed top-0 left-0 w-full z-[9999] bg-emerald-600 text-white py-4 px-6 shadow-2xl flex items-center justify-between animate-in slide-in-from-top-full duration-700">
+        <div className="fixed bottom-0 left-0 w-full z-[9999] bg-emerald-600/95 backdrop-blur-md text-white py-3 px-6 shadow-2xl flex items-center justify-between animate-in slide-in-from-bottom-full duration-700 border-t border-white/10">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-inner">
-              <Wifi size={20} className="animate-bounce" />
+            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shadow-inner">
+              <Wifi size={16} className="animate-bounce" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <p className="text-xs font-black uppercase tracking-[0.2em] leading-none">Network Restored</p>
-                <span className="px-2 py-0.5 bg-white/20 rounded text-[8px] font-black uppercase">Auto-Sync</span>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] leading-none">Network Restored</p>
+                <span className="px-2 py-0.5 bg-white/20 rounded text-[7px] font-black uppercase">Auto-Sync</span>
               </div>
-              <p className="text-[9px] font-bold text-emerald-100 uppercase tracking-widest mt-1.5">Uploading offline transactions to master database...</p>
+              <p className="hidden sm:block text-[8px] font-bold text-emerald-100 uppercase tracking-widest mt-1.5">Uploading transactions to master database...</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden md:block h-8 w-[1px] bg-white/10" />
-            <Loader2 size={20} className="animate-spin text-white" />
+            <Loader2 size={16} className="animate-spin text-white" />
           </div>
         </div>
       )}
