@@ -73,11 +73,11 @@ const seedRealData = async () => {
 
     // 5. Create Real Products for both stores
     const products = [
-      { name: "Premium Basmati Rice", sku: "RICE-001", category: "Grocery", costPrice: 80, basePrice: 120, stock: 100, store: store1._id },
-      { name: "Organic Sunflower Oil", sku: "OIL-002", category: "Grocery", costPrice: 150, basePrice: 210, stock: 50, store: store1._id },
-      { name: "Whole Wheat Flour 5kg", sku: "FLR-003", category: "Grocery", costPrice: 200, basePrice: 280, stock: 30, store: store1._id },
-      { name: "Dairy Fresh Milk 1L", sku: "MLK-004", category: "Dairy", costPrice: 40, basePrice: 65, stock: 200, store: store2._id },
-      { name: "Cheddar Cheese Block", sku: "CHS-005", category: "Dairy", costPrice: 120, basePrice: 190, stock: 25, store: store2._id }
+      { name: "Premium Basmati Rice", sku: "RICE-001", category: "Grocery", costPrice: 80, basePrice: 120, stock: 100, store: store1._id, images: ["https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=300&h=300"] },
+      { name: "Organic Sunflower Oil", sku: "OIL-002", category: "Grocery", costPrice: 150, basePrice: 210, stock: 50, store: store1._id, images: ["https://images.unsplash.com/photo-1474979266404-7eaacbadcbaf?auto=format&fit=crop&q=80&w=300&h=300"] },
+      { name: "Whole Wheat Flour 5kg", sku: "FLR-003", category: "Grocery", costPrice: 200, basePrice: 280, stock: 30, store: store1._id, images: ["https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=300&h=300"] },
+      { name: "Dairy Fresh Milk 1L", sku: "MLK-004", category: "Dairy", costPrice: 40, basePrice: 65, stock: 200, store: store2._id, images: ["https://images.unsplash.com/photo-1550583724-125581fad2d4?auto=format&fit=crop&q=80&w=300&h=300"] },
+      { name: "Cheddar Cheese Block", sku: "CHS-005", category: "Dairy", costPrice: 120, basePrice: 190, stock: 25, store: store2._id, images: ["https://images.unsplash.com/photo-1485962391945-82055171732d?auto=format&fit=crop&q=80&w=300&h=300"] }
     ];
 
     await Product.insertMany(products);

@@ -46,6 +46,7 @@ import {
   Activity,
   Globe,
   CloudLightning,
+  Zap,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -513,19 +514,19 @@ export default function Dashboard() {
                     </div>
 
                     <div className="space-y-4 border-y border-slate-100 dark:border-white/5 py-8">
-                      {lastOrder?.items?.map((item) => (
+                      {(lastOrder?.items || []).map((item, idx) => (
                         <div
-                          key={item._id}
+                          key={item?._id || idx}
                           className="flex justify-between items-center text-xs group"
                         >
                           <div className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded bg-slate-50 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-brand-red border border-slate-100 dark:border-white/10">{item.quantity}</span>
+                            <span className="w-6 h-6 rounded bg-slate-50 dark:bg-white/5 flex items-center justify-center text-[10px] font-black text-brand-red border border-slate-100 dark:border-white/10">{item?.quantity || 0}</span>
                             <span className="text-slate-800 dark:text-slate-200 font-bold capitalize">
-                              {item.name}
+                              {item?.name || "Product"}
                             </span>
                           </div>
                           <span className="font-black text-slate-900 dark:text-white">
-                            {formatCurrency(item.basePrice * item.quantity)}
+                            {formatCurrency((item?.basePrice || 0) * (item?.quantity || 0))}
                           </span>
                         </div>
                       ))}
@@ -534,16 +535,16 @@ export default function Dashboard() {
                     <div className="space-y-3 pt-2">
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Subtotal</span>
-                        <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(lastOrder?.total * 0.92)}</span>
+                        <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency((lastOrder?.total || 0) * 0.92)}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tax (8%)</span>
-                        <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency(lastOrder?.total * 0.08)}</span>
+                        <span className="text-xs font-black text-slate-900 dark:text-white">{formatCurrency((lastOrder?.total || 0) * 0.08)}</span>
                       </div>
                       <div className="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-white/5">
                         <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tighter">Total Amount Paid</span>
                         <span className="text-2xl font-black text-brand-red tracking-tighter">
-                          {formatCurrency(lastOrder?.total)}
+                          {formatCurrency(lastOrder?.total || 0)}
                         </span>
                       </div>
                     </div>
@@ -593,12 +594,12 @@ export default function Dashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {lastOrder?.items?.map((item) => (
-                        <tr key={item._id} className="border-b border-gray-100">
-                          <td className="py-4 text-xs font-bold">{item.name}</td>
-                          <td className="py-4 text-center text-xs font-bold">{item.quantity}</td>
-                          <td className="py-4 text-right text-xs font-bold">{formatCurrency(item.basePrice)}</td>
-                          <td className="py-4 text-right text-xs font-black">{formatCurrency(item.basePrice * item.quantity)}</td>
+                      {(lastOrder?.items || []).map((item, idx) => (
+                        <tr key={item?._id || idx} className="border-b border-gray-100">
+                          <td className="py-4 text-xs font-bold">{item?.name || "Product"}</td>
+                          <td className="py-4 text-center text-xs font-bold">{item?.quantity || 0}</td>
+                          <td className="py-4 text-right text-xs font-bold">{formatCurrency(item?.basePrice || 0)}</td>
+                          <td className="py-4 text-right text-xs font-black">{formatCurrency((item?.basePrice || 0) * (item?.quantity || 0))}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1036,11 +1037,11 @@ export default function Dashboard() {
               <div className="flex justify-between border-b-2 border-black pb-6 mb-8">
                 <div>
                   <p className="text-[10px] font-black uppercase text-gray-400 mb-1">Order ID</p>
-                  <p className="text-sm font-black">{lastOrder?.orderId || lastOrder?._id}</p>
+                  <p className="text-sm font-black">{lastOrder?.orderId || lastOrder?._id || "N/A"}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] font-black uppercase text-gray-400 mb-1">Date & Time</p>
-                  <p className="text-sm font-black">{new Date().toLocaleString()}</p>
+                  <p className="text-sm font-black">{new Date(lastOrder?.createdAt || Date.now()).toLocaleString()}</p>
                 </div>
               </div>
 
@@ -1054,15 +1055,15 @@ export default function Dashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {lastOrder?.items?.map((item) => (
-                    <tr key={item._id}>
+                  {(lastOrder?.items || []).map((item, idx) => (
+                    <tr key={item?._id || idx}>
                       <td className="py-5">
-                        <p className="text-sm font-black uppercase">{item.name}</p>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{item.category}</p>
+                        <p className="text-sm font-black uppercase">{item?.name || "Product"}</p>
+                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">{item?.category || "General"}</p>
                       </td>
-                      <td className="py-5 text-center text-sm font-black">x{item.quantity}</td>
-                      <td className="py-5 text-right text-sm font-bold">{formatCurrency(item.basePrice)}</td>
-                      <td className="py-5 text-right text-sm font-black">{formatCurrency(item.basePrice * item.quantity)}</td>
+                      <td className="py-5 text-center text-sm font-black">x{item?.quantity || 0}</td>
+                      <td className="py-5 text-right text-sm font-bold">{formatCurrency(item?.basePrice || 0)}</td>
+                      <td className="py-5 text-right text-sm font-black">{formatCurrency((item?.basePrice || 0) * (item?.quantity || 0))}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1071,16 +1072,16 @@ export default function Dashboard() {
               <div className="space-y-4 border-t-2 border-black pt-8">
                 <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest">
                   <span className="text-gray-500">Subtotal</span>
-                  <span>{formatCurrency(lastOrder?.total * 0.92)}</span>
+                  <span>{formatCurrency((lastOrder?.total || 0) * 0.92)}</span>
                 </div>
                 <div className="flex justify-between items-center text-xs font-bold uppercase tracking-widest">
                   <span className="text-gray-500">Taxes & Levies (8%)</span>
-                  <span>{formatCurrency(lastOrder?.total * 0.08)}</span>
+                  <span>{formatCurrency((lastOrder?.total || 0) * 0.08)}</span>
                 </div>
                 <div className="flex justify-between items-center pt-6 border-t border-dashed border-gray-300">
                   <span className="text-lg font-black uppercase tracking-tighter">Total Paid</span>
                   <span className="text-3xl font-black text-brand-red tracking-tighter">
-                    {formatCurrency(lastOrder?.total)}
+                    {formatCurrency(lastOrder?.total || 0)}
                   </span>
                 </div>
               </div>
