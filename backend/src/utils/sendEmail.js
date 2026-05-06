@@ -27,8 +27,9 @@ const sendEmail = async (options) => {
       tls: {
         rejectUnauthorized: false
       },
-      debug: true, // Enable debug logs
-      logger: true // Log SMTP traffic to console
+      family: 4, // Force IPv4 to avoid Render IPv6 issues
+      debug: true,
+      logger: true
     });
 
     const mailOptions = {
