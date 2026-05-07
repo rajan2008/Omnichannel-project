@@ -118,7 +118,7 @@ const Register = () => {
   };
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center bg-white dark:bg-[#0f172a] font-sans text-slate-900 dark:text-white transition-all duration-500 overflow-hidden relative">
+    <div className="w-full h-screen flex items-center justify-center bg-white dark:bg-[#0f172a] font-sans text-slate-900 dark:text-white transition-all duration-500 overflow-hidden relative px-4 py-4">
       
       {/* PREMIUM BACKGROUND ANIMATION */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -135,17 +135,20 @@ const Register = () => {
       </button>
 
       {/* MAIN CONTAINER */}
-      <div className="w-full max-w-[1100px] min-h-[700px] lg:h-[700px] flex flex-col lg:flex-row rounded-[2rem] lg:rounded-[2.5rem] overflow-hidden shadow-2xl border border-white dark:border-white/5 relative z-10 m-4">
+      <div className="w-full max-w-7xl h-[94vh] flex flex-col lg:flex-row rounded-3xl overflow-hidden shadow-2xl border border-white dark:border-white/5 relative z-10">
         
         {/* LEFT VISUAL SECTION (Desktop) */}
         <div className="hidden lg:flex flex-1 bg-slate-900 relative items-center justify-center overflow-hidden order-1 lg:order-2">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute w-[200%] h-[200%] top-[-50%] left-[-50%] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] animate-slow-pan" />
           </div>
+
           <div className="relative z-10 p-20">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-full mb-8 animate-bounce">
               <Zap size={14} className="text-brand-red" />
-              <span className="text-[10px] font-black text-white uppercase tracking-widest">Rapid Deployment Hub</span>
+              <span className="text-[10px] font-black text-white uppercase tracking-widest">
+                Rapid Deployment Hub
+              </span>
             </div>
             <h2 className="text-5xl font-black text-white tracking-tighter mb-6 leading-tight">
               Build Your <br />
@@ -173,15 +176,15 @@ const Register = () => {
         </div>
 
         {/* RIGHT FORM SECTION */}
-        <div className="w-full lg:w-[480px] flex flex-col justify-center px-8 sm:px-16 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl relative py-12 order-2 lg:order-1">
+        <div className="w-full lg:w-[42%] flex flex-col justify-center px-6 sm:px-10 py-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-2xl relative order-2 lg:order-1">
           
           {/* Progress Indicator */}
-          <div className="flex gap-2 mb-10">
+          <div className="flex gap-2 mb-6">
             <div className={`h-1 flex-1 rounded-full transition-all duration-500 ${step >= 1 ? 'bg-brand-red' : 'bg-slate-200 dark:bg-white/10'}`} />
             <div className={`h-1 flex-1 rounded-full transition-all duration-500 ${step >= 2 ? 'bg-brand-red' : 'bg-slate-200 dark:bg-white/10'}`} />
           </div>
 
-          <div className="mb-8 flex flex-col items-center lg:items-start animate-in fade-in slide-in-from-top-4 duration-700">
+          <div className="mb-5 flex flex-col items-center lg:items-start animate-in fade-in slide-in-from-top-4 duration-700">
             <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
               {step === 1 ? "Register" : "Verify Email"}
             </h1>
@@ -191,7 +194,7 @@ const Register = () => {
           </div>
 
           {step === 1 ? (
-            <form onSubmit={(e) => { e.preventDefault(); handleSendOTP(); }} className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-500">
+            <form onSubmit={(e) => { e.preventDefault(); handleSendOTP(); }} className="space-y-3 animate-in fade-in slide-in-from-right-4 duration-500">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Business Name</label>
                 <div className="relative group">
@@ -202,7 +205,7 @@ const Register = () => {
                     placeholder="Business or Store Name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
                   />
                 </div>
               </div>
@@ -218,7 +221,7 @@ const Register = () => {
                     placeholder="email@example.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
                   />
                 </div>
               </div>
@@ -234,7 +237,7 @@ const Register = () => {
                     placeholder="Minimum 6 characters"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full pl-12 pr-4 py-3.5 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
+                    className="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl outline-none focus:border-brand-red transition-all font-bold text-sm dark:text-white"
                   />
                 </div>
               </div>
@@ -242,7 +245,7 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-14 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-[0.98] disabled:opacity-50"
+                className="w-full h-11 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl hover:bg-brand-red dark:hover:bg-brand-red dark:hover:text-white transition-all flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl active:scale-[0.98] disabled:opacity-50"
               >
                 {loading ? <Zap size={18} className="animate-spin" /> : <ArrowRight size={18} />}
                 {loading ? "Registering..." : "Create Account"}
@@ -334,13 +337,13 @@ const Register = () => {
             </div>
           )}
 
-          <div className="mt-10 pt-8 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
+          <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 flex flex-col items-center">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Already have an account?</p>
-            <button onClick={() => navigate("/login")} className="text-sm font-black text-slate-900 dark:text-white hover:text-brand-red transition-all">Login</button>
+            <button onClick={() => navigate("/login")} className="text-sm font-black text-slate-900 dark:text-white hover:underline cursor-pointer hover:text-brand-red transition-all">Login</button>
           </div>
 
           {/* OTP HINT */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full px-10 text-center opacity-40 hover:opacity-100 transition-opacity">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-full px-6 text-center opacity-40 hover:opacity-100 transition-opacity">
             <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">
               Facing latency? Check server logs for immediate OTP access.
             </p>
