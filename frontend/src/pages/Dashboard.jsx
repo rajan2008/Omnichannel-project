@@ -108,7 +108,6 @@ export default function Dashboard() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -123,8 +122,14 @@ export default function Dashboard() {
 
         const [productsData, statsData, storesData, ordersData] = await Promise.all([
           getProducts().catch(() => ({ products: [] })),
-          getDashboardStats(selectedStore || "all").catch(() => null),
-          getStores().catch(() => []),
+          getDashboardStats(selectedStore || "all").catch(() => {
+            const cached = localStorage.getItem("cached_stats");
+            return cached ? JSON.parse(cached) : null;
+          }),
+          getStores().catch(() => {
+            const cached = localStorage.getItem("cached_stores");
+            return cached ? JSON.parse(cached) : [];
+          }),
           getOrders().catch(() => []),
         ]);
 
@@ -140,12 +145,18 @@ export default function Dashboard() {
           setStores(storesData);
           localStorage.setItem("cached_stores", JSON.stringify(storesData));
           if (storesData.length > 0 && !selectedStore) {
-             if (user?.store?._id) setSelectedStore(user.store._id);
-             else setSelectedStore(storesData[0]._id);
+             const userStoreId = user?.store?._id || user?.store;
+             if (userStoreId) {
+               setSelectedStore(userStoreId);
+             } else {
+               setSelectedStore(storesData[0]._id);
+             }
           }
         }
         if (ordersData) {
-          setRecentOrders(Array.isArray(ordersData) ? ordersData.slice(0, 5) : []);
+          const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
+          const combined = [...offlineOrders.map(o => ({ ...o, orderStatus: 'OFFLINE' })), ...(Array.isArray(ordersData) ? ordersData : [])];
+          setRecentOrders(combined.slice(0, 5));
         }
 
         const params = new URLSearchParams(location.search);
@@ -178,54 +189,25 @@ export default function Dashboard() {
     setIsEditModalOpen(true);
   };
 
-  // Handle Online/Offline Status and Sync
+  // Handle Online/Offline Status (Basic state only, sync is handled by App.jsx)
   useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      toast.success("Back online! Syncing data...", { icon: "🌐" });
-      syncOfflineOrders();
-    };
-    const handleOffline = () => {
-      setIsOnline(false);
-      toast.error("You are offline. Working in local mode.", { icon: "🔌" });
-    };
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    // Initial sync check
-    if (navigator.onLine) syncOfflineOrders();
+    const handleSyncComplete = () => {
+      refreshData();
+    };
+    window.addEventListener("sync-complete", handleSyncComplete);
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("sync-complete", handleSyncComplete);
     };
   }, []);
-
-  const syncOfflineOrders = async () => {
-    const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
-    if (offlineOrders.length === 0) return;
-
-    setIsSyncing(true);
-    const remaining = [];
-    let successCount = 0;
-
-    for (const order of offlineOrders) {
-      try {
-        await checkoutOrder(order);
-        successCount++;
-      } catch (err) {
-        remaining.push(order);
-      }
-    }
-
-    localStorage.setItem("offline_orders", JSON.stringify(remaining));
-    if (successCount > 0) {
-      toast.success(`Synced ${successCount} offline orders!`, { icon: "📤" });
-      refreshData();
-    }
-    setIsSyncing(false);
-  };
 
   // Sync Tab and Modal with URL
   useEffect(() => {
@@ -344,8 +326,8 @@ export default function Dashboard() {
       storeId: selectedStore || user?.store?._id,
     };
 
-    if (!orderData.storeId) {
-      toast.error("Please select a store first");
+    if (!orderData.storeId || orderData.storeId === "all") {
+      toast.error("Please select a specific store first");
       return;
     }
 
@@ -361,10 +343,18 @@ export default function Dashboard() {
       // OFFLINE LOGIC
       try {
         const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
-        offlineOrders.push({ ...orderData, ...orderSummary, isOffline: true });
+        const uniqueOrderId = `ORD-${new Date().toISOString().slice(2, 10).replace(/-/g, "")}-${Math.floor(Math.random() * 1000)}`;
+        const finalOrder = { 
+          ...orderData, 
+          ...orderSummary, 
+          orderId: uniqueOrderId,
+          id: uniqueOrderId, // Ensure consistent ID field
+          isOffline: true 
+        };
+        offlineOrders.push(finalOrder);
         localStorage.setItem("offline_orders", JSON.stringify(offlineOrders));
         
-        setLastOrder({ ...orderSummary, isOffline: true });
+        setLastOrder(finalOrder);
         setIsCartModalOpen(false);
         setTimeout(() => setShowCheckoutSummary(true), 300);
         dispatch(clearCartAction());

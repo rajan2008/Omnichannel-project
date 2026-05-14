@@ -20,10 +20,12 @@ const storeSchema = new mongoose.Schema(
 storeSchema.pre("findOneAndDelete", async function () {
   const storeId = this.getQuery()["_id"];
   if (storeId) {
-    await User.deleteMany({ store: storeId });
-    await Product.deleteMany({ store: storeId });
-    await Order.deleteMany({ store: storeId });
-    await InventoryLedger.deleteMany({ store: storeId });
+    await Promise.all([
+      User.deleteMany({ store: storeId }),
+      Product.deleteMany({ store: storeId }),
+      Order.deleteMany({ store: storeId }),
+      InventoryLedger.deleteMany({ store: storeId }),
+    ]);
   }
 });
 

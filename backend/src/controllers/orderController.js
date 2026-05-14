@@ -18,6 +18,10 @@ export const checkout = async (req, res) => {
       }
       storeId = req.user.store;
     }
+
+    if (!storeId || storeId === "all") {
+      return res.status(400).json({ message: "Please select a specific store for this transaction" });
+    }
     let total = 0;
     const orderItems = [];
 
@@ -82,14 +86,34 @@ export const cancelOrder = async (req, res) => {
 export const bulkSyncOrders = async (req, res) => {
   const { orders } = req.body;
   const results = { success: [], failed: [] };
+
   for (const offOrder of orders) {
     try {
       // Re-using checkout logic for sync
       const mockReq = { body: offOrder, user: req.user };
-      const mockRes = { status: () => ({ json: (data) => results.success.push(data) }) };
+      let statusCode = 200;
+      let responseData = null;
+
+      const mockRes = {
+        status: (code) => {
+          statusCode = code;
+          return {
+            json: (data) => {
+              responseData = data;
+            }
+          };
+        }
+      };
+
       await checkout(mockReq, mockRes);
+
+      if (statusCode >= 200 && statusCode < 300) {
+        results.success.push({ id: offOrder.orderId, ...responseData });
+      } else {
+        results.failed.push({ id: offOrder.orderId, error: responseData?.message || "Sync failed" });
+      }
     } catch (e) {
-      results.failed.push({ id: offOrder.offlineId, error: e.message });
+      results.failed.push({ id: offOrder.orderId, error: e.message });
     }
   }
   res.status(200).json(results);

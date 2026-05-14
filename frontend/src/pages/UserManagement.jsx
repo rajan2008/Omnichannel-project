@@ -105,12 +105,13 @@ const UserManagement = () => {
 
   const handleDeleteUser = async (id) => {
     if (!window.confirm("Delete this user?")) return;
+    const loadingToast = toast.loading("Removing user...");
     try {
       await deleteUser(id);
-      toast.success("Removed");
+      toast.success("Removed", { id: loadingToast });
       fetchData();
     } catch (error) {
-      toast.error("Failed to remove");
+      toast.error(error.response?.data?.message || "Failed to remove", { id: loadingToast });
     }
   };
 

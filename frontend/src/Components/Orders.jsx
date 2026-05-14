@@ -30,9 +30,35 @@ const Orders = ({ compact = false }) => {
   const fetchOrders = async () => {
     try {
       setLoading(true);
+      // Fetch server orders
       const res = await axios.get("/orders");
-      setOrders(res.data || []);
+      const serverOrders = res.data || [];
+
+      // Fetch offline orders from localStorage
+      const offlineOrders = JSON.parse(localStorage.getItem("offline_orders") || "[]");
+      
+      // Map offline orders to match the expected format
+      const formattedOffline = offlineOrders.map(order => ({
+        ...order,
+        _id: order.orderId || `OFF-${Math.random().toString(36).substr(2, 9)}`,
+        orderStatus: "OFFLINE",
+        isOffline: true
+      }));
+
+      // Combine and sort by date (newest first)
+      const combined = [...formattedOffline, ...serverOrders].sort((a, b) => 
+        new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      setOrders(combined);
+      // Cache for offline viewing
+      localStorage.setItem("cached_orders", JSON.stringify(serverOrders));
     } catch (error) {
+      // Load from cache if offline
+      const cached = localStorage.getItem("cached_orders");
+      if (cached) {
+        setOrders(JSON.parse(cached));
+      }
       toast.error("Failed to load orders");
     } finally {
       setLoading(false);
@@ -41,6 +67,14 @@ const Orders = ({ compact = false }) => {
 
   useEffect(() => {
     fetchOrders();
+
+    const handleSync = () => {
+      console.log("Orders refreshing after sync...");
+      fetchOrders();
+    };
+
+    window.addEventListener("sync-complete", handleSync);
+    return () => window.removeEventListener("sync-complete", handleSync);
   }, []);
 
   const handleCancel = async (id) => {
@@ -58,10 +92,11 @@ const Orders = ({ compact = false }) => {
     new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(value);
 
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
       case 'completed': return 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20';
       case 'pending': return 'bg-amber-500/10 text-amber-600 border-amber-500/20';
       case 'cancelled': return 'bg-red-500/10 text-red-600 border-red-500/20';
+      case 'offline': return 'bg-blue-500/10 text-blue-600 border-blue-500/20 animate-pulse';
       default: return 'bg-slate-500/10 text-slate-600 border-slate-500/20';
     }
   };

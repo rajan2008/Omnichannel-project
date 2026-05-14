@@ -38,27 +38,30 @@ function App() {
     const handleOnline = async () => {
       setIsOffline(false);
       console.log("[SYNC] Network back online. Triggering sync check...");
-      
+
       const token = localStorage.getItem("token");
       const offlineOrdersStr = localStorage.getItem("offline_orders");
       const offlineOrders = JSON.parse(offlineOrdersStr || "[]");
-      
+
       if (offlineOrders.length > 0 && token) {
         setShowSyncSuccess(true);
         try {
           const result = await bulkSyncOrders(offlineOrders);
           console.log("[SYNC] Result:", result);
-          
+
           const successCount = result.success?.length || 0;
           const failedCount = result.failed?.length || 0;
 
           if (successCount > 0) {
             // Keep only failed orders in local storage
             const failedIds = (result.failed || []).map(f => f.id);
-            const remainingOrders = offlineOrders.filter(o => failedIds.includes(o.id));
+            const remainingOrders = offlineOrders.filter(o => {
+              const orderId = o.id || o.orderId;
+              return failedIds.includes(orderId);
+            });
             localStorage.setItem("offline_orders", JSON.stringify(remainingOrders));
-            
-            toast.success(`Successfully reconciled ${successCount} offline transactions!`, { 
+
+            toast.success(`Successfully reconciled ${successCount} offline transactions!`, {
               icon: "🚀",
               duration: 5000,
               style: {
@@ -70,13 +73,15 @@ function App() {
                 textTransform: 'uppercase'
               }
             });
+            // Notify other components to refresh data
+            window.dispatchEvent(new CustomEvent("sync-complete"));
           }
-          
+
           if (failedCount > 0) {
             const firstError = result.failed[0].error;
-            toast.error(`Sync conflict in ${failedCount} orders. Error: ${firstError}`, { 
+            toast.error(`Sync conflict in ${failedCount} orders. Error: ${firstError}`, {
               icon: "⚠️",
-              duration: 8000 
+              duration: 8000
             });
           }
         } catch (err) {
@@ -94,6 +99,11 @@ function App() {
     window.addEventListener("offline", handleOffline);
     window.addEventListener("online", handleOnline);
 
+    // Initial sync check
+    if (navigator.onLine) {
+      handleOnline();
+    }
+
     return () => {
       window.removeEventListener("offline", handleOffline);
       window.removeEventListener("online", handleOnline);
@@ -103,7 +113,7 @@ function App() {
   return (
     <>
       <Toaster />
-      
+
       {/* GLOBAL OFFLINE BANNER */}
       {/* GLOBAL OFFLINE BANNER - MOVED TO BOTTOM TO AVOID COVERING HEADER */}
       {isOffline && (
